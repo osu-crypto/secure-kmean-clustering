@@ -1,0 +1,6 @@
+[submodule "libOTe"]
+	path = libOTe
+	url = https://github.com/osu-crypto/libOTe.git
+[submodule "cryptoTools"]
+	path = cryptoTools
+	url = https://github.com/ladnir/cryptoTools
