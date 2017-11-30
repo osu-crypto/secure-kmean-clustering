@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8)
 
-project(libOTe)
+project(main)
 
 if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
 
@@ -56,17 +56,16 @@ endif()
 #    Build cryptoTools (common utilities)   #
 #############################################
 #include_directories(cryptoTools)
-add_subdirectory(cryptoTools)
+add_subdirectory(libOTe/cryptoTools)
 
 
 #############################################
 #               Build libOTe                #
 #############################################
-add_subdirectory(libOTe)
-add_subdirectory(libOTe_Tests)
+include_directories(libOTe)
+add_subdirectory(libOTe/libOTe)
 
 #############################################
 #              Build Frontend               #
 #############################################
 add_subdirectory(frontend)
-

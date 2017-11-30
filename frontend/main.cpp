@@ -305,12 +305,13 @@ void base()
 int main(int argc, char** argv)
 {
 
-	auto thrd = std::thread([]() { iknp_test(0); });
+  std::cout << "main here" << std::endl;
+	/*auto thrd = std::thread([]() { iknp_test(0); });
 	iknp_test(1);
 	thrd.join();
 
   
-	/*thrd = std::thread([]() { kkrt_test(0); });
+	thrd = std::thread([]() { kkrt_test(0); });
 	kkrt_test(1);
 	thrd.join();*/
 
