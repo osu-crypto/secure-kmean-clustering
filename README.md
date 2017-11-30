@@ -9,4 +9,4 @@ cmake  -G "Unix Makefiles"
 make
 
 # execute
-./
+./bin/frontend
