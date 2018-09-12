@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8)
 
-project(main)
+project(libOTe)
 
 if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
 
@@ -15,12 +15,12 @@ if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
 	############################################
 	#           Flag and #defines              #
 	############################################
-	add_definitions(-DSOLUTION_DIR=\"${CMAKE_SOURCE_DIR}\")
-	set(CMAKE_C_FLAGS "-ffunction-sections -Wall  -maes -msse2 -msse4.1 -mpclmul -Wfatal-errors -pthread -Wno-strict-overflow  -fPIC -Wno-ignored-attributes")
+	add_definitions(-DSOLUTION_DIR='${CMAKE_SOURCE_DIR}')
+	set(CMAKE_C_FLAGS "-ffunction-sections -Wall  -maes -msse2 -msse4.1 -mpclmul -Wfatal-errors -pthread -Wno-strict-overflow  -Wno-ignored-attributes")
 	set(CMAKE_CXX_FLAGS  "${CMAKE_C_FLAGS}  -std=c++14")
 	
 	# Select flags.
-	SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG") 
+	SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native  -DNDEBUG") 
 	SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO " -O2 -g -ggdb -rdynamic")
 	SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g -ggdb -rdynamic")
 	
@@ -51,51 +51,23 @@ if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
 
 endif()
  
-############################################
-#       Library/includes locations          #
-#############################################
-
-# default location for libOTe
-set(libOTe_Dirs "${CMAKE_SOURCE_DIR}/libOTe/")
-
-# default location for NTL
-set(NTL_Dirs "${CMAKE_SOURCE_DIR}/Ivory-Runtime/thirdparty/linux/ntl/")
-
 
 #############################################
 #    Build cryptoTools (common utilities)   #
 #############################################
 #include_directories(cryptoTools)
-add_subdirectory(libOTe/cryptoTools)
+add_subdirectory(cryptoTools)
 
 
 #############################################
 #               Build libOTe                #
 #############################################
-include_directories(libOTe)
-add_subdirectory(libOTe/libOTe)
-
-#############################################
-#               Build Tests                #
-#############################################
-include_directories(Tests)
-add_subdirectory(Tests)
-
-#############################################
-#               Build ivory                #
-#############################################
-include_directories(Ivory-Runtime/ivory)
-add_subdirectory(Ivory-Runtime/ivory)
-
-#############################################
-#               Build ivoryTests                #
-#############################################
-include_directories(Ivory-Runtime/ivoryTests)
-add_subdirectory(Ivory-Runtime/ivoryTests)
-
-
+add_subdirectory(libOTe)
+add_subdirectory(libOTe_Tests)
 
 #############################################
 #              Build Frontend               #
 #############################################
-add_subdirectory(frontend)
+#add_subdirectory(frontend)
+
+#add_subdirectory(SimplestOT)

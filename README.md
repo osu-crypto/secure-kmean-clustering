@@ -9,6 +9,9 @@ bash all.get
 
 # build this project
 
+## copy libOTe config (don't use SimplestOT)
+`cp libOTe_config libOTe`
+
 cmake  -G "Unix Makefiles"
 
 make

@@ -26,6 +26,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tests", "Tests\Tests.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestsVS", "TestsVS\TestsVS.vcxproj", "{3EC91167-3C50-4271-988F-0F774FFA8ACC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ivory", "Ivory-Runtime\ivory\ivory.vcxproj", "{8C3AF3C3-2ABF-43A7-8B72-C674E64BD0D6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ivoryTests", "Ivory-Runtime\ivoryTests\ivoryTests.vcxproj", "{D3E2E0BC-D52A-494F-8C7A-C204C164EFD0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_DLLRT|x64 = Debug_DLLRT|x64
@@ -76,6 +80,22 @@ Global
 		{3EC91167-3C50-4271-988F-0F774FFA8ACC}.Release_DLLRT|x64.Build.0 = Release|x64
 		{3EC91167-3C50-4271-988F-0F774FFA8ACC}.Release|x64.ActiveCfg = Release|x64
 		{3EC91167-3C50-4271-988F-0F774FFA8ACC}.Release|x64.Build.0 = Release|x64
+		{8C3AF3C3-2ABF-43A7-8B72-C674E64BD0D6}.Debug_DLLRT|x64.ActiveCfg = Debug|x64
+		{8C3AF3C3-2ABF-43A7-8B72-C674E64BD0D6}.Debug_DLLRT|x64.Build.0 = Debug|x64
+		{8C3AF3C3-2ABF-43A7-8B72-C674E64BD0D6}.Debug|x64.ActiveCfg = Debug|x64
+		{8C3AF3C3-2ABF-43A7-8B72-C674E64BD0D6}.Debug|x64.Build.0 = Debug|x64
+		{8C3AF3C3-2ABF-43A7-8B72-C674E64BD0D6}.Release_DLLRT|x64.ActiveCfg = Release|x64
+		{8C3AF3C3-2ABF-43A7-8B72-C674E64BD0D6}.Release_DLLRT|x64.Build.0 = Release|x64
+		{8C3AF3C3-2ABF-43A7-8B72-C674E64BD0D6}.Release|x64.ActiveCfg = Release|x64
+		{8C3AF3C3-2ABF-43A7-8B72-C674E64BD0D6}.Release|x64.Build.0 = Release|x64
+		{D3E2E0BC-D52A-494F-8C7A-C204C164EFD0}.Debug_DLLRT|x64.ActiveCfg = Debug|x64
+		{D3E2E0BC-D52A-494F-8C7A-C204C164EFD0}.Debug_DLLRT|x64.Build.0 = Debug|x64
+		{D3E2E0BC-D52A-494F-8C7A-C204C164EFD0}.Debug|x64.ActiveCfg = Debug|x64
+		{D3E2E0BC-D52A-494F-8C7A-C204C164EFD0}.Debug|x64.Build.0 = Debug|x64
+		{D3E2E0BC-D52A-494F-8C7A-C204C164EFD0}.Release_DLLRT|x64.ActiveCfg = Release|x64
+		{D3E2E0BC-D52A-494F-8C7A-C204C164EFD0}.Release_DLLRT|x64.Build.0 = Release|x64
+		{D3E2E0BC-D52A-494F-8C7A-C204C164EFD0}.Release|x64.ActiveCfg = Release|x64
+		{D3E2E0BC-D52A-494F-8C7A-C204C164EFD0}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

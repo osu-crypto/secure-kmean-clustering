@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C81DC04B-A0F0-4B77-8DCE-C8190E629467}</ProjectGuid>
     <RootNamespace>frontend</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -49,7 +49,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)/libOTe;$(SolutionDir)/libOTe/cryptoTools/;$(SolutionDir)/libOTe/cryptoTools/thirdparty\win\boost\;$(SolutionDir)/libOTe/cryptoTools/thirdparty\win\;$(SolutionDir)/libOTe/cryptoTools/thirdparty/win/NTL/include;$(SolutionDir)/libOTe/cryptoTools/thirdparty/win/miracl;C:/libs/boost;C:/libs/;C:/libs/NTL/include;C:/libs/miracl</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/../Ivory-Runtime/;$(ProjectDir)/../Ivory-Runtime/ivory;$(ProjectDir)/../Ivory-Runtime/ivoryTests;$(SolutionDir);$(SolutionDir)/libOTe/libOTe;$(SolutionDir)/libOTe/;$(SolutionDir)/Tests;$(SolutionDir)/libOTe/cryptoTools/;$(SolutionDir)/libOTe//cryptoTools/thirdparty\win\boost\;$(SolutionDir)/libOTe/cryptoTools/thirdparty\win\;$(SolutionDir)/libOTe/cryptoTools/thirdparty/win/NTL/include;$(SolutionDir)/libOTe/cryptoTools/thirdparty/win/miracl;C:/libs/boost;C:/libs/;C:/libs/NTL/include;C:/libs/miracl</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PreprocessorDefinitions>SOLUTION_DIR=R"**($(SolutionDir))**";_WIN32_WINNT=0x0501 ;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
@@ -57,7 +57,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;%(AdditionalLibraryDirectories);$(ProjectDir)..\cryptoTools\thirdparty\win\boost\stage\lib;C:/libs/boost\stage\lib;$(OutDir);$(ProjectDir)..\cryptoTools/thirdparty\win\;C:/libs/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>cryptoTools.lib;libOTe.lib;Miracl\x64\$(Configuration)\miracl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cryptoTools.lib;libOTe.lib;Tests.lib;Miracl\x64\$(Configuration)\miracl.lib;ivoryTests.lib;ivory.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

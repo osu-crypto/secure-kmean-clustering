@@ -8,4 +8,4 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 add_executable(frontend  ${SRCS})
 
-target_link_libraries(frontend libOTe cryptoTools)
+target_link_libraries(frontend libOTe Tests cryptoTools ivoryTests ivory)

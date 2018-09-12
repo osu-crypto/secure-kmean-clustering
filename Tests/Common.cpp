@@ -5,9 +5,9 @@
 #include <fstream>
 #include <cassert> 
 
-using namespace osuCrypto;
+//using namespace osuCrypto;
 
-namespace tests_libOTe
+namespace osuCrypto
 {
     static std::fstream* file = nullptr;
     std::string SolutionDir = "../../";

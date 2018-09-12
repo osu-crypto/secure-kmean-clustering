@@ -1,6 +1,9 @@
-[submodule "libOTe"]
-	path = libOTe
-	url = https://github.com/osu-crypto/libOTe.git
 [submodule "cryptoTools"]
 	path = cryptoTools
 	url = https://github.com/ladnir/cryptoTools
+[submodule "libOTe"]
+	path = libOTe
+	url = git@github.com:osu-crypto/libOTe.git
+[submodule "Ivory-Runtime"]
+	path = Ivory-Runtime
+	url = git@github.com:nitrieu/Ivory-Runtime.git
