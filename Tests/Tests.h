@@ -4,6 +4,6 @@
 namespace osuCrypto
 {
 
-	void simple_test();
+	void AdaptiveMUL_test();
 
 }

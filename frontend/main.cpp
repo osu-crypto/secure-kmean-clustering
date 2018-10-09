@@ -121,7 +121,7 @@ void IknpOtExt_100Receive_Test_Impl()
 int main(int argc, char** argv)
 {
 	
-	simple_test();
+	AdaptiveMUL_test();
 	IknpOtExt_100Receive_Test_Impl();
 
 	Circuit_int_LessThan_Test();

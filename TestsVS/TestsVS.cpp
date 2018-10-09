@@ -14,10 +14,10 @@ namespace osuCrypto
     public:
 
 		
-		TEST_METHOD(Simple_testVS)
+		TEST_METHOD(AdaptiveMUL_testVS)
 		{
 			InitDebugPrinting();
-			simple_test();
+			AdaptiveMUL_test();
 		}
 		TEST_METHOD(Circuit_int_LessThan_testVS)
 		{
