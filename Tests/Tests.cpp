@@ -178,19 +178,17 @@ namespace osuCrypto
 
 	void AdaptiveMUL_test() {
 		PRNG prng(ZeroBlock);
-		auto k = 4;
-		auto d = 1;
+		auto m = 5;
+		auto radix = 2;
+		u32 radixM = pow(radix, (int)m);
+		auto d = 0;
 		auto s = 8;
 		
-		Zn numA(k, d), numB(k, d);
+		
 
-		numA = 6;
-		numB = 3;
+		
 
-		auto bitsA = numA.getBinary();
-		//auto bitsB = numA.getBinary();
-
-		std::cout << "  " << bitsA << std::endl;
+		
 
 
 		std::vector<u32>  baseRecv(128);
@@ -198,30 +196,48 @@ namespace osuCrypto
 		BitVector baseChoice(128);
 		baseChoice.randomize(prng);
 
+		for (size_t itrial = 0; itrial < 100; itrial++)
+		{
+
+			Zn numA(m, d), numB(m, d);
+
+			numA = prng.get<i32>()% radixM;
+			numB = prng.get<i32>()% radixM;// prng.get<i32>();;
+			auto bitsA = numA.getBinary();
+			//auto bitsB = numA.getBinary();
+
+			std::cout << numA.get() << " " << numB.get() << "  " << bitsA << std::endl;
+
 		u32 sA=0, sB=0;
 		for (u64 i = 0; i < bitsA.size(); i++)
 		{
-			baseSend[i][0] = (prng.get<u32>()+ (u32)(pow(2, (int)numB.mM))) % (i32)(pow(2, (int)numB.mM));
-			baseSend[i][1] = (u32)(numB.mVal*pow(2, i) - baseSend[i][0]+ (u32)(pow(2, (int)numB.mM))) % (u32)(pow(2, (int)numB.mM));
-			baseRecv[i] = baseSend[i][bitsA[i]];
-			std::cout << "  " << bitsA[i] << "  " << baseRecv[i] << "  " << baseSend[i][0] << "  " << baseSend[i][1] << std::endl;
 
+			baseSend[i][0] = (prng.get<u32>()+ radixM) % radixM;
+			baseSend[i][1] = (u32)(numB.mVal*pow(2, i) + baseSend[i][0]) % radixM;
+			baseRecv[i] = baseSend[i][bitsA[i]];
+			auto mi = (u32)((u32)numB.mVal*bitsA[i] * pow(2, i) + baseSend[i][0] ) % radixM;
+			//std::cout << "  " << bitsA[i] << "  " << baseRecv[i] << "  " << baseSend[i][0] << "  " << baseSend[i][1] << std::endl;
+			//std::cout << "mi  " << mi << "\n";
+			//std::cout << "mi  " << (u32)numB.mVal << "\n";
 			sA += baseRecv[i];
 			sB += baseSend[i][0];
 
 			
 		}
-
-		u32 sum = (sA + sB) % (i32)(pow(2, (int)numB.mM));
-		u32 sum2= (numA.mVal*numB.mVal) % (u32)(pow(2, (int)numB.mM));
-
-
-
-		std::cout << "  " << sum << std::endl;
-		std::cout << "  " << sum2 << std::endl;
-		
+		sB = (0 - sB) % radixM;
+		u32 sum = (sA + sB) % radixM;
+		u32 sum2= (numA.mVal*numB.mVal) % radixM;
 
 
+		if (sum != sum2)
+		{
+			std::cout << "  " << sum << std::endl;
+			std::cout << "  " << sum2 << std::endl;
+			throw std::exception();
+		}
+
+
+		}
 
 
 	}
