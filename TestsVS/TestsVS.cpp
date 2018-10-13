@@ -14,17 +14,31 @@ namespace osuCrypto
     public:
 
 		
+		TEST_METHOD(AdaptiveMUL_Zn_testVS)
+		{
+			InitDebugPrinting();
+			AdaptiveMUL_Zn_test();
+		}
+
 		TEST_METHOD(AdaptiveMUL_testVS)
 		{
 			InitDebugPrinting();
 			AdaptiveMUL_test();
 		}
+
 		TEST_METHOD(Circuit_int_LessThan_testVS)
 		{
 			InitDebugPrinting();
 			Circuit_int_LessThan_Test();
 		}
+
+		TEST_METHOD(readData_testVS)
+		{
+			InitDebugPrinting();
+			readData_test();
+		}
 	
+		
 	
     };
 }

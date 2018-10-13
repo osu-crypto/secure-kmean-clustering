@@ -17,6 +17,11 @@
 #include "cryptoTools/Common/Defines.h"
 #include "cryptoTools/Common/BitVector.h"
 #include <ivory/Runtime/Public/PublicInt.h>
+#include <fstream>
+#include <string>
+#include <iostream>
+#include <boost/algorithm/string.hpp>
+#include <boost/tokenizer.hpp>
 
 #ifdef GetMessage
 #undef GetMessage
@@ -27,6 +32,7 @@
 #pragma warning(disable:4996)
 #endif //  _MSC_VER
 
+using namespace std;
 using namespace osuCrypto;
 
 
@@ -176,11 +182,11 @@ namespace osuCrypto
 
 	}
 
-	void AdaptiveMUL_test() {
+	void AdaptiveMUL_Zn_test() {
 		PRNG prng(ZeroBlock);
-		auto m = 5;
+		auto bitLen = 5;
 		auto radix = 2;
-		u32 radixM = pow(radix, (int)m);
+		u32 radixM = pow(radix, (int)bitLen);
 		auto d = 0;
 		auto s = 8;
 		
@@ -199,7 +205,7 @@ namespace osuCrypto
 		for (size_t itrial = 0; itrial < 100; itrial++)
 		{
 
-			Zn numA(m, d), numB(m, d);
+			Zn numA(bitLen, d), numB(bitLen, d);
 
 			numA = prng.get<i32>()% radixM;
 			numB = prng.get<i32>()% radixM;// prng.get<i32>();;
@@ -216,8 +222,8 @@ namespace osuCrypto
 			baseSend[i][1] = (u32)(numB.mVal*pow(2, i) + baseSend[i][0]) % radixM;
 			baseRecv[i] = baseSend[i][bitsA[i]];
 			auto mi = (u32)((u32)numB.mVal*bitsA[i] * pow(2, i) + baseSend[i][0] ) % radixM;
-			//std::cout << "  " << bitsA[i] << "  " << baseRecv[i] << "  " << baseSend[i][0] << "  " << baseSend[i][1] << std::endl;
-			//std::cout << "mi  " << mi << "\n";
+			std::cout << "  " << bitsA[i] << "  " << baseRecv[i] << "  " << baseSend[i][0] << "  " << baseSend[i][1] << std::endl;
+			std::cout << "mi  " << mi << "\n";
 			//std::cout << "mi  " << (u32)numB.mVal << "\n";
 			sA += baseRecv[i];
 			sB += baseSend[i][0];
@@ -241,5 +247,124 @@ namespace osuCrypto
 
 
 	}
-	
+
+
+	BitVector getBinary(i32 value, i32 bitLen)
+	{
+		return BitVector((u8*)&value, bitLen);
+	}
+
+	void AdaptiveMUL_test() {
+		PRNG prng(ZeroBlock);
+		auto bitLen = 5;
+		auto radix = 2;
+		u32 radixM = pow(radix, (int)bitLen);
+		
+		std::vector<u32>  baseRecv(128);
+		std::vector<std::array<u32, 2>>  baseSend(128);
+		BitVector baseChoice(128);
+		baseChoice.randomize(prng);
+
+		for (size_t itrial = 0; itrial < 100; itrial++)
+		{
+			i32	 numA = prng.get<i32>() % radixM;
+			i32 numB = prng.get<i32>() % radixM;// prng.get<i32>();;
+			auto bitsA = getBinary(numA,bitLen);
+			std::cout << numA << " " << numB << "  " << bitsA << std::endl;
+
+			u32 sA = 0, sB = 0;
+			for (u64 i = 0; i < bitsA.size(); i++)
+			{
+
+				baseSend[i][0] = (prng.get<u32>() + radixM) % radixM;
+				baseSend[i][1] = (u32)(numB*pow(2, i) + baseSend[i][0]) % radixM;
+				baseRecv[i] = baseSend[i][bitsA[i]];
+				auto mi = (u32)((u32)numB*bitsA[i] * pow(2, i) + baseSend[i][0]) % radixM;
+				std::cout << "  " << bitsA[i] << "  " << baseRecv[i] << "  " << baseSend[i][0] << "  " << baseSend[i][1] << std::endl;
+				std::cout << "mi  " << mi << "\n";
+				//std::cout << "mi  " << (u32)numB.mVal << "\n";
+				sA += baseRecv[i];
+				sB += baseSend[i][0];
+
+
+			}
+			sB = (0 - sB) % radixM;
+			u32 sum = (sA + sB) % radixM;
+			u32 sum2 = (numA*numB) % radixM;
+
+
+			if (sum != sum2)
+			{
+				std::cout << "  " << sum << std::endl;
+				std::cout << "  " << sum2 << std::endl;
+				throw std::exception();
+			}
+
+
+		}
+
+
+	}
+
+	void loadTxtFile(const std::string & fileName,int mDimension, std::vector<std::vector<i32>>& inputA, std::vector<std::vector<i32>>& inputB)
+	{
+		std::ifstream inFile;
+		inFile.open(fileName, std::ios::in);
+
+		if (inFile.is_open() == false)
+		{
+			std::cout << "failed to open:\n     " << fileName << std::endl;
+			throw std::runtime_error(LOCATION);
+		}
+
+		std::string line;
+
+		while (getline(inFile, line))
+		{
+			boost::tokenizer<boost::char_separator<char>> tokens(line, boost::char_separator<char>());
+			std::vector<std::string> results(tokens.begin(), tokens.end());
+			
+			/*std::cout << line << "\n";
+			for (size_t i = 0; i < results.size(); i++)
+				std::cout << results[i] << " ";*/
+
+
+			std::vector<i32> idata(mDimension);
+
+			if(mDimension!= results.size())
+			{
+				std::cout << "mDimension!= results.size()"  << results.size() << std::endl;
+				throw std::runtime_error(LOCATION);
+			}
+
+			for (size_t i = 0; i < results.size(); i++)
+				idata[i]=stoi(results[i]);
+		
+			auto isA = rand() % 2;
+			if (isA)
+				inputA.push_back(idata);
+			else
+				inputB.push_back(idata);
+		}
+	}
+
+	void readData_test() {
+		int mDimension = 2;
+		std::vector<std::vector<i32>> inputA, inputB;
+		loadTxtFile("I:/kmean-impl/dataset/s1.txt", mDimension, inputA, inputB);
+
+		std::cout << inputA.size() << " \t " << inputB.size() <<"\n";
+
+		for (size_t i = 0; i < inputA.size(); i++)
+		{
+			for (int j = 0; j < inputA[i].size(); j++)
+				std::cout << inputA[i][j] << " ";
+
+			std::cout << "\n ";
+		}
+	}
+
+
+
+
 }

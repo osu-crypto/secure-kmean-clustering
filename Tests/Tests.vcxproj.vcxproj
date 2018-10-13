@@ -50,7 +50,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)../Ivory-Runtime/;$(ProjectDir)../Ivory-Runtime;$(ProjectDir)../Ivory-Runtime/ivory;$(ProjectDir)..;$(ProjectDir)../libOTe/libOTe/;$(ProjectDir)../libOTe/cryptoTools/;$(ProjectDir)../libOTe/cryptoTools/cryptoTools;$(ProjectDir)../libOTe/cryptoTools/thirdparty\win\boost\;$(ProjectDir)../libOTe/cryptoTools/thirdparty\win\;$(ProjectDir)../libOTe/cryptoTools/thirdparty/win/miracl;C:/libs/boost;C:/libs/;C:/libs/miracl</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PreprocessorDefinitions>SOLUTION_DIR=R"**($(SolutionDir))**";_WIN32_WINNT=0x0501;_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SOLUTION_DIR=R"**($(SolutionDir))**";_WIN32_WINNT=0x0501;_MBCS;_CRT_SECURE_NO_WARNINGS;-D_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
