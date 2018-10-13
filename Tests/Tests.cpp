@@ -22,6 +22,8 @@
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
+#include "DataShare.h"
+#include <libOTe/Base/naor-pinkas.h>
 
 #ifdef GetMessage
 #undef GetMessage
@@ -306,7 +308,7 @@ namespace osuCrypto
 
 	}
 
-	void loadTxtFile(const std::string & fileName,int mDimension, std::vector<std::vector<i32>>& inputA, std::vector<std::vector<i32>>& inputB)
+	void loadTxtFile(const std::string & fileName,int mDimension, std::vector<std::vector<i64>>& inputA, std::vector<std::vector<i64>>& inputB)
 	{
 		std::ifstream inFile;
 		inFile.open(fileName, std::ios::in);
@@ -329,7 +331,7 @@ namespace osuCrypto
 				std::cout << results[i] << " ";*/
 
 
-			std::vector<i32> idata(mDimension);
+			std::vector<i64> idata(mDimension);
 
 			if(mDimension!= results.size())
 			{
@@ -350,7 +352,7 @@ namespace osuCrypto
 
 	void readData_test() {
 		int mDimension = 2;
-		std::vector<std::vector<i32>> inputA, inputB;
+		std::vector<std::vector<i64>> inputA, inputB;
 		loadTxtFile("I:/kmean-impl/dataset/s1.txt", mDimension, inputA, inputB);
 
 		std::cout << inputA.size() << " \t " << inputB.size() <<"\n";
@@ -364,6 +366,38 @@ namespace osuCrypto
 		}
 	}
 
+	void ClusteringTest()
+	{
+		IOService ios;
+		Session ep01(ios, "127.0.0.1", SessionMode::Server);
+		Session ep10(ios, "127.0.0.1", SessionMode::Client);
+		Channel chl01 = ep01.addChannel();
+		Channel chl10 = ep10.addChannel();
+
+
+		int mDimension = 2;
+		std::vector<std::vector<i64>> inputA, inputB;
+		loadTxtFile("I:/kmean-impl/dataset/s1.txt", mDimension, inputA, inputB);
+
+		DataShare p0, p1;
+		std::vector<std::array<block, 2>> sendMsg(128);
+
+		std::thread thrd = std::thread([&]() {
+			p0.init(0, chl01, toBlock(34265), inputA);
+			NaorPinkas baseOTs;
+			baseOTs.send(p0.sendBaseMsg, p0.mPrng, chl01, 1);
+
+		});
+		
+		p1.init(0, chl10, toBlock(34265), inputB);
+
+		NaorPinkas baseOTs;
+		baseOTs.receive(p1.mBaseChoices, p1.recvBaseMsg, p1.mPrng, chl10, 1);
+
+		thrd.join();
+
+
+	}
 
 
 

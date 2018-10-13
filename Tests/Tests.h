@@ -7,5 +7,7 @@ namespace osuCrypto
 	void AdaptiveMUL_Zn_test();
 	void AdaptiveMUL_test();
 	void readData_test();
+	void ClusteringTest();
+
 
 }

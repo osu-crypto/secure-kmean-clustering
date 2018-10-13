@@ -37,6 +37,14 @@ namespace osuCrypto
 			InitDebugPrinting();
 			readData_test();
 		}
+
+		TEST_METHOD(ClusteringTesttVS)
+		{
+			InitDebugPrinting();
+			ClusteringTest();
+		}
+
+		
 	
 		
 	
