@@ -156,7 +156,7 @@ namespace osuCrypto
 
 	}
 
-	void copyKeyToShare() {
+	void DataShare::copyKeyToShare() {
 
 		for (u64 i = 0; i < mTotalNumPoints; i++)
 		{

@@ -88,6 +88,9 @@ namespace osuCrypto
 		void sendShareInput(u64 startPointIdx, u64 startClusterIdx, u64 endClusterIdx);
 		void recvShareInput(u64 startPointIdx, u64 startClusterIdx, u64 endClusterIdx);
 
+		void copyKeyToShare();
+
+
 		void Print();
 
 		
