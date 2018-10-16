@@ -1,8 +1,18 @@
-=========================
-d=2	 mod=100000	 mData[0][0]=-22554
-OT base 1: send[0][0]=16117c30c633d96ddc19aff200202ab4	 send[0][1]=92a20f34d1d78b3ee8f03684ebf02045
-OT base 2: choice[0]=1	 recv[0]=9918a8568de8c18de496a0ddf5aa60b3
-=========================
-d=2	 mod=100000	 mData[0][0]=74895
-OT base 1: send[0][0]=7def38f36926df39d5ea09463fcfcc09	 send[0][1]=9918a8568de8c18de496a0ddf5aa60b3
-OT base 2: choice[0]=1	 recv[0]=92a20f34d1d78b3ee8f03684ebf02045
+1
+3
+0
+done
+1
+done
+===========Party 0 ==============
+d=2	 mod=65536	 mPoint[0][0]=59750
+OT base 1: send[0][0]=5aab42de66475d477d04218e6965446c	 send[0][1]=b83e724bb0411d69e77f371d83f0e147
+OT base 2: choice[0]=1	 recv[0]=8b9af4f6a396ca5d2b9213215d23f3d0
+Share1: mSharePoint[0][0].mArithShare=57698 vs 0100011010000111
+Share2: mSharePoint[n][0].mArithShare=61011 vs 1100101001110111
+===========Party 1 ==============
+d=2	 mod=65536	 mPoint[0][0]=19592
+OT base 1: send[0][0]=664f37505c397ef0a5e4ec517dfa14ef	 send[0][1]=8b9af4f6a396ca5d2b9213215d23f3d0
+OT base 2: choice[0]=1	 recv[0]=b83e724bb0411d69e77f371d83f0e147
+Share1: mSharePoint[0][0].mArithShare=2052 vs 0010000000010000
+Share2: mSharePoint[n][0].mArithShare=24117 vs 1010110001111010

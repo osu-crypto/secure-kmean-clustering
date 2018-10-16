@@ -368,16 +368,18 @@ namespace osuCrypto
 
 	void ClusteringTest()
 	{
+		Timer timer;
 		IOService ios;
 		Session ep01(ios, "127.0.0.1", SessionMode::Server);
 		Session ep10(ios, "127.0.0.1", SessionMode::Client);
 		Channel chl01 = ep01.addChannel();
 		Channel chl10 = ep10.addChannel();
 
-
+		int securityParams = 128;
 		int inDimension = 2;
-		int inMod = pow(10, 5);
-		std::vector<std::vector<i64>> inputA, inputB;
+		int inExMod = 16;
+		int inMod = pow(2, inExMod);
+		std::vector<std::vector<Word>> inputA, inputB;
 		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
 		
 		PRNG prng(ZeroBlock);
@@ -390,16 +392,20 @@ namespace osuCrypto
 			inputB[i].resize(inDimension);
 			for (size_t j = 0; j < inDimension; j++)
 			{
-				inputA[i][j] = prng.get<i32>() % inMod;
-				inputB[i][j] = prng.get<i32>() % inMod;
+				inputA[i][j] = prng.get<Word>() % inMod;
+				inputB[i][j] = prng.get<Word>() % inMod;
 			}
 		}
 
+		u64 inTotalPoint = inputA.size() + inputB.size();
+		u64 inNumCluster = 3;
+		//=======================offline===============================
 		DataShare p0, p1;
-		std::vector<std::array<block, 2>> sendMsg(128);
 
+		timer.setTimePoint("starts");
 		std::thread thrd = std::thread([&]() {
-			p0.init(0, chl01, toBlock(34265), inputA,inMod,inDimension);
+			p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
+				, inNumCluster, 0, inNumCluster/2, inputA, inExMod,inDimension);
 			NaorPinkas baseOTs;
 			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, chl01, 1); //first OT for D_B
 			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, chl01, 1); //second OT for D_A
@@ -407,7 +413,8 @@ namespace osuCrypto
 
 		});
 		
-		p1.init(0, chl10, toBlock(34265), inputB, inMod, inDimension);
+		p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
+			, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
 
 		NaorPinkas baseOTs;
 		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, chl10, 1); //first OT for D_B
@@ -415,8 +422,93 @@ namespace osuCrypto
 
 		thrd.join();
 
+		timer.setTimePoint("offlineDone");
+		//=======================online (sharing)===============================
+
+		thrd = std::thread([&]() {
+			
+			p0.sendShareInput(0,0, inNumCluster / 2);
+			p0.recvShareInput(p0.mPoint.size(), inNumCluster / 2, inNumCluster);
+
+		});
+
+		p1.recvShareInput(0,0, inNumCluster / 2);
+		p1.sendShareInput(p1.mTheirNumPoints, inNumCluster / 2, inNumCluster);
+
+
+		thrd.join();
+
+
+		timer.setTimePoint("sharingInputsDone");
+		//=======================online (setting up keys for adaptive ED)===============================
+		//OT
+
 		p0.Print();
 		p1.Print();
+
+
+#if 1
+		//check share
+		for (u64 i = 0; i <  p0.mPoint.size(); i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != p0.mPoint[i][j])
+				{
+
+					std::cout <<  "(p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != 0\n";
+					std::cout << i <<"-" <<j<<": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
+					throw std::exception();
+				}
+			}
+		}
+
+		for (u64 i = p0.mPoint.size(); i < inTotalPoint; i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != p1.mPoint[i- p0.mPoint.size()][j])
+				{
+
+					std::cout << "(p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != 0\n";
+					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
+					throw std::exception();
+				}
+			}
+		}
+
+		for (u64 i = 0; i < inNumCluster/2; i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])
+				{
+
+					std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
+					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
+					throw std::exception();
+				}
+			}
+		}
+
+
+		for (u64 i = inNumCluster / 2; i<inNumCluster; i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p1.mCluster[i][j])
+				{
+
+					std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
+					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
+					throw std::exception();
+				}
+			}
+		}
+
+		
+#endif
+
 
 
 	}
