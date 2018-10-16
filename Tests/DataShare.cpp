@@ -155,6 +155,19 @@ namespace osuCrypto
 
 
 	}
+
+	void copyKeyToShare() {
+
+		for (u64 i = 0; i < mTotalNumPoints; i++)
+		{
+			for (u64 j = 0; j < mDimension; j++)
+			{
+				//memcpy((u8*)&mSharePoint[i][j].mArithShare, mSendAllOtKeys.data() + iter, mLenModinByte); //get their share
+				
+			}
+		}
+
+	}
 	
 
 	void DataShare::Print() {
