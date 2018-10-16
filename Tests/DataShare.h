@@ -4,7 +4,9 @@
 #include <cryptoTools/Network/Channel.h>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <cryptoTools/Common/BitVector.h>
-
+#include <libOTe/TwoChooseOne/IknpOtExtReceiver.h>
+#include <libOTe/TwoChooseOne/IknpOtExtSender.h>
+#include <libOTe/Base/naor-pinkas.h>
 
 namespace osuCrypto
 {
@@ -57,8 +59,9 @@ namespace osuCrypto
 		u64 mLenModinByte;
 		u64 mDimension;
 		u64 mTheirNumPoints;
+		u64 mTotalNumPoints;
 		u64 mNumCluster;
-
+	
 
 		//OT
 		u64 mSecurityParam;
@@ -67,6 +70,15 @@ namespace osuCrypto
 		BitVector mBaseChoices;
 		std::vector<std::array<block, 2>> mSendBaseMsg;
 		std::vector<block> mRecvBaseMsg;
+
+		IknpOtExtSender sender;
+		IknpOtExtReceiver recv;
+		BitVector mChoiceAllBitSharePoints;
+		std::vector<std::array<block, 2>> mSendAllOtKeys;
+		std::vector<block> mRecvAllOtKeys;
+
+
+
 
 		void getInitClusters(u64 startIdx, u64 endIdx);
 

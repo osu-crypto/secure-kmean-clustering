@@ -406,19 +406,31 @@ namespace osuCrypto
 		std::thread thrd = std::thread([&]() {
 			p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
 				, inNumCluster, 0, inNumCluster/2, inputA, inExMod,inDimension);
+
 			NaorPinkas baseOTs;
 			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, chl01, 1); //first OT for D_B
+			p0.recv.setBaseOts(p0.mSendBaseMsg);
+
+
 			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, chl01, 1); //second OT for D_A
+			p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
 
 
 		});
 		
+
 		p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
 			, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
-
+		
 		NaorPinkas baseOTs;
 		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, chl10, 1); //first OT for D_B
+		p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
+
+
 		baseOTs.send(p1.mSendBaseMsg, p1.mPrng, chl10, 1); //second OT for D_A
+		p1.recv.setBaseOts(p1.mSendBaseMsg);
+
+
 
 		thrd.join();
 
@@ -437,15 +449,7 @@ namespace osuCrypto
 
 
 		thrd.join();
-
-
 		timer.setTimePoint("sharingInputsDone");
-		//=======================online (setting up keys for adaptive ED)===============================
-		//OT
-
-		p0.Print();
-		p1.Print();
-
 
 #if 1
 		//check share
@@ -509,7 +513,31 @@ namespace osuCrypto
 		
 #endif
 
+		//=======================online OT (setting up keys for adaptive ED)===============================
 
+		thrd = std::thread([&]() {
+			
+			p0.recv.receive(p0.mChoiceAllBitSharePoints, p0.mRecvAllOtKeys,p0.mPrng, p0.mChl);
+			p0.sender.send(p0.mSendAllOtKeys, p0.mPrng, p0.mChl);
+
+		});
+
+		p1.sender.send(p1.mSendAllOtKeys, p1.mPrng, p1.mChl);
+		p1.recv.receive(p1.mChoiceAllBitSharePoints, p1.mRecvAllOtKeys, p1.mPrng, p1.mChl);
+
+		thrd.join();
+
+
+		
+
+
+
+
+
+		timer.setTimePoint("OTkeysDone");
+
+		p0.Print();
+		p1.Print();
 
 	}
 

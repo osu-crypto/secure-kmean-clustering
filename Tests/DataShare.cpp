@@ -45,8 +45,10 @@ namespace osuCrypto
 		mDimension = dimension;
 		
 		
-		mTheirNumPoints = totalPoints-mPoint.size();
-		mSharePoint.resize(totalPoints);
+		mTotalNumPoints = totalPoints;
+		mTheirNumPoints = mTotalNumPoints -mPoint.size();
+
+		mSharePoint.resize(mTotalNumPoints);
 		for (u64 i = 0; i < mSharePoint.size(); i++)
 			mSharePoint[i].resize(mDimension);
 
@@ -70,6 +72,8 @@ namespace osuCrypto
 		mRecvBaseMsg.resize(numBaseOT);
 
 		//OT for keys
+		mSendAllOtKeys.resize(mTotalNumPoints*mDimension*mLenMod);
+		mRecvAllOtKeys.resize(mTotalNumPoints*mDimension*mLenMod);
 		
 
 	}
@@ -91,6 +95,8 @@ namespace osuCrypto
 			{
 				mSharePoint[i][j].mArithShare = mSharedPrng.get<Word>() % mMod; //randome share
 				mSharePoint[i][j].mBitShare = mSharePoint[i][j].getBinary(mLenMod); //bit vector
+
+				mChoiceAllBitSharePoints.append(mSharePoint[i][j].mBitShare);
 
 				auto theirShare = (mPoint[i - startPointIdx][j]-mSharePoint[i][j].mArithShare) % mMod;
 				memcpy(sendBuff.data() + iter, (u8*)&theirShare, mLenModinByte);
@@ -174,7 +180,8 @@ namespace osuCrypto
 
 		}
 
-
+		std::cout << "OT key base 1: send[0][0]=" << mSendAllOtKeys[0][0] << "\t send[0][1]=" << mSendAllOtKeys[0][1] << "\n";
+		std::cout << "OT key base 2: choice[0]=" << mChoiceAllBitSharePoints[0] << "\t recv[0]=" << mRecvAllOtKeys[0] << "\n";
 
 
 		std::cout << IoStream::unlock;
