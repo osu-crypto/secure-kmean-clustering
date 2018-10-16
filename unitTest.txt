@@ -1,0 +1,8 @@
+=========================
+d=2	 mod=100000	 mData[0][0]=-22554
+OT base 1: send[0][0]=16117c30c633d96ddc19aff200202ab4	 send[0][1]=92a20f34d1d78b3ee8f03684ebf02045
+OT base 2: choice[0]=1	 recv[0]=9918a8568de8c18de496a0ddf5aa60b3
+=========================
+d=2	 mod=100000	 mData[0][0]=74895
+OT base 1: send[0][0]=7def38f36926df39d5ea09463fcfcc09	 send[0][1]=9918a8568de8c18de496a0ddf5aa60b3
+OT base 2: choice[0]=1	 recv[0]=92a20f34d1d78b3ee8f03684ebf02045

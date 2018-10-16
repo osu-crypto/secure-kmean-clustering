@@ -335,7 +335,7 @@ namespace osuCrypto
 
 			if(mDimension!= results.size())
 			{
-				std::cout << "mDimension!= results.size()"  << results.size() << std::endl;
+				std::cout << "inDimension!= results.size()"  << results.size() << std::endl;
 				throw std::runtime_error(LOCATION);
 			}
 
@@ -375,26 +375,48 @@ namespace osuCrypto
 		Channel chl10 = ep10.addChannel();
 
 
-		int mDimension = 2;
+		int inDimension = 2;
+		int inMod = pow(10, 5);
 		std::vector<std::vector<i64>> inputA, inputB;
-		loadTxtFile("I:/kmean-impl/dataset/s1.txt", mDimension, inputA, inputB);
+		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+		
+		PRNG prng(ZeroBlock);
+		u64 numberTest = 10;
+		inputA.resize(numberTest);
+		inputB.resize(numberTest);
+		for (int i = 0; i < numberTest; i++)
+		{
+			inputA[i].resize(inDimension);
+			inputB[i].resize(inDimension);
+			for (size_t j = 0; j < inDimension; j++)
+			{
+				inputA[i][j] = prng.get<i32>() % inMod;
+				inputB[i][j] = prng.get<i32>() % inMod;
+			}
+		}
 
 		DataShare p0, p1;
 		std::vector<std::array<block, 2>> sendMsg(128);
 
 		std::thread thrd = std::thread([&]() {
-			p0.init(0, chl01, toBlock(34265), inputA);
+			p0.init(0, chl01, toBlock(34265), inputA,inMod,inDimension);
 			NaorPinkas baseOTs;
-			baseOTs.send(p0.sendBaseMsg, p0.mPrng, chl01, 1);
+			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, chl01, 1); //first OT for D_B
+			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, chl01, 1); //second OT for D_A
+
 
 		});
 		
-		p1.init(0, chl10, toBlock(34265), inputB);
+		p1.init(0, chl10, toBlock(34265), inputB, inMod, inDimension);
 
 		NaorPinkas baseOTs;
-		baseOTs.receive(p1.mBaseChoices, p1.recvBaseMsg, p1.mPrng, chl10, 1);
+		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, chl10, 1); //first OT for D_B
+		baseOTs.send(p1.mSendBaseMsg, p1.mPrng, chl10, 1); //second OT for D_A
 
 		thrd.join();
+
+		p0.Print();
+		p1.Print();
 
 
 	}

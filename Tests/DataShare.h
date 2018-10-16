@@ -20,19 +20,23 @@ namespace osuCrypto
 
 		Channel mChl;
 		PRNG mPrng, mSharedPrng;
-		
+		u64 mMod;
+		u64 mDimension;
+
 
 		//OT
 		u64 numBaseOT = 128;
 		BitVector mBaseChoices;
-		std::vector<std::array<block, 2>> sendBaseMsg;
-		std::vector<block> recvBaseMsg;
+		std::vector<std::array<block, 2>> mSendBaseMsg;
+		std::vector<block> mRecvBaseMsg;
 
 
 		std::vector<std::array<block, 2>> sendOtKeys;
 		std::vector<block> recvOtKeys;
 
-		void init(u64 partyIdx, Channel& chl, block seed, std::vector<std::vector<i64>> data);
+		void init(u64 partyIdx, Channel& chl, block seed, std::vector<std::vector<i64>> data, u64 modd, u64 dimension);
+
+		void Print();
 
 		struct Share
 		{
