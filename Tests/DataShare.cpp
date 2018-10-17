@@ -14,6 +14,69 @@ namespace osuCrypto
 	}
 
 
+
+	void DataShare::amortAdaptMULsend(u64 theirIdxPoint, u64 theirIdxDim, std::vector<Word>& b) //b=di-ci
+	{
+		std::vector<u8> sendBuff(mTheirNumPoints*mDimension*mLenMod);
+		std::vector<Word> m0;
+
+		std::vector<std::array<std::vector<u8>, 2>> allPlaintexts(mLenMod);
+		std::vector<std::array<std::vector<block>,2>> allBlkPlaintexts(mLenMod);
+
+		for (u64 k = 0; k < mLenMod; k++)
+		{
+			allPlaintexts[k][0].resize(b.size()*mLenModinByte*mLenMod);
+			allPlaintexts[k][1].resize(b.size()*mLenModinByte*mLenMod);
+			allBlkPlaintexts[k][0].resize((b.size()*mLenModinByte*mLenMod+15)/16); //block
+			allBlkPlaintexts[k][1].resize((b.size()*mLenModinByte*mLenMod + 15) / 16);
+		}
+
+
+
+		u64 iter = 0;
+		for (u64 i = 0; i < b.size(); i++)
+		{
+				for (u64 k = 0; k < mLenMod; k++)
+				{
+					Word r0 = (mPrng.get<Word>()) % mMod;
+					auto r1= (Word)(b[i]*pow(2, k) + r0) % mMod;
+
+					memcpy(allPlaintexts[k][0].data()+iter, (u8*)&r0, mLenModinByte);
+					memcpy(allPlaintexts[k][1].data() + iter, (u8*)&r1, mLenModinByte);
+					
+
+					Word r0Check=0;
+					memcpy((u8*)&r0Check, allPlaintexts[k][0].data() + iter, mLenModinByte);
+
+					std::cout << r0 <<" " << mLenModinByte << "\n";
+					std::cout << r0Check << "\n";
+
+					iter += mLenModinByte;
+				}
+		}
+
+
+		//for (u64 k = 0; k < mLenMod; k++)
+		//{
+		//	std::cout << "allPlaintexts[k][0].size(): " << allPlaintexts[k][0].size() << "\n";
+		//	for (u64 i = 0; i < allPlaintexts[k][0].size(); i+=16)
+		//	{
+		//		std::cout << "i: " << i << "\n";
+
+		//		allBlkPlaintexts[k][0][i] = toBlock(allPlaintexts[k][0].data() + i);
+		//		allBlkPlaintexts[k][1][i] = toBlock(allPlaintexts[k][1].data() + i);
+		//	}
+
+		//	//mSharePoint[theirIdxPoint][theirIdxDim].sendAES[k][0].ecbEncBlocks();
+		//	//mSharePoint[theirIdxPoint][theirIdxDim].sendAES[k][1].ecbEncBlocks();
+
+		//}
+
+
+	}
+
+
+
 	void DataShare::getInitClusters(u64 startIdx, u64 endIdx) {
 
 		//std::cout << startIdx << "\n";
@@ -31,7 +94,7 @@ namespace osuCrypto
 
 	void DataShare::init(u64 partyIdx, Channel & chl, block seed, u64 securityParam, u64 totalPoints
 		, u64 numCluster, u64 idxStartCluster, u64 idxEndCluster
-		, std::vector<std::vector<Word>> data, u64 len, u64 dimension)
+		, std::vector<std::vector<Word>>& data, u64 len, u64 dimension)
 	{
 		mPartyIdx = partyIdx;
 		mChl = chl;
@@ -156,14 +219,37 @@ namespace osuCrypto
 
 	}
 
-	void DataShare::copyKeyToShare() {
+	void DataShare::setAESkeys() {
 
-		for (u64 i = 0; i < mTotalNumPoints; i++)
+		u64 iterSend = 0;
+		u64 iterRecv = 0;
+		for (u64 i = 0; i < 1; i++)
 		{
-			for (u64 j = 0; j < mDimension; j++)
+			for (u64 j = 0; j < 1; j++)
 			{
-				//memcpy((u8*)&mSharePoint[i][j].mArithShare, mSendAllOtKeys.data() + iter, mLenModinByte); //get their share
-				
+				mSharePoint[i][j].sendOtKeys.resize(mLenMod);
+				memcpy(mSharePoint[i][j].sendOtKeys.data(), mSendAllOtKeys.data() + iterSend, mLenMod *sizeof(block)*2); //get their share
+				iterSend += mLenMod * sizeof(block) * 2;
+
+
+				mSharePoint[i][j].sendAES.resize(mLenMod);
+				for (u64 k = 0; k < mLenMod; k++)
+				{
+					mSharePoint[i][j].sendAES[k][0].setKey(mSharePoint[i][j].sendOtKeys[k][0]);
+					mSharePoint[i][j].sendAES[k][1].setKey(mSharePoint[i][j].sendOtKeys[k][1]);
+
+				}
+
+				mSharePoint[i][j].recvOtKeys.resize(mLenMod);
+				memcpy(mSharePoint[i][j].recvOtKeys.data(), mRecvAllOtKeys.data() + iterRecv, mLenMod * sizeof(block) ); //get their share
+				iterRecv += mLenMod * sizeof(block);
+
+				mSharePoint[i][j].recvAES.resize(mLenMod);
+				for (u64 k = 0; k < mLenMod; k++)
+				{
+					mSharePoint[i][j].recvAES[k].setKey(mSharePoint[i][j].recvOtKeys[k]);
+				}
+
 			}
 		}
 
@@ -193,12 +279,21 @@ namespace osuCrypto
 
 		}
 
-		std::cout << "OT key base 1: send[0][0]=" << mSendAllOtKeys[0][0] << "\t send[0][1]=" << mSendAllOtKeys[0][1] << "\n";
-		std::cout << "OT key base 2: choice[0]=" << mChoiceAllBitSharePoints[0] << "\t recv[0]=" << mRecvAllOtKeys[0] << "\n";
+		std::cout << "-------------\nOT allkey base 1: send[0][0]=" << mSendAllOtKeys[0][0] << "\t send[0][1]=" << mSendAllOtKeys[0][1] << "\n";
+		std::cout << "OT allkey base 2: choice[0]=" << mChoiceAllBitSharePoints[0] << "\t recv[0]=" << mRecvAllOtKeys[0] << "\n";
+
+
+
+		std::cout << "-------------\nOT key base 1: send[0][0]=" << mSharePoint[0][0].sendOtKeys[0][0] << "\t send[0][1]=" << mSharePoint[0][0].sendOtKeys[0][1] << "\n";
+		std::cout << "OT key base 2: choice[0]=" << mSharePoint[0][0].mBitShare[0] << "\t recv[0]=" << mSharePoint[0][0].recvOtKeys[0] << "\n";
 
 
 		std::cout << IoStream::unlock;
 
 	}
+
+	
+
+	
 
 }

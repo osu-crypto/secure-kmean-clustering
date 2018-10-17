@@ -1,9 +1,45 @@
+12004 2
+12004
+35940 2
+35940
+14560 2
+14560
+38558 2
+38558
+50869 2
+50869
+36633 2
+36633
+9626 2
+9626
+24767 2
+24767
+49654 2
+49654
+26023 2
+26023
+7031 2
+7031
+47013 2
+47013
+15934 2
+15934
+17957 2
+17957
+42227 2
+42227
+17206 2
+17206
 ===========Party 0 ==============
 d=2	 mod=65536	 mPoint[0][0]=59750
 OT base 1: send[0][0]=5aab42de66475d477d04218e6965446c	 send[0][1]=b83e724bb0411d69e77f371d83f0e147
 OT base 2: choice[0]=1	 recv[0]=8b9af4f6a396ca5d2b9213215d23f3d0
 Share1: mSharePoint[0][0].mArithShare=57698 vs 0100011010000111
 Share2: mSharePoint[n][0].mArithShare=61011 vs 1100101001110111
+-------------
+OT allkey base 1: send[0][0]=7791ef7e0fa5e7f36863cb34241d2f74	 send[0][1]=aa72e0695c614e987f84782fbefd2ef1
+OT allkey base 2: choice[0]=0	 recv[0]=3fb39833de546c95846037100d3503a1
+-------------
 OT key base 1: send[0][0]=7791ef7e0fa5e7f36863cb34241d2f74	 send[0][1]=aa72e0695c614e987f84782fbefd2ef1
 OT key base 2: choice[0]=0	 recv[0]=3fb39833de546c95846037100d3503a1
 ===========Party 1 ==============
@@ -12,5 +48,9 @@ OT base 1: send[0][0]=664f37505c397ef0a5e4ec517dfa14ef	 send[0][1]=8b9af4f6a396c
 OT base 2: choice[0]=1	 recv[0]=b83e724bb0411d69e77f371d83f0e147
 Share1: mSharePoint[0][0].mArithShare=2052 vs 0010000000010000
 Share2: mSharePoint[n][0].mArithShare=24117 vs 1010110001111010
+-------------
+OT allkey base 1: send[0][0]=3fb39833de546c95846037100d3503a1	 send[0][1]=d709930451eea914c31c4c2c6a222ccc
+OT allkey base 2: choice[0]=1	 recv[0]=aa72e0695c614e987f84782fbefd2ef1
+-------------
 OT key base 1: send[0][0]=3fb39833de546c95846037100d3503a1	 send[0][1]=d709930451eea914c31c4c2c6a222ccc
-OT key base 2: choice[0]=1	 recv[0]=aa72e0695c614e987f84782fbefd2ef1
+OT key base 2: choice[0]=0	 recv[0]=aa72e0695c614e987f84782fbefd2ef1

@@ -7,10 +7,43 @@
 #include <libOTe/TwoChooseOne/IknpOtExtReceiver.h>
 #include <libOTe/TwoChooseOne/IknpOtExtSender.h>
 #include <libOTe/Base/naor-pinkas.h>
+#include <cryptoTools/Crypto/AES.h> 
 
 namespace osuCrypto
 {
+//#define stepSizeOT=10;
+
 	typedef u64 Word;
+	
+
+	struct Share
+	{
+		//Share() = default;
+		//Share(const Share&) = default;
+		//Share(const i64& w) : mVal(w) {}
+
+		Word mArithShare; 
+		BitVector mBitShare; 
+		std::vector<block> recvOtKeys;
+		std::vector<AESDec> recvAES;
+
+		std::vector<std::array<block, 2>> sendOtKeys;//NOTE: for their shares
+		std::vector<std::array<AES, 2>> sendAES; 
+
+		//Share& operator=(const Share& copy);
+		//Share operator+(const Share& rhs) const;
+		//Share operator-(const Share& rhs) const;
+		//Share& operator-=(const Share& rhs);
+		//Share& operator+=(const Share& rhs);
+		BitVector getBinary(u64 bitLen)
+		{
+			return BitVector((u8*)&mArithShare, bitLen);
+		}
+
+		
+		
+
+	};
 
 	class DataShare
 	{
@@ -18,27 +51,7 @@ namespace osuCrypto
 		DataShare();
 		~DataShare();
 
-		struct Share
-		{
-			//Share() = default;
-			//Share(const Share&) = default;
-			//Share(const i64& w) : mVal(w) {}
-
-			Word mArithShare;
-			BitVector mBitShare;
-			std::vector<std::array<block, 2>> sendOtKeys;
-			std::vector<block> recvOtKeys;
-
-			//Share& operator=(const Share& copy);
-			//Share operator+(const Share& rhs) const;
-			//Share operator-(const Share& rhs) const;
-			//Share& operator-=(const Share& rhs);
-			//Share& operator+=(const Share& rhs);
-			BitVector getBinary(u64 bitLen)
-			{
-				return BitVector((u8*)&mArithShare, bitLen);
-			}
-		};
+		
 
 
 		u64 mPartyIdx;
@@ -54,14 +67,14 @@ namespace osuCrypto
 
 		Channel mChl;
 		PRNG mPrng, mSharedPrng;
+
+		u64 mTheirNumPoints;
+		u64 mTotalNumPoints;
+		u64 mNumCluster;
 		u64 mMod;
 		u64 mLenMod;
 		u64 mLenModinByte;
 		u64 mDimension;
-		u64 mTheirNumPoints;
-		u64 mTotalNumPoints;
-		u64 mNumCluster;
-	
 
 		//OT
 		u64 mSecurityParam;
@@ -77,18 +90,28 @@ namespace osuCrypto
 		std::vector<std::array<block, 2>> mSendAllOtKeys;
 		std::vector<block> mRecvAllOtKeys;
 
+		
 
+		//compute shares[i]*b where choice bit is the bitvector of shares[i], b is "OT sender message"
+		// first concating all b-ri, ri. 
+		//then using the enc OT keys corressponding to share[i][j] to encrypt and send them to receiver		
+		//compute m0
+		void amortAdaptMULsend(u64 theirIdxPoint, u64 theirIdxDim, std::vector<Word>& b);
+		
+		//compute mi
 
 
 		void getInitClusters(u64 startIdx, u64 endIdx);
 
 		void init(u64 partyIdx, Channel& chl, block seed, u64 securityParam, u64 totalPoints
-			, u64 numCluster, u64 idxStartCluster, u64 idxEndCluster, std::vector<std::vector<Word>> data, u64 modd, u64 dimension);
+			, u64 numCluster, u64 idxStartCluster, u64 idxEndCluster, std::vector<std::vector<Word>>& data, u64 modd, u64 dimension);
 
 		void sendShareInput(u64 startPointIdx, u64 startClusterIdx, u64 endClusterIdx);
 		void recvShareInput(u64 startPointIdx, u64 startClusterIdx, u64 endClusterIdx);
 
-		void copyKeyToShare();
+		//using batch aes with fixed key is faster than ...
+		void setAESkeys();
+
 
 
 		void Print();
@@ -96,6 +119,9 @@ namespace osuCrypto
 		
 
 	};
+
+
+	
 
 
 	/*inline DataShare::Share& DataShare::Share::operator=(const DataShare::Share& copy)

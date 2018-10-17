@@ -366,6 +366,9 @@ namespace osuCrypto
 		}
 	}
 
+
+	
+
 	void ClusteringTest()
 	{
 		Timer timer;
@@ -408,11 +411,11 @@ namespace osuCrypto
 				, inNumCluster, 0, inNumCluster/2, inputA, inExMod,inDimension);
 
 			NaorPinkas baseOTs;
-			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, chl01, 1); //first OT for D_B
+			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
 			p0.recv.setBaseOts(p0.mSendBaseMsg);
 
 
-			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, chl01, 1); //second OT for D_A
+			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
 			p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
 
 
@@ -423,11 +426,11 @@ namespace osuCrypto
 			, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
 		
 		NaorPinkas baseOTs;
-		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, chl10, 1); //first OT for D_B
+		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
 		p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
 
 
-		baseOTs.send(p1.mSendBaseMsg, p1.mPrng, chl10, 1); //second OT for D_A
+		baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
 		p1.recv.setBaseOts(p1.mSendBaseMsg);
 
 
@@ -519,18 +522,29 @@ namespace osuCrypto
 			
 			p0.recv.receive(p0.mChoiceAllBitSharePoints, p0.mRecvAllOtKeys,p0.mPrng, p0.mChl);
 			p0.sender.send(p0.mSendAllOtKeys, p0.mPrng, p0.mChl);
+			p0.setAESkeys();
 
 		});
 
 		p1.sender.send(p1.mSendAllOtKeys, p1.mPrng, p1.mChl);
 		p1.recv.receive(p1.mChoiceAllBitSharePoints, p1.mRecvAllOtKeys, p1.mPrng, p1.mChl);
-
+		p1.setAESkeys();
 		thrd.join();
 
 
-		
+		//=======================online ED===============================
+
+		thrd = std::thread([&]() {
+
+			std::vector<Word> b(1);
+			b[0] = (p0.mPrng.get<Word>()) % p0.mMod;
+			p0.amortAdaptMULsend(0, 0,  b );
 
 
+		});
+
+	
+		thrd.join();
 
 
 
