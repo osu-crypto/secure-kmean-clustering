@@ -56,7 +56,7 @@ namespace osuCrypto
 
 		u64 mPartyIdx;
 		std::vector<std::vector<Word>> mPoint;
-		std::vector<std::vector<Share>> mSharePoint;
+		std::vector<std::vector<Share>> mSharePoint; //mSharePoint[i][j] <= point i, dimention j
 		
 		std::vector<std::vector<Word>> mCluster;
 		std::vector<std::vector<Share>> mShareCluster;
@@ -96,9 +96,10 @@ namespace osuCrypto
 		// first concating all b-ri, ri. 
 		//then using the enc OT keys corressponding to share[i][j] to encrypt and send them to receiver		
 		//compute m0
-		void amortAdaptMULsend(u64 theirIdxPoint, u64 theirIdxDim, std::vector<Word>& b);
+		std::vector<Word> amortAdaptMULsend(u64 theirIdxPoint, u64 theirIdxDim, std::vector<Word>& b);
 		
-		//compute mi
+		//compute mi wiht OT receiver
+		std::vector<Word> amortAdaptMULrecv(u64 idxPoint, u64 idxDim, u64 theirbsize);
 
 
 		void getInitClusters(u64 startIdx, u64 endIdx);

@@ -15,64 +15,180 @@ namespace osuCrypto
 
 
 
-	void DataShare::amortAdaptMULsend(u64 theirIdxPoint, u64 theirIdxDim, std::vector<Word>& b) //b=di-ci
+	std::vector<Word> DataShare::amortAdaptMULsend(u64 theirIdxPoint, u64 theirIdxDim, std::vector<Word>& b) //b=di-ci
 	{
-		std::vector<u8> sendBuff(mTheirNumPoints*mDimension*mLenMod);
-		std::vector<Word> m0;
+
+		std::cout << b.size() << " b.size()\n";
+
 
 		std::vector<std::array<std::vector<u8>, 2>> allPlaintexts(mLenMod);
 		std::vector<std::array<std::vector<block>,2>> allBlkPlaintexts(mLenMod);
+		std::vector<u8> sendBuff(b.size()*mLenModinByte*mLenMod*2);
 
-		for (u64 k = 0; k < mLenMod; k++)
+		std::vector<Word> m0(b.size(),0); //sum OT m0 messages
+
+
+		for (u64 l = 0; l < mLenMod; l++)
 		{
-			allPlaintexts[k][0].resize(b.size()*mLenModinByte*mLenMod);
-			allPlaintexts[k][1].resize(b.size()*mLenModinByte*mLenMod);
-			allBlkPlaintexts[k][0].resize((b.size()*mLenModinByte*mLenMod+15)/16); //block
-			allBlkPlaintexts[k][1].resize((b.size()*mLenModinByte*mLenMod + 15) / 16);
+			allPlaintexts[l][0].resize(b.size()*mLenModinByte); //b.size x OT len x |x|
+			allPlaintexts[l][1].resize(b.size()*mLenModinByte);
+			allBlkPlaintexts[l][0].resize((b.size()*mLenModinByte+15)/16); //block
+			allBlkPlaintexts[l][1].resize((b.size()*mLenModinByte + 15) / 16);
 		}
 
 
-
-		u64 iter = 0;
-		for (u64 i = 0; i < b.size(); i++)
+		for (u64 k = 0; k < b.size(); k++)
 		{
-				for (u64 k = 0; k < mLenMod; k++)
+				for (u64 l = 0; l < mLenMod; l++)
 				{
-					Word r0 = (mPrng.get<Word>()) % mMod;
-					auto r1= (Word)(b[i]*pow(2, k) + r0) % mMod;
+					Word r0 = (mPrng.get<Word>()) % mMod; //OT message
+					auto r1= (Word)(b[k]*pow(2, l) + r0) % mMod;
 
-					memcpy(allPlaintexts[k][0].data()+iter, (u8*)&r0, mLenModinByte);
-					memcpy(allPlaintexts[k][1].data() + iter, (u8*)&r1, mLenModinByte);
+					m0[k]= (m0[k]+r0) % mMod;
+
+					memcpy(allPlaintexts[l][0].data()+ mLenModinByte*k, (u8*)&r0, mLenModinByte); //OT len
+					memcpy(allPlaintexts[l][1].data() + mLenModinByte*k, (u8*)&r1, mLenModinByte);
 					
 
 					Word r0Check=0;
-					memcpy((u8*)&r0Check, allPlaintexts[k][0].data() + iter, mLenModinByte);
+					memcpy((u8*)&r0Check, allPlaintexts[l][0].data() + mLenModinByte*k, mLenModinByte);
 
 					std::cout << r0 <<" " << mLenModinByte << "\n";
 					std::cout << r0Check << "\n";
 
-					iter += mLenModinByte;
 				}
 		}
 
-
-		//for (u64 k = 0; k < mLenMod; k++)
+		//for (u64 i = 0; i < b.size(); i++)
 		//{
-		//	std::cout << "allPlaintexts[k][0].size(): " << allPlaintexts[k][0].size() << "\n";
-		//	for (u64 i = 0; i < allPlaintexts[k][0].size(); i+=16)
-		//	{
-		//		std::cout << "i: " << i << "\n";
+		//	Word r0Check = 0;
+		//	memcpy((u8*)&r0Check, allPlaintexts[0][0].data() + mLenModinByte*i, mLenModinByte);
 
-		//		allBlkPlaintexts[k][0][i] = toBlock(allPlaintexts[k][0].data() + i);
-		//		allBlkPlaintexts[k][1][i] = toBlock(allPlaintexts[k][1].data() + i);
-		//	}
-
-		//	//mSharePoint[theirIdxPoint][theirIdxDim].sendAES[k][0].ecbEncBlocks();
-		//	//mSharePoint[theirIdxPoint][theirIdxDim].sendAES[k][1].ecbEncBlocks();
+		//	std::cout << r0Check << "  r0Check\n";
 
 		//}
 
+		for (u64 i = 0; i < allPlaintexts[0][0].size(); i += mLenModinByte)
+		{
+			Word r0Check = 0;
+			memcpy((u8*)&r0Check, allPlaintexts[0][0].data() + i, mLenModinByte);
 
+			std::cout << r0Check << "  rrr0Check\n";
+
+		}
+
+
+		u64 iter = 0;
+		for (u64 l = 0; l < mLenMod; l++)
+		{
+			std::cout << "allPlaintexts[l][0].size(): " << allPlaintexts[l][0].size() << "\n";
+			for (u64 i = 0; i < (allPlaintexts[l][0].size()+15)/16; i++)
+			{
+				allBlkPlaintexts[l][0][i] = toBlock(allPlaintexts[l][0].data()+i*sizeof(block));
+				allBlkPlaintexts[l][1][i] = toBlock(allPlaintexts[l][1].data() + i*sizeof(block));
+				std::cout << allBlkPlaintexts[l][0][i] << "  Block\n";
+			}
+
+
+			block* cipher = new block[allBlkPlaintexts[l][0].size()];
+			mSharePoint[theirIdxPoint][theirIdxDim].sendAES[l][0].ecbEncBlocks
+			(allBlkPlaintexts[l][0].data(), allBlkPlaintexts[l][0].size(), cipher); //r0||r1||r2
+			
+			memcpy(sendBuff.data()+ iter, (u8*)&cipher, b.size()*mLenModinByte);
+			iter += b.size()*mLenModinByte;
+			
+			mSharePoint[theirIdxPoint][theirIdxDim].sendAES[l][1].ecbEncBlocks
+			(allBlkPlaintexts[l][1].data(), allBlkPlaintexts[l][1].size(), cipher); //c0-r0||c1-r1||c2=r2
+
+			memcpy(sendBuff.data() + iter, (u8*)&cipher, b.size()*mLenModinByte);
+			iter += b.size()*mLenModinByte;
+		}
+
+		mChl.asyncSend(std::move(sendBuff));
+
+
+#if 1 //check
+		for (u64 l = 0; l < mLenMod; l++)
+		{
+			
+				for (u64 j = 0; j < b.size(); j++)
+				{
+					Word r0Check = 0;
+					memcpy((u8*)&r0Check, allPlaintexts[l][0].data() + mLenModinByte*j, mLenModinByte);
+					std::cout << r0Check << "  r0Check\n";
+				}
+
+
+				std::vector<u8> vecCheckk((allBlkPlaintexts[l][0].size()* sizeof(block)));
+
+				for (u64 j = 0; j < allBlkPlaintexts[l][0].size(); j++)
+				{
+					auto check = ByteArray(allBlkPlaintexts[l][0][j]);
+					memcpy(vecCheckk.data()+j* sizeof(block), check, sizeof(block)); //merging all blocks
+				}
+
+				for (u64 k = 0; k < b.size(); k++)
+				{
+					Word r0Check = 0;
+					memcpy((u8*)&r0Check, vecCheckk.data() + mLenModinByte*k, mLenModinByte);
+					std::cout << r0Check << "  rrr0Check\n";
+				}
+
+		}
+#endif
+
+		for (u64 k = 0; k < b.size(); k++)
+		{
+			m0[k] = (0-m0[k] ) % mMod;
+		}
+		return m0;
+	}
+
+	std::vector<Word> DataShare::amortAdaptMULrecv(u64 idxPoint, u64 idxDim, u64 theirbsize)
+	{
+		std::vector<u8> recvBuff(theirbsize*mLenModinByte*mLenMod * 2);
+		std::vector<Word> mi(theirbsize, 0); //sum OT m0 messages
+
+		std::vector<std::vector<u8>> allPlaintexts(mLenMod);
+		std::vector<std::array<std::vector<block>, 2>> allBlkCipherexts(mLenMod);
+		for (u64 l = 0; l < mLenMod; l++)
+		{
+			allPlaintexts[l].resize(theirbsize*mLenModinByte); //b.size x OT len x |x|
+			allBlkCipherexts[l][1].resize(theirbsize*mLenModinByte);
+			allBlkCipherexts[l][1].resize((theirbsize*mLenModinByte + 15) / 16);
+		}
+
+
+
+		mChl.recv(recvBuff);
+
+		u64 iter = 0;
+		for (u64 l = 0; l < mLenMod; l++)
+		{
+
+			memcpy(allBlkCipherexts[l][0].data(), recvBuff.data() + iter, theirbsize*mLenModinByte);
+			iter += theirbsize*mLenModinByte;
+
+			memcpy(allBlkCipherexts[l][1].data(), recvBuff.data() + iter, theirbsize*mLenModinByte);
+			iter += theirbsize*mLenModinByte;
+
+			block* allBlkPlaintexts = new block[allBlkCipherexts[l][0].size()]; //mi0||mi1||mi_#cluster
+
+			u8 choice = mSharePoint[idxPoint][idxDim].mBitShare[l];
+			mSharePoint[idxPoint][idxDim].recvAES[l].ecbDecBlocks
+			(allBlkCipherexts[l][choice].data(), allBlkCipherexts[l][choice].size(), allBlkPlaintexts);
+
+
+			for (u64 k = 0; k < theirbsize; k++)
+			{
+				Word r = 0;
+				memcpy((u8*)&r, (u8*)&allBlkPlaintexts+k*mLenModinByte, mLenModinByte); //mik
+				mi[k]= (mi[k]+r) % mMod;
+			}
+			
+		}
+
+		return mi;
 	}
 
 

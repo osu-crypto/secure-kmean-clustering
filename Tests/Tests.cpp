@@ -380,7 +380,10 @@ namespace osuCrypto
 
 		int securityParams = 128;
 		int inDimension = 2;
-		int inExMod = 16;
+		int inExMod = 20;
+		u64 inNumCluster = 15;
+
+
 		int inMod = pow(2, inExMod);
 		std::vector<std::vector<Word>> inputA, inputB;
 		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
@@ -401,7 +404,6 @@ namespace osuCrypto
 		}
 
 		u64 inTotalPoint = inputA.size() + inputB.size();
-		u64 inNumCluster = 3;
 		//=======================offline===============================
 		DataShare p0, p1;
 
@@ -536,12 +538,26 @@ namespace osuCrypto
 
 		thrd = std::thread([&]() {
 
-			std::vector<Word> b(1);
-			b[0] = (p0.mPrng.get<Word>()) % p0.mMod;
-			p0.amortAdaptMULsend(0, 0,  b );
+			int idxPoint = 0;
+			int idxDim = 0;
+			
+			//p0.amortAdaptMULrecv(idxPoint, idxDim, p0.mNumCluster);
+
 
 
 		});
+
+		int idxPoint = 0;
+		int idxDim = 0;
+		std::vector<Word> b;// (p0.mTotalNumPoints*p0.mNumCluster*p0.mDimension);
+			for (u64 k = 0; k < p1.mNumCluster; k++)
+				{
+					auto a = (p1.mSharePoint[idxPoint][idxDim].mArithShare - p1.mShareCluster[k][idxDim].mArithShare)%p1.mMod;
+					std::cout <<"a= " << a << "\n";
+					b.push_back(a);
+
+				}
+		p1.amortAdaptMULsend(idxPoint, idxDim, b);
 
 	
 		thrd.join();
