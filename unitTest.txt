@@ -1,1335 +1,512 @@
-a= 994444
-a= 232049
-a= 547704
-a= 287715
-a= 878472
-a= 811002
-a= 618964
-a= 705661
-a= 423587
-a= 499161
-a= 546192
-a= 979817
-a= 572298
-a= 127950
-a= 603565
+a= 140
+a= 113
+a= 120
+a= 227
+a= 136
+a= 250
+a= 212
+a= 125
+a= 163
+a= 217
+a= 144
+a= 105
+a= 138
+a= 206
+a= 173
 15 b.size()
-697312 3
-697312
-502357 3
-502357
-578119 3
-578119
-15419 3
-15419
-587863 3
-587863
-569226 3
-569226
-278287 3
-278287
-780512 3
-780512
-58775 3
-58775
-895023 3
-895023
-49219 3
-49219
-512505 3
-512505
-490054 3
-490054
-823834 3
-823834
-269281 3
-269281
-288815 3
-288815
-956963 3
-956963
-657420 3
-657420
-811785 3
-811785
-1012765 3
-1012765
-236830 3
-236830
-313472 3
-313472
-995682 3
-995682
-54248 3
-54248
-371669 3
-371669
-552627 3
-552627
-1023498 3
-1023498
-670083 3
-670083
-6897 3
-6897
-116729 3
-116729
-243841 3
-243841
-185377 3
-185377
-907297 3
-907297
-590668 3
-590668
-377644 3
-377644
-962429 3
-962429
-866248 3
-866248
-907171 3
-907171
-902626 3
-902626
-771509 3
-771509
-147893 3
-147893
-36494 3
-36494
-478033 3
-478033
-524357 3
-524357
-307565 3
-307565
-348235 3
-348235
-885869 3
-885869
-64594 3
-64594
-725294 3
-725294
-154973 3
-154973
-246891 3
-246891
-483471 3
-483471
-710023 3
-710023
-295917 3
-295917
-245589 3
-245589
-49283 3
-49283
-902412 3
-902412
-159657 3
-159657
-173807 3
-173807
-305601 3
-305601
-592010 3
-592010
-654038 3
-654038
-640183 3
-640183
-761145 3
-761145
-884429 3
-884429
-395692 3
-395692
-383293 3
-383293
-22516 3
-22516
-369963 3
-369963
-4101 3
-4101
-424493 3
-424493
-914123 3
-914123
-200838 3
-200838
-572137 3
-572137
-760183 3
-760183
-360366 3
-360366
-1030381 3
-1030381
-631953 3
-631953
-1044830 3
-1044830
-55078 3
-55078
-820095 3
-820095
-100414 3
-100414
-918837 3
-918837
-681593 3
-681593
-802373 3
-802373
-722227 3
-722227
-977390 3
-977390
-894999 3
-894999
-692651 3
-692651
-534912 3
-534912
-515709 3
-515709
-898337 3
-898337
-56338 3
-56338
-370376 3
-370376
-518322 3
-518322
-161473 3
-161473
-262613 3
-262613
-945214 3
-945214
-3023 3
-3023
-792341 3
-792341
-18451 3
-18451
-23856 3
-23856
-348458 3
-348458
-398656 3
-398656
-139139 3
-139139
-508244 3
-508244
-637494 3
-637494
-1005448 3
-1005448
-110900 3
-110900
-165965 3
-165965
-769717 3
-769717
-131412 3
-131412
-124198 3
-124198
-640153 3
-640153
-117513 3
-117513
-329879 3
-329879
-960337 3
-960337
-14341 3
-14341
-55081 3
-55081
-898992 3
-898992
-5353 3
-5353
-65796 3
-65796
-189094 3
-189094
-43284 3
-43284
-206164 3
-206164
-684400 3
-684400
-536815 3
-536815
-678325 3
-678325
-898782 3
-898782
-893398 3
-893398
-769137 3
-769137
-292856 3
-292856
-764201 3
-764201
-963281 3
-963281
-423629 3
-423629
-829168 3
-829168
-845162 3
-845162
-323800 3
-323800
-842219 3
-842219
-466978 3
-466978
-128162 3
-128162
-901388 3
-901388
-234524 3
-234524
-876981 3
-876981
-590890 3
-590890
-977036 3
-977036
-870588 3
-870588
-796661 3
-796661
-1026904 3
-1026904
-865855 3
-865855
-251490 3
-251490
-700460 3
-700460
-555158 3
-555158
-760630 3
-760630
-845359 3
-845359
-905691 3
-905691
-432709 3
-432709
-677824 3
-677824
-697137 3
-697137
-33461 3
-33461
-490689 3
-490689
-333673 3
-333673
-266456 3
-266456
-625015 3
-625015
-257230 3
-257230
-6782 3
-6782
-855890 3
-855890
-861142 3
-861142
-147791 3
-147791
-438751 3
-438751
-1020543 3
-1020543
-626845 3
-626845
-820955 3
-820955
-583208 3
-583208
-188165 3
-188165
-931430 3
-931430
-524976 3
-524976
-1015403 3
-1015403
-788723 3
-788723
-528900 3
-528900
-259899 3
-259899
-803381 3
-803381
-558028 3
-558028
-137900 3
-137900
-735922 3
-735922
-920017 3
-920017
-894254 3
-894254
-538614 3
-538614
-209122 3
-209122
-238951 3
-238951
-592005 3
-592005
-322875 3
-322875
-320931 3
-320931
-648771 3
-648771
-1014667 3
-1014667
-1016341 3
-1016341
-145227 3
-145227
-766320 3
-766320
-215174 3
-215174
-665033 3
-665033
-346254 3
-346254
-454623 3
-454623
-656909 3
-656909
-110484 3
-110484
-187621 3
-187621
-720698 3
-720698
-775916 3
-775916
-138062 3
-138062
-87099 3
-87099
-980591 3
-980591
-800875 3
-800875
-921672 3
-921672
-856175 3
-856175
-358784 3
-358784
-1040846 3
-1040846
-810452 3
-810452
-744049 3
-744049
-803181 3
-803181
-482013 3
-482013
-437707 3
-437707
-885026 3
-885026
-34149 3
-34149
-595258 3
-595258
-1012424 3
-1012424
-369689 3
-369689
-315467 3
-315467
-234770 3
-234770
-369090 3
-369090
-620945 3
-620945
-774504 3
-774504
-29091 3
-29091
-651473 3
-651473
-806762 3
-806762
-341121 3
-341121
-855835 3
-855835
-604700 3
-604700
-815626 3
-815626
-738754 3
-738754
-510302 3
-510302
-72001 3
-72001
-30677 3
-30677
-919321 3
-919321
-652766 3
-652766
-93809 3
-93809
-236804 3
-236804
-49397 3
-49397
-596338 3
-596338
-640490 3
-640490
-722279 3
-722279
-597989 3
-597989
-905532 3
-905532
-355967 3
-355967
-966274 3
-966274
-677856 3
-677856
-385895 3
-385895
-313758 3
-313758
-600904 3
-600904
-905541 3
-905541
-859856 3
-859856
-63105 3
-63105
-465297 3
-465297
-887741 3
-887741
-194851 3
-194851
-272568 3
-272568
-841501 3
-841501
-1016995 3
-1016995
-814041 3
-814041
-206737 3
-206737
-699616 3
-699616
-727727 3
-727727
-745880 3
-745880
-280293 3
-280293
-614669 3
-614669
-388007 3
-388007
-54463 3
-54463
-36719 3
-36719
-348985 3
-348985
-731483 3
-731483
-442254 3
-442254
-376817 3
-376817
-945876 3
-945876
-88488 3
-88488
-143637 3
-143637
-801260 3
-801260
-1007653 3
-1007653
-1582 3
-1582
-194605 3
-194605
-412001 3
-412001
-355042 3
-355042
-813180 3
-813180
-686962 3
-686962
-771130 3
-771130
-114049 3
-114049
-695903 3
-695903
-887467 3
-887467
-191668 3
-191668
-614167 3
-614167
-167089 3
-167089
-225456 3
-225456
-140750 3
-140750
-697312  rrr0Check
-236830  rrr0Check
-147893  rrr0Check
-592010  rrr0Check
-820095  rrr0Check
-18451  rrr0Check
-5353  rrr0Check
-128162  rrr0Check
-490689  rrr0Check
-259899  rrr0Check
-346254  rrr0Check
-885026  rrr0Check
-30677  rrr0Check
-465297  rrr0Check
-945876  rrr0Check
-allPlaintexts[l][0].size(): 45
-130c837f09088a0241b5039d1e0aa3e0  Block
-488e03f73b077cc101f4a20014e90048  Block
-fdfdfd0e6ed40719910077d50d812205  Block
-allPlaintexts[l][0].size(): 45
-3001883e09fad6008e8e04c88007aa55  Block
-efdf0c42350517690dc10c010104005d  Block
-fdfdfd0159a80d8bbd0e071900856506  Block
-allPlaintexts[l][0].size(): 45
-2a0e053509c4b7074b510f316208d247  Block
-060d0883cc0410d803941c02e2a60551  Block
-fdfdfd02311502f92309f5de09153a0a  Block
-allPlaintexts[l][0].size(): 45
-400a66790b9d3908004500d3e8003c3b  Block
-af94021aac0989770d61b500a9140615  Block
-fdfdfd0c39ec0428b8016e710f72c801  Block
-allPlaintexts[l][0].size(): 45
-830c3e450d7ecd04b16d05abd508f857  Block
-dce50b3ab203ecce09042a032554021f  Block
-fdfdfd0f60250cd71d039d0405a41902  Block
-allPlaintexts[l][0].size(): 45
-540b05330609ac05504b086eb308af8a  Block
-ff3a0e09d1001a7e0ee88c0a717007c1  Block
-fdfdfd00062e0f84a300c0f504d04b0a  Block
-allPlaintexts[l][0].size(): 45
-360ee9ee05d93d0d846d0f9e0a043f0f  Block
-d6ec0da52e0d0f520d48bc0830ef09ba  Block
-fdfdfd02f82d0c6bd90919720395120b  Block
-allPlaintexts[l][0].size(): 45
-880da8170057f400fc520a39830be8e0  Block
-1b4e0837f60d23d60c27f50a59b50f57  Block
-fdfdfd06496103279109c5ea05a1c202  Block
-allPlaintexts[l][0].size(): 45
-340a91ab05a52b0b112e001af100e597  Block
-543b0330e202414f0fab580db6de01b1  Block
-fdfdfd056ae20aace00b056709799101  Block
-allPlaintexts[l][0].size(): 45
-4d082980001005025d5d01c7f90da82f  Block
-f66f03a56706b1df0d363f0da1d60288  Block
-fdfdfd0c687c0b1aaf091fe50bd1680e  Block
-allPlaintexts[l][0].size(): 45
-b507de7d067a2d03c46b03b88100c043  Block
-386b0908850f927f03d6620bbc710bbe  Block
-fdfdfd0a7b720b61980dd13c0071a30c  Block
-allPlaintexts[l][0].size(): 45
-540db5210df2cb07608f02d42107d1f9  Block
-104804ed3b09909d0ab02c0477f80201  Block
-fdfdfd0bc43a0446e5056e7f09f0d10e  Block
-allPlaintexts[l][0].size(): 45
-2600dc120310860ad5870dd821077a46  Block
-106f04e5a30c86db0878960ba92901e5  Block
-fdfdfd01bd8109610d0ebe820c4f6a0d  Block
-allPlaintexts[l][0].size(): 45
-9905a6c808bae90483ed09034c0c921a  Block
-798009e64308e6280b9b360eb2d109c4  Block
-fdfdfd0a9e5f05eba70a57e005348105  Block
-allPlaintexts[l][0].size(): 45
-0907e8b20b997703bf5505c32c041be1  Block
-e1ce0f7b8b02df050ce62f0676cd01cb  Block
-fdfdfd0d8aab00d4bf05e3670d0f1b0f  Block
-allPlaintexts[l][0].size(): 45
-970276c1057fae00c0830eaf7d04682f  Block
-5dd40f82150e36660dd1db0ca6f00508  Block
-fdfdfd02ecb4008f6f04c99e093a1c0c  Block
-allPlaintexts[l][0].size(): 45
-510401d50fb8ed0dc50c0d37c80e9a23  Block
-5a7102374b0802b0069a450ce56a0ea7  Block
-fdfdfd095f17055339092b480c720a0b  Block
-allPlaintexts[l][0].size(): 45
-050e6c3e09a491026fa90dd7a30a080c  Block
-416d0bb1700f7e6b0a57c004f0d80038  Block
-fdfdfd028cb10b295b0dd1450b45c20c  Block
-allPlaintexts[l][0].size(): 45
-29000bcf0ff15e02a6ef0dc5e20c6309  Block
-5add0348860c08f30aa3310cd9eb00d7  Block
-fdfdfd0370b006bf8e0d1ed007c95e07  Block
-allPlaintexts[l][0].size(): 45
-b00c171500d72604a9c10bc5b50f741d  Block
-adcb0a25c90812040082b50720220db7  Block
-fdfdfd0225ce05bff100f68101194106  Block
-697312  r0Check
-236830  r0Check
-147893  r0Check
-592010  r0Check
-820095  r0Check
-18451  r0Check
-5353  r0Check
-128162  r0Check
-490689  r0Check
-259899  r0Check
-346254  r0Check
-885026  r0Check
-30677  r0Check
-465297  r0Check
-945876  r0Check
-697312  rrr0Check
-236830  rrr0Check
-147893  rrr0Check
-592010  rrr0Check
-820095  rrr0Check
-18451  rrr0Check
-5353  rrr0Check
-128162  rrr0Check
-490689  rrr0Check
-259899  rrr0Check
-346254  rrr0Check
-885026  rrr0Check
-30677  rrr0Check
-465297  rrr0Check
-945876  rrr0Check
-502357  r0Check
-313472  r0Check
-36494  r0Check
-654038  r0Check
-100414  r0Check
-23856  r0Check
-65796  r0Check
-901388  r0Check
-333673  r0Check
-803381  r0Check
-454623  r0Check
-34149  r0Check
-919321  r0Check
-887741  r0Check
-88488  r0Check
-502357  rrr0Check
-313472  rrr0Check
-36494  rrr0Check
-654038  rrr0Check
-100414  rrr0Check
-23856  rrr0Check
-65796  rrr0Check
-901388  rrr0Check
-333673  rrr0Check
-803381  rrr0Check
-454623  rrr0Check
-34149  rrr0Check
-919321  rrr0Check
-887741  rrr0Check
-88488  rrr0Check
-578119  r0Check
-995682  r0Check
-478033  r0Check
-640183  r0Check
-918837  r0Check
-348458  r0Check
-189094  r0Check
-234524  r0Check
-266456  r0Check
-558028  r0Check
-656909  r0Check
-595258  r0Check
-652766  r0Check
-194851  r0Check
-143637  r0Check
-578119  rrr0Check
-995682  rrr0Check
-478033  rrr0Check
-640183  rrr0Check
-918837  rrr0Check
-348458  rrr0Check
-189094  rrr0Check
-234524  rrr0Check
-266456  rrr0Check
-558028  rrr0Check
-656909  rrr0Check
-595258  rrr0Check
-652766  rrr0Check
-194851  rrr0Check
-143637  rrr0Check
-15419  r0Check
-54248  r0Check
-524357  r0Check
-761145  r0Check
-681593  r0Check
-398656  r0Check
-43284  r0Check
-876981  r0Check
-625015  r0Check
-137900  r0Check
-110484  r0Check
-1012424  r0Check
-93809  r0Check
-272568  r0Check
-801260  r0Check
-15419  rrr0Check
-54248  rrr0Check
-524357  rrr0Check
-761145  rrr0Check
-681593  rrr0Check
-398656  rrr0Check
-43284  rrr0Check
-876981  rrr0Check
-625015  rrr0Check
-137900  rrr0Check
-110484  rrr0Check
-1012424  rrr0Check
-93809  rrr0Check
-272568  rrr0Check
-801260  rrr0Check
-587863  r0Check
-371669  r0Check
-307565  r0Check
-884429  r0Check
-802373  r0Check
-139139  r0Check
-206164  r0Check
-590890  r0Check
-257230  r0Check
-735922  r0Check
-187621  r0Check
-369689  r0Check
-236804  r0Check
-841501  r0Check
-1007653  r0Check
-587863  rrr0Check
-371669  rrr0Check
-307565  rrr0Check
-884429  rrr0Check
-802373  rrr0Check
-139139  rrr0Check
-206164  rrr0Check
-590890  rrr0Check
-257230  rrr0Check
-735922  rrr0Check
-187621  rrr0Check
-369689  rrr0Check
-236804  rrr0Check
-841501  rrr0Check
-1007653  rrr0Check
-569226  r0Check
-552627  r0Check
-348235  r0Check
-395692  r0Check
-722227  r0Check
-508244  r0Check
-684400  r0Check
-977036  r0Check
-6782  r0Check
-920017  r0Check
-720698  r0Check
-315467  r0Check
-49397  r0Check
-1016995  r0Check
-1582  r0Check
-569226  rrr0Check
-552627  rrr0Check
-348235  rrr0Check
-395692  rrr0Check
-722227  rrr0Check
-508244  rrr0Check
-684400  rrr0Check
-977036  rrr0Check
-6782  rrr0Check
-920017  rrr0Check
-720698  rrr0Check
-315467  rrr0Check
-49397  rrr0Check
-1016995  rrr0Check
-1582  rrr0Check
-278287  r0Check
-1023498  r0Check
-885869  r0Check
-383293  r0Check
-977390  r0Check
-637494  r0Check
-536815  r0Check
-870588  r0Check
-855890  r0Check
-894254  r0Check
-775916  r0Check
-234770  r0Check
-596338  r0Check
-814041  r0Check
-194605  r0Check
-278287  rrr0Check
-1023498  rrr0Check
-885869  rrr0Check
-383293  rrr0Check
-977390  rrr0Check
-637494  rrr0Check
-536815  rrr0Check
-870588  rrr0Check
-855890  rrr0Check
-894254  rrr0Check
-775916  rrr0Check
-234770  rrr0Check
-596338  rrr0Check
-814041  rrr0Check
-194605  rrr0Check
-780512  r0Check
-670083  r0Check
-64594  r0Check
-22516  r0Check
-894999  r0Check
-1005448  r0Check
-678325  r0Check
-796661  r0Check
-861142  r0Check
-538614  r0Check
-138062  r0Check
-369090  r0Check
-640490  r0Check
-206737  r0Check
-412001  r0Check
-780512  rrr0Check
-670083  rrr0Check
-64594  rrr0Check
-22516  rrr0Check
-894999  rrr0Check
-1005448  rrr0Check
-678325  rrr0Check
-796661  rrr0Check
-861142  rrr0Check
-538614  rrr0Check
-138062  rrr0Check
-369090  rrr0Check
-640490  rrr0Check
-206737  rrr0Check
-412001  rrr0Check
-58775  r0Check
-6897  r0Check
-725294  r0Check
-369963  r0Check
-692651  r0Check
-110900  r0Check
-898782  r0Check
-1026904  r0Check
-147791  r0Check
-209122  r0Check
-87099  r0Check
-620945  r0Check
-722279  r0Check
-699616  r0Check
-355042  r0Check
-58775  rrr0Check
-6897  rrr0Check
-725294  rrr0Check
-369963  rrr0Check
-692651  rrr0Check
-110900  rrr0Check
-898782  rrr0Check
-1026904  rrr0Check
-147791  rrr0Check
-209122  rrr0Check
-87099  rrr0Check
-620945  rrr0Check
-722279  rrr0Check
-699616  rrr0Check
-355042  rrr0Check
-895023  r0Check
-116729  r0Check
-154973  r0Check
-4101  r0Check
-534912  r0Check
-165965  r0Check
-893398  r0Check
-865855  r0Check
-438751  r0Check
-238951  r0Check
-980591  r0Check
-774504  r0Check
-597989  r0Check
-727727  r0Check
-813180  r0Check
-895023  rrr0Check
-116729  rrr0Check
-154973  rrr0Check
-4101  rrr0Check
-534912  rrr0Check
-165965  rrr0Check
-893398  rrr0Check
-865855  rrr0Check
-438751  rrr0Check
-238951  rrr0Check
-980591  rrr0Check
-774504  rrr0Check
-597989  rrr0Check
-727727  rrr0Check
-813180  rrr0Check
-49219  r0Check
-243841  r0Check
-246891  r0Check
-424493  r0Check
-515709  r0Check
-769717  r0Check
-769137  r0Check
-251490  r0Check
-1020543  r0Check
-592005  r0Check
-800875  r0Check
-29091  r0Check
-905532  r0Check
-745880  r0Check
-686962  r0Check
-49219  rrr0Check
-243841  rrr0Check
-246891  rrr0Check
-424493  rrr0Check
-515709  rrr0Check
-769717  rrr0Check
-769137  rrr0Check
-251490  rrr0Check
-1020543  rrr0Check
-592005  rrr0Check
-800875  rrr0Check
-29091  rrr0Check
-905532  rrr0Check
-745880  rrr0Check
-686962  rrr0Check
-512505  r0Check
-185377  r0Check
-483471  r0Check
-914123  r0Check
-898337  r0Check
-131412  r0Check
-292856  r0Check
-700460  r0Check
-626845  r0Check
-322875  r0Check
-921672  r0Check
-651473  r0Check
-355967  r0Check
-280293  r0Check
-771130  r0Check
-512505  rrr0Check
-185377  rrr0Check
-483471  rrr0Check
-914123  rrr0Check
-898337  rrr0Check
-131412  rrr0Check
-292856  rrr0Check
-700460  rrr0Check
-626845  rrr0Check
-322875  rrr0Check
-921672  rrr0Check
-651473  rrr0Check
-355967  rrr0Check
-280293  rrr0Check
-771130  rrr0Check
-490054  r0Check
-907297  r0Check
-710023  r0Check
-200838  r0Check
-56338  r0Check
-124198  r0Check
-764201  r0Check
-555158  r0Check
-820955  r0Check
-320931  r0Check
-856175  r0Check
-806762  r0Check
-966274  r0Check
-614669  r0Check
-114049  r0Check
-490054  rrr0Check
-907297  rrr0Check
-710023  rrr0Check
-200838  rrr0Check
-56338  rrr0Check
-124198  rrr0Check
-764201  rrr0Check
-555158  rrr0Check
-820955  rrr0Check
-320931  rrr0Check
-856175  rrr0Check
-806762  rrr0Check
-966274  rrr0Check
-614669  rrr0Check
-114049  rrr0Check
-823834  r0Check
-590668  r0Check
-295917  r0Check
-572137  r0Check
-370376  r0Check
-640153  r0Check
-963281  r0Check
-760630  r0Check
-583208  r0Check
-648771  r0Check
-358784  r0Check
-341121  r0Check
-677856  r0Check
-388007  r0Check
-695903  r0Check
-823834  rrr0Check
-590668  rrr0Check
-295917  rrr0Check
-572137  rrr0Check
-370376  rrr0Check
-640153  rrr0Check
-963281  rrr0Check
-760630  rrr0Check
-583208  rrr0Check
-648771  rrr0Check
-358784  rrr0Check
-341121  rrr0Check
-677856  rrr0Check
-388007  rrr0Check
-695903  rrr0Check
-269281  r0Check
-377644  r0Check
-245589  r0Check
-760183  r0Check
-518322  r0Check
-117513  r0Check
-423629  r0Check
-845359  r0Check
-188165  r0Check
-1014667  r0Check
-1040846  r0Check
-855835  r0Check
-385895  r0Check
-54463  r0Check
-887467  r0Check
-269281  rrr0Check
-377644  rrr0Check
-245589  rrr0Check
-760183  rrr0Check
-518322  rrr0Check
-117513  rrr0Check
-423629  rrr0Check
-845359  rrr0Check
-188165  rrr0Check
-1014667  rrr0Check
-1040846  rrr0Check
-855835  rrr0Check
-385895  rrr0Check
-54463  rrr0Check
-887467  rrr0Check
-288815  r0Check
-962429  r0Check
-49283  r0Check
-360366  r0Check
-161473  r0Check
-329879  r0Check
-829168  r0Check
-905691  r0Check
-931430  r0Check
-1016341  r0Check
-810452  r0Check
-604700  r0Check
-313758  r0Check
-36719  r0Check
-191668  r0Check
-288815  rrr0Check
-962429  rrr0Check
-49283  rrr0Check
-360366  rrr0Check
-161473  rrr0Check
-329879  rrr0Check
-829168  rrr0Check
-905691  rrr0Check
-931430  rrr0Check
-1016341  rrr0Check
-810452  rrr0Check
-604700  rrr0Check
-313758  rrr0Check
-36719  rrr0Check
-191668  rrr0Check
-956963  r0Check
-866248  r0Check
-902412  r0Check
-1030381  r0Check
-262613  r0Check
-960337  r0Check
-845162  r0Check
-432709  r0Check
-524976  r0Check
-145227  r0Check
-744049  r0Check
-815626  r0Check
-600904  r0Check
-348985  r0Check
-614167  r0Check
-956963  rrr0Check
-866248  rrr0Check
-902412  rrr0Check
-1030381  rrr0Check
-262613  rrr0Check
-960337  rrr0Check
-845162  rrr0Check
-432709  rrr0Check
-524976  rrr0Check
-145227  rrr0Check
-744049  rrr0Check
-815626  rrr0Check
-600904  rrr0Check
-348985  rrr0Check
-614167  rrr0Check
-657420  r0Check
-907171  r0Check
-159657  r0Check
-631953  r0Check
-945214  r0Check
-14341  r0Check
-323800  r0Check
-677824  r0Check
-1015403  r0Check
-766320  r0Check
-803181  r0Check
-738754  r0Check
-905541  r0Check
-731483  r0Check
-167089  r0Check
-657420  rrr0Check
-907171  rrr0Check
-159657  rrr0Check
-631953  rrr0Check
-945214  rrr0Check
-14341  rrr0Check
-323800  rrr0Check
-677824  rrr0Check
-1015403  rrr0Check
-766320  rrr0Check
-803181  rrr0Check
-738754  rrr0Check
-905541  rrr0Check
-731483  rrr0Check
-167089  rrr0Check
-811785  r0Check
-902626  r0Check
-173807  r0Check
-1044830  r0Check
-3023  r0Check
-55081  r0Check
-842219  r0Check
-697137  r0Check
-788723  r0Check
-215174  r0Check
-482013  r0Check
-510302  r0Check
-859856  r0Check
-442254  r0Check
-225456  r0Check
-811785  rrr0Check
-902626  rrr0Check
-173807  rrr0Check
-1044830  rrr0Check
-3023  rrr0Check
-55081  rrr0Check
-842219  rrr0Check
-697137  rrr0Check
-788723  rrr0Check
-215174  rrr0Check
-482013  rrr0Check
-510302  rrr0Check
-859856  rrr0Check
-442254  rrr0Check
-225456  rrr0Check
-1012765  r0Check
-771509  r0Check
-305601  r0Check
-55078  r0Check
-792341  r0Check
-898992  r0Check
-466978  r0Check
-33461  r0Check
-528900  r0Check
-665033  r0Check
-437707  r0Check
-72001  r0Check
-63105  r0Check
-376817  r0Check
-140750  r0Check
-1012765  rrr0Check
-771509  rrr0Check
-305601  rrr0Check
-55078  rrr0Check
-792341  rrr0Check
-898992  rrr0Check
-466978  rrr0Check
-33461  rrr0Check
-528900  rrr0Check
-665033  rrr0Check
-437707  rrr0Check
-72001  rrr0Check
-63105  rrr0Check
-376817  rrr0Check
-140750  rrr0Check
+0-0:  224 r0
+0-0:  108 r1
+0-1:  85 r0
+0-1:  109 r1
+0-2:  71 r0
+0-2:  119 r1
+0-3:  59 r0
+0-3:  155 r1
+0-4:  87 r0
+0-4:  23 r1
+0-5:  138 r0
+0-5:  10 r1
+0-6:  15 r0
+0-6:  15 r1
+0-7:  224 r0
+0-7:  224 r1
+1-0:  151 r0
+1-0:  8 r1
+1-1:  47 r0
+1-1:  17 r1
+1-2:  67 r0
+1-2:  7 r1
+1-3:  249 r0
+1-3:  129 r1
+1-4:  70 r0
+1-4:  86 r1
+1-5:  26 r0
+1-5:  58 r1
+1-6:  225 r0
+1-6:  33 r1
+1-7:  47 r0
+1-7:  175 r1
+2-0:  35 r0
+2-0:  155 r1
+2-1:  12 r0
+2-1:  252 r1
+2-2:  9 r0
+2-2:  233 r1
+2-3:  29 r0
+2-3:  221 r1
+2-4:  30 r0
+2-4:  158 r1
+2-5:  128 r0
+2-5:  128 r1
+2-6:  98 r0
+2-6:  98 r1
+2-7:  232 r0
+2-7:  232 r1
+3-0:  213 r0
+3-0:  184 r1
+3-1:  179 r0
+3-1:  121 r1
+3-2:  10 r0
+3-2:  150 r1
+3-3:  131 r0
+3-3:  155 r1
+3-4:  241 r0
+3-4:  33 r1
+3-5:  249 r0
+3-5:  89 r1
+3-6:  129 r0
+3-6:  65 r1
+3-7:  33 r0
+3-7:  161 r1
+4-0:  33 r0
+4-0:  169 r1
+4-1:  76 r0
+4-1:  92 r1
+4-2:  44 r0
+4-2:  76 r1
+4-3:  125 r0
+4-3:  189 r1
+4-4:  200 r0
+4-4:  72 r1
+4-5:  163 r0
+4-5:  163 r1
+4-6:  226 r0
+4-6:  226 r1
+4-7:  181 r0
+4-7:  181 r1
+5-0:  181 r0
+5-0:  175 r1
+5-1:  142 r0
+5-1:  130 r1
+5-2:  81 r0
+5-2:  57 r1
+5-3:  69 r0
+5-3:  21 r1
+5-4:  109 r0
+5-4:  13 r1
+5-5:  75 r0
+5-5:  139 r1
+5-6:  109 r0
+5-6:  237 r1
+5-7:  82 r0
+5-7:  82 r1
+6-0:  46 r0
+6-0:  2 r1
+6-1:  93 r0
+6-1:  5 r1
+6-2:  107 r0
+6-2:  187 r1
+6-3:  143 r0
+6-3:  47 r1
+6-4:  135 r0
+6-4:  199 r1
+6-5:  237 r0
+6-5:  109 r1
+6-6:  85 r0
+6-6:  85 r1
+6-7:  131 r0
+6-7:  131 r1
+7-0:  12 r0
+7-0:  137 r1
+7-1:  169 r0
+7-1:  163 r1
+7-2:  239 r0
+7-2:  227 r1
+7-3:  193 r0
+7-3:  169 r1
+7-4:  138 r0
+7-4:  90 r1
+7-5:  214 r0
+7-5:  118 r1
+7-6:  183 r0
+7-6:  247 r1
+7-7:  57 r0
+7-7:  185 r1
+8-0:  205 r0
+8-0:  112 r1
+8-1:  172 r0
+8-1:  242 r1
+8-2:  61 r0
+8-2:  201 r1
+8-3:  244 r0
+8-3:  12 r1
+8-4:  43 r0
+8-4:  91 r1
+8-5:  5 r0
+8-5:  101 r1
+8-6:  45 r0
+8-6:  237 r1
+8-7:  203 r0
+8-7:  75 r1
+9-0:  134 r0
+9-0:  95 r1
+9-1:  233 r0
+9-1:  155 r1
+9-2:  119 r0
+9-2:  219 r1
+9-3:  174 r0
+9-3:  118 r1
+9-4:  237 r0
+9-4:  125 r1
+9-5:  145 r0
+9-5:  177 r1
+9-6:  94 r0
+9-6:  158 r1
+9-7:  38 r0
+9-7:  166 r1
+10-0:  127 r0
+10-0:  15 r1
+10-1:  62 r0
+10-1:  94 r1
+10-2:  53 r0
+10-2:  117 r1
+10-3:  121 r0
+10-3:  249 r1
+10-4:  69 r0
+10-4:  69 r1
+10-5:  51 r0
+10-5:  51 r1
+10-6:  238 r0
+10-6:  238 r1
+10-7:  23 r0
+10-7:  23 r1
+11-0:  171 r0
+11-0:  20 r1
+11-1:  128 r0
+11-1:  82 r1
+11-2:  125 r0
+11-2:  33 r1
+11-3:  33 r0
+11-3:  105 r1
+11-4:  18 r0
+11-4:  162 r1
+11-5:  200 r0
+11-5:  232 r1
+11-6:  178 r0
+11-6:  242 r1
+11-7:  193 r0
+11-7:  65 r1
+12-0:  213 r0
+12-0:  95 r1
+12-1:  62 r0
+12-1:  82 r1
+12-2:  207 r0
+12-2:  247 r1
+12-3:  21 r0
+12-3:  101 r1
+12-4:  19 r0
+12-4:  179 r1
+12-5:  48 r0
+12-5:  112 r1
+12-6:  42 r0
+12-6:  170 r1
+12-7:  64 r0
+12-7:  64 r1
+13-0:  131 r0
+13-0:  81 r1
+13-1:  84 r0
+13-1:  240 r1
+13-2:  54 r0
+13-2:  110 r1
+13-3:  136 r0
+13-3:  248 r1
+13-4:  52 r0
+13-4:  20 r1
+13-5:  77 r0
+13-5:  13 r1
+13-6:  181 r0
+13-6:  53 r1
+13-7:  84 r0
+13-7:  84 r1
+14-0:  38 r0
+14-0:  211 r1
+14-1:  153 r0
+14-1:  243 r1
+14-2:  9 r0
+14-2:  189 r1
+14-3:  151 r0
+14-3:  255 r1
+14-4:  81 r0
+14-4:  33 r1
+14-5:  5 r0
+14-5:  165 r1
+14-6:  41 r0
+14-6:  105 r1
+14-7:  176 r0
+14-7:  48 r1
+allPlaintexts[l][0].size(): 15
+fd2683d5ab7f86cd0c2eb521d52397e0  Block
+fd2683d5ab7f86cd0c2eb521d52397e0 snd allBlkPlaintexts[l][0][0]
+fd2683d5ab7f86cd0c2eb521d52397e0 snd cipher0
+002683d5ab7f86cd0c2eb521d52397e0  sendBuff.data() test 
+fdd3515f140f5f708902afa9b89b086c snd allBlkPlaintexts[l][1][0]
+fdd3515f140f5f708902afa9b89b086c snd cipher1
+allPlaintexts[l][0].size(): 15
+fd99543e803ee9aca95d8e4cb30c2f55  Block
+fd99543e803ee9aca95d8e4cb30c2f55 snd allBlkPlaintexts[l][0][0]
+fd99543e803ee9aca95d8e4cb30c2f55 snd cipher0
+0099543e803ee9aca95d8e4cb30c2f55  sendBuff.data() test 
+fdf3f052525e9bf2a305825c79fc116d snd allBlkPlaintexts[l][1][0]
+fdf3f052525e9bf2a305825c79fc116d snd cipher1
+allPlaintexts[l][0].size(): 15
+fd0936cf7d35773def6b512c0a094347  Block
+fd0936cf7d35773def6b512c0a094347 snd allBlkPlaintexts[l][0][0]
+fd0936cf7d35773def6b512c0a094347 snd cipher0
+000936cf7d35773def6b512c0a094347  sendBuff.data() test 
+fdbd6ef72175dbc9e3bb394c96e90777 snd allBlkPlaintexts[l][1][0]
+fdbd6ef72175dbc9e3bb394c96e90777 snd cipher1
+allPlaintexts[l][0].size(): 15
+fd9788152179aef4c18f457d831df93b  Block
+fd9788152179aef4c18f457d831df93b snd allBlkPlaintexts[l][0][0]
+fd9788152179aef4c18f457d831df93b snd cipher0
+009788152179aef4c18f457d831df93b  sendBuff.data() test 
+fdfff86569f9760ca92f15bd9bdd819b snd allBlkPlaintexts[l][1][0]
+fdfff86569f9760ca92f15bd9bdd819b snd cipher1
+allPlaintexts[l][0].size(): 15
+fd5134131245ed2b8a876dc8f11e4657  Block
+fd5134131245ed2b8a876dc8f11e4657 snd allBlkPlaintexts[l][0][0]
+fd5134131245ed2b8a876dc8f11e4657 snd cipher0
+005134131245ed2b8a876dc8f11e4657  sendBuff.data() test 
+fd2114b3a2457d5b5ac70d48219e5617 snd allBlkPlaintexts[l][1][0]
+fd2114b3a2457d5b5ac70d48219e5617 snd cipher1
+allPlaintexts[l][0].size(): 15
+fd054d30c8339105d6ed4ba3f9801a8a  Block
+fd054d30c8339105d6ed4ba3f9801a8a snd allBlkPlaintexts[l][0][0]
+fd054d30c8339105d6ed4ba3f9801a8a snd cipher0
+00054d30c8339105d6ed4ba3f9801a8a  sendBuff.data() test 
+fda50d70e833b165766d8ba359803a0a snd allBlkPlaintexts[l][1][0]
+fda50d70e833b165766d8ba359803a0a snd cipher1
+allPlaintexts[l][0].size(): 15
+fd29b52ab2ee5e2db7556de28162e10f  Block
+fd29b52ab2ee5e2db7556de28162e10f snd allBlkPlaintexts[l][0][0]
+fd29b52ab2ee5e2db7556de28162e10f snd cipher0
+0029b52ab2ee5e2db7556de28162e10f  sendBuff.data() test 
+fd6935aaf2ee9eedf755ede24162210f snd allBlkPlaintexts[l][1][0]
+fd6935aaf2ee9eedf755ede24162210f snd cipher1
+allPlaintexts[l][0].size(): 15
+fdb05440c11726cb398352b521e82fe0  Block
+fdb05440c11726cb398352b521e82fe0 snd allBlkPlaintexts[l][0][0]
+fdb05440c11726cb398352b521e82fe0 snd cipher0
+00b05440c11726cb398352b521e82fe0  sendBuff.data() test 
+fd3054404117a64bb98352b5a1e8afe0 snd allBlkPlaintexts[l][1][0]
+fd3054404117a64bb98352b5a1e8afe0 snd cipher1
+6c2683d5ab7f86cd0c2eb521d52397e0  sendBuff.data() 
+6c2683d5ab7f86cd0c2eb521d52397e0  recvBuff.data() 
+002683d5ab7f86cd0c2eb521d52397e0 receiver allBlkCipherexts[l][0][0]
+00d3515f140f5f708902afa9b89b086c receiver allBlkCipherexts[l][1][0]
+002683d5ab7f86cd0c2eb521d52397e0 receiver allBlkPlaintexts
+0-0:  224 rb
+1-0:  151 rb
+2-0:  35 rb
+3-0:  213 rb
+4-0:  33 rb
+5-0:  181 rb
+6-0:  46 rb
+7-0:  12 rb
+8-0:  205 rb
+9-0:  134 rb
+10-0:  127 rb
+11-0:  171 rb
+12-0:  213 rb
+13-0:  131 rb
+14-0:  38 rb
+0099543e803ee9aca95d8e4cb30c2f55 receiver allBlkCipherexts[l][0][0]
+00f3f052525e9bf2a305825c79fc116d receiver allBlkCipherexts[l][1][0]
+00f3f052525e9bf2a305825c79fc116d receiver allBlkPlaintexts
+0-1:  109 rb
+1-1:  17 rb
+2-1:  252 rb
+3-1:  121 rb
+4-1:  92 rb
+5-1:  130 rb
+6-1:  5 rb
+7-1:  163 rb
+8-1:  242 rb
+9-1:  155 rb
+10-1:  94 rb
+11-1:  82 rb
+12-1:  82 rb
+13-1:  240 rb
+14-1:  243 rb
+000936cf7d35773def6b512c0a094347 receiver allBlkCipherexts[l][0][0]
+00bd6ef72175dbc9e3bb394c96e90777 receiver allBlkCipherexts[l][1][0]
+00bd6ef72175dbc9e3bb394c96e90777 receiver allBlkPlaintexts
+0-2:  119 rb
+1-2:  7 rb
+2-2:  233 rb
+3-2:  150 rb
+4-2:  76 rb
+5-2:  57 rb
+6-2:  187 rb
+7-2:  227 rb
+8-2:  201 rb
+9-2:  219 rb
+10-2:  117 rb
+11-2:  33 rb
+12-2:  247 rb
+13-2:  110 rb
+14-2:  189 rb
+009788152179aef4c18f457d831df93b receiver allBlkCipherexts[l][0][0]
+00fff86569f9760ca92f15bd9bdd819b receiver allBlkCipherexts[l][1][0]
+00fff86569f9760ca92f15bd9bdd819b receiver allBlkPlaintexts
+0-3:  155 rb
+1-3:  129 rb
+2-3:  221 rb
+3-3:  155 rb
+4-3:  189 rb
+5-3:  21 rb
+6-3:  47 rb
+7-3:  169 rb
+8-3:  12 rb
+9-3:  118 rb
+10-3:  249 rb
+11-3:  105 rb
+12-3:  101 rb
+13-3:  248 rb
+14-3:  255 rb
+005134131245ed2b8a876dc8f11e4657 receiver allBlkCipherexts[l][0][0]
+002114b3a2457d5b5ac70d48219e5617 receiver allBlkCipherexts[l][1][0]
+002114b3a2457d5b5ac70d48219e5617 receiver allBlkPlaintexts
+0-4:  23 rb
+1-4:  86 rb
+2-4:  158 rb
+3-4:  33 rb
+4-4:  72 rb
+5-4:  13 rb
+6-4:  199 rb
+7-4:  90 rb
+8-4:  91 rb
+9-4:  125 rb
+10-4:  69 rb
+11-4:  162 rb
+12-4:  179 rb
+13-4:  20 rb
+14-4:  33 rb
+00054d30c8339105d6ed4ba3f9801a8a receiver allBlkCipherexts[l][0][0]
+00a50d70e833b165766d8ba359803a0a receiver allBlkCipherexts[l][1][0]
+00a50d70e833b165766d8ba359803a0a receiver allBlkPlaintexts
+0-5:  10 rb
+1-5:  58 rb
+2-5:  128 rb
+3-5:  89 rb
+4-5:  163 rb
+5-5:  139 rb
+6-5:  109 rb
+7-5:  118 rb
+8-5:  101 rb
+9-5:  177 rb
+10-5:  51 rb
+11-5:  232 rb
+12-5:  112 rb
+13-5:  13 rb
+14-5:  165 rb
+0029b52ab2ee5e2db7556de28162e10f receiver allBlkCipherexts[l][0][0]
+006935aaf2ee9eedf755ede24162210f receiver allBlkCipherexts[l][1][0]
+0029b52ab2ee5e2db7556de28162e10f receiver allBlkPlaintexts
+0-6:  15 rb
+1-6:  225 rb
+2-6:  98 rb
+3-6:  129 rb
+4-6:  226 rb
+5-6:  109 rb
+6-6:  85 rb
+7-6:  183 rb
+8-6:  45 rb
+9-6:  94 rb
+10-6:  238 rb
+11-6:  178 rb
+12-6:  42 rb
+13-6:  181 rb
+14-6:  41 rb
+000b05440c11726cb398352b521e82fe0 receiver allBlkCipherexts[l][0][0]
+003054404117a64bb98352b5a1e8afe0 receiver allBlkCipherexts[l][1][0]
+00b05440c11726cb398352b521e82fe0 receiver allBlkPlaintexts
+0-7:  224 rb
+1-7:  47 rb
+2-7:  232 rb
+3-7:  33 rb
+4-7:  181 rb
+5-7:  82 rb
+6-7:  131 rb
+7-7:  57 rb
+8-7:  203 rb
+9-7:  38 rb
+10-7:  23 rb
+11-7:  193 rb
+12-7:  64 rb
+13-7:  84 rb
+14-7:  176 rb
+121 + 111 = 232
+140 * 62 = 232
+142 + 208 = 350
+113 * 62 = 94
+195 + 77 = 272
+120 * 62 = 16
+95 + 155 = 250
+227 * 62 = 250
+232 + 8 = 240
+136 * 62 = 240
+176 + 220 = 396
+250 * 62 = 140
+47 + 41 = 88
+212 * 62 = 88
+75 + 251 = 326
+125 * 62 = 70
+46 + 76 = 122
+163 * 62 = 122
+106 + 36 = 142
+217 * 62 = 142
+24 + 200 = 224
+144 * 62 = 224
+234 + 132 = 366
+105 * 62 = 110
+92 + 16 = 108
+138 * 62 = 108
+225 + 3 = 228
+206 * 62 = 228
+114 + 116 = 230
+173 * 62 = 230
 ===========Party 0 ==============
-d=2	 mod=1048576	 mPoint[0][0]=780646
+d=2	 mod=256	 mPoint[0][0]=102
 OT base 1: send[0][0]=5aab42de66475d477d04218e6965446c	 send[0][1]=b83e724bb0411d69e77f371d83f0e147
 OT base 2: choice[0]=1	 recv[0]=8b9af4f6a396ca5d2b9213215d23f3d0
-Share1: mSharePoint[0][0].mArithShare=708926 vs 01111100100010110101
-Share2: mSharePoint[n][0].mArithShare=430793 vs 10010011010010010110
+Share1: mSharePoint[0][0].mArithShare=62 vs 01111100
+Share2: mSharePoint[n][0].mArithShare=201 vs 10010011
 -------------
-OT allkey base 1: send[0][0]=7791ef7e0fa5e7f36863cb34241d2f74	 send[0][1]=aa72e0695c614e987f84782fbefd2ef1
-OT allkey base 2: choice[0]=0	 recv[0]=3fb39833de546c95846037100d3503a1
+OT allkey base 1: send[0][0]=00000000000000000000000000000000	 send[0][1]=00000000000000000000000000000000
+OT allkey base 2: choice[0]=0	 recv[0]=00000000000000000000000000000000
 -------------
-OT key base 1: send[0][0]=7791ef7e0fa5e7f36863cb34241d2f74	 send[0][1]=aa72e0695c614e987f84782fbefd2ef1
-OT key base 2: choice[0]=0	 recv[0]=3fb39833de546c95846037100d3503a1
+OT key base 1: send[0][0]=00000000000000000000000000000000	 send[0][1]=00000000000000000000000000000000
+OT key base 2: choice[0]=0	 recv[0]=00000000000000000000000000000000
 ===========Party 1 ==============
-d=2	 mod=1048576	 mPoint[0][0]=674952
+d=2	 mod=256	 mPoint[0][0]=136
 OT base 1: send[0][0]=664f37505c397ef0a5e4ec517dfa14ef	 send[0][1]=8b9af4f6a396ca5d2b9213215d23f3d0
 OT base 2: choice[0]=1	 recv[0]=b83e724bb0411d69e77f371d83f0e147
-Share1: mSharePoint[0][0].mArithShare=71720 vs 00010100000110001000
-Share2: mSharePoint[n][0].mArithShare=244159 vs 11111101100111011100
+Share1: mSharePoint[0][0].mArithShare=40 vs 00010100
+Share2: mSharePoint[n][0].mArithShare=191 vs 11111101
 -------------
-OT allkey base 1: send[0][0]=3fb39833de546c95846037100d3503a1	 send[0][1]=d709930451eea914c31c4c2c6a222ccc
-OT allkey base 2: choice[0]=1	 recv[0]=aa72e0695c614e987f84782fbefd2ef1
+OT allkey base 1: send[0][0]=00000000000000000000000000000000	 send[0][1]=00000000000000000000000000000000
+OT allkey base 2: choice[0]=1	 recv[0]=00000000000000000000000000000000
 -------------
-OT key base 1: send[0][0]=3fb39833de546c95846037100d3503a1	 send[0][1]=d709930451eea914c31c4c2c6a222ccc
-OT key base 2: choice[0]=0	 recv[0]=aa72e0695c614e987f84782fbefd2ef1
+OT key base 1: send[0][0]=00000000000000000000000000000000	 send[0][1]=00000000000000000000000000000000
+OT key base 2: choice[0]=0	 recv[0]=00000000000000000000000000000000

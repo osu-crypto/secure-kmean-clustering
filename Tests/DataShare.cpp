@@ -44,17 +44,21 @@ namespace osuCrypto
 					Word r0 = (mPrng.get<Word>()) % mMod; //OT message
 					auto r1= (Word)(b[k]*pow(2, l) + r0) % mMod;
 
+					std::cout << IoStream::lock;
+					std::cout << k << "-" << l << ":  "<< r0 << " r0\n";
+					std::cout << k << "-" << l<<":  "<< r1 << " r1\n";
+					std::cout << IoStream::unlock;
+
 					m0[k]= (m0[k]+r0) % mMod;
 
 					memcpy(allPlaintexts[l][0].data()+ mLenModinByte*k, (u8*)&r0, mLenModinByte); //OT len
 					memcpy(allPlaintexts[l][1].data() + mLenModinByte*k, (u8*)&r1, mLenModinByte);
 					
 
-					Word r0Check=0;
-					memcpy((u8*)&r0Check, allPlaintexts[l][0].data() + mLenModinByte*k, mLenModinByte);
-
-					std::cout << r0 <<" " << mLenModinByte << "\n";
-					std::cout << r0Check << "\n";
+					//Word r0Check=0;
+					//memcpy((u8*)&r0Check, allPlaintexts[l][0].data() + mLenModinByte*k, mLenModinByte);
+					//std::cout << r0 <<" " << mLenModinByte << "\n";
+					//std::cout << r0Check << "\n";
 
 				}
 		}
@@ -68,14 +72,14 @@ namespace osuCrypto
 
 		//}
 
-		for (u64 i = 0; i < allPlaintexts[0][0].size(); i += mLenModinByte)
-		{
-			Word r0Check = 0;
-			memcpy((u8*)&r0Check, allPlaintexts[0][0].data() + i, mLenModinByte);
+		//for (u64 i = 0; i < allPlaintexts[0][0].size(); i += mLenModinByte)
+		//{
+		//	Word r0Check = 0;
+		//	memcpy((u8*)&r0Check, allPlaintexts[0][0].data() + i, mLenModinByte);
 
-			std::cout << r0Check << "  rrr0Check\n";
+		//	std::cout << r0Check << "  rrr0Check\n";
 
-		}
+		//}
 
 
 		u64 iter = 0;
@@ -94,20 +98,45 @@ namespace osuCrypto
 			mSharePoint[theirIdxPoint][theirIdxDim].sendAES[l][0].ecbEncBlocks
 			(allBlkPlaintexts[l][0].data(), allBlkPlaintexts[l][0].size(), cipher); //r0||r1||r2
 			
-			memcpy(sendBuff.data()+ iter, (u8*)&cipher, b.size()*mLenModinByte);
+			std::cout << IoStream::lock;
+			std::cout << allBlkPlaintexts[l][0][0] << " snd allBlkPlaintexts[l][0][0]\n";
+			std::cout << cipher[0] << " snd cipher0\n";
+			std::cout << IoStream::unlock;
+
+			memcpy(sendBuff.data()+ iter, (u8 *)&cipher[0], b.size()*mLenModinByte);
+
+			block test;
+			memcpy(&test, sendBuff.data() + iter, sizeof(block));
+			std::cout << IoStream::lock;
+			std::cout << test << "  sendBuff.data() test \n";
+
+			std::cout << IoStream::unlock;
+
 			iter += b.size()*mLenModinByte;
 			
 			mSharePoint[theirIdxPoint][theirIdxDim].sendAES[l][1].ecbEncBlocks
 			(allBlkPlaintexts[l][1].data(), allBlkPlaintexts[l][1].size(), cipher); //c0-r0||c1-r1||c2=r2
 
-			memcpy(sendBuff.data() + iter, (u8*)&cipher, b.size()*mLenModinByte);
+			std::cout << IoStream::lock;
+			std::cout << allBlkPlaintexts[l][1][0] << " snd allBlkPlaintexts[l][1][0]\n";
+			std::cout << cipher[0] << " snd cipher1\n";
+			std::cout << IoStream::unlock;
+
+			memcpy(sendBuff.data() + iter, (u8 *)&cipher[0], b.size()*mLenModinByte);
 			iter += b.size()*mLenModinByte;
 		}
 
+
+		block test;
+		memcpy(&test, sendBuff.data(), sizeof(block));
+		std::cout << IoStream::lock;
+		std::cout << test << "  sendBuff.data() \n";
+		std::cout << IoStream::unlock;
 		mChl.asyncSend(std::move(sendBuff));
 
 
-#if 1 //check
+
+#if 0 //check
 		for (u64 l = 0; l < mLenMod; l++)
 		{
 			
@@ -146,7 +175,7 @@ namespace osuCrypto
 
 	std::vector<Word> DataShare::amortAdaptMULrecv(u64 idxPoint, u64 idxDim, u64 theirbsize)
 	{
-		std::vector<u8> recvBuff(theirbsize*mLenModinByte*mLenMod * 2);
+		std::vector<u8> recvBuff;// (theirbsize*mLenModinByte*mLenMod * 2);
 		std::vector<Word> mi(theirbsize, 0); //sum OT m0 messages
 
 		std::vector<std::vector<u8>> allPlaintexts(mLenMod);
@@ -154,16 +183,30 @@ namespace osuCrypto
 		for (u64 l = 0; l < mLenMod; l++)
 		{
 			allPlaintexts[l].resize(theirbsize*mLenModinByte); //b.size x OT len x |x|
-			allBlkCipherexts[l][1].resize(theirbsize*mLenModinByte);
+			allBlkCipherexts[l][0].resize((theirbsize*mLenModinByte + 15) / 16);
 			allBlkCipherexts[l][1].resize((theirbsize*mLenModinByte + 15) / 16);
 		}
 
 
 
 		mChl.recv(recvBuff);
+		if (recvBuff.size() != theirbsize*mLenModinByte*mLenMod * 2)
+		{
+			std::cout << "recvBuff.size() != theirbsize*mLenModinByte*mLenMod * 2" << 
+				recvBuff.size()<< " vs " << theirbsize*mLenModinByte*mLenMod * 2 << "\n";
+			throw std::exception();
+		}
+
+		block test;
+		memcpy(&test, recvBuff.data() , sizeof(block));
+		std::cout << IoStream::lock;
+		std::cout << test<< "  recvBuff.data() \n";
+		std::cout << IoStream::unlock;
+
 
 		u64 iter = 0;
 		for (u64 l = 0; l < mLenMod; l++)
+	//		for (u64 l = 0; l < 0; l++)
 		{
 
 			memcpy(allBlkCipherexts[l][0].data(), recvBuff.data() + iter, theirbsize*mLenModinByte);
@@ -174,15 +217,28 @@ namespace osuCrypto
 
 			block* allBlkPlaintexts = new block[allBlkCipherexts[l][0].size()]; //mi0||mi1||mi_#cluster
 
+			if(l==mLenMod-1)
+				std::cout<< mSharePoint[idxPoint][idxDim].mBitShare[l];
+
 			u8 choice = mSharePoint[idxPoint][idxDim].mBitShare[l];
 			mSharePoint[idxPoint][idxDim].recvAES[l].ecbDecBlocks
 			(allBlkCipherexts[l][choice].data(), allBlkCipherexts[l][choice].size(), allBlkPlaintexts);
 
+			std::cout << IoStream::lock;
+			std::cout << allBlkCipherexts[l][0][0] << " receiver allBlkCipherexts[l][0][0]\n";
+			std::cout << allBlkCipherexts[l][1][0] << " receiver allBlkCipherexts[l][1][0]\n";
+			std::cout << allBlkPlaintexts[0] << " receiver allBlkPlaintexts\n";
+			std::cout << IoStream::unlock;
 
 			for (u64 k = 0; k < theirbsize; k++)
 			{
 				Word r = 0;
-				memcpy((u8*)&r, (u8*)&allBlkPlaintexts+k*mLenModinByte, mLenModinByte); //mik
+				memcpy((u8*)&r, (u8*)&allBlkPlaintexts[0]+k*mLenModinByte, mLenModinByte); //mik
+
+				std::cout << IoStream::lock;
+				std::cout << k << "-" << l << ":  " << r << " rb\n";
+				std::cout << IoStream::unlock;
+
 				mi[k]= (mi[k]+r) % mMod;
 			}
 			

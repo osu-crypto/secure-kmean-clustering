@@ -380,7 +380,7 @@ namespace osuCrypto
 
 		int securityParams = 128;
 		int inDimension = 2;
-		int inExMod = 20;
+		int inExMod = 8;
 		u64 inNumCluster = 15;
 
 
@@ -536,32 +536,39 @@ namespace osuCrypto
 
 		//=======================online ED===============================
 
+		std::vector<Word> m0, mi;
+		std::vector<Word> b;// (p0.mTotalNumPoints*p0.mNumCluster*p0.mDimension);
+		u64 step = p0.mNumCluster;
+
 		thrd = std::thread([&]() {
 
 			int idxPoint = 0;
 			int idxDim = 0;
-			
-			//p0.amortAdaptMULrecv(idxPoint, idxDim, p0.mNumCluster);
-
-
+			//mi = p0.amortAdaptMULrecv(idxPoint, idxDim, p0.mNumCluster);
+			mi=p0.amortAdaptMULrecv(idxPoint, idxDim, step);
 
 		});
 
 		int idxPoint = 0;
 		int idxDim = 0;
-		std::vector<Word> b;// (p0.mTotalNumPoints*p0.mNumCluster*p0.mDimension);
-			for (u64 k = 0; k < p1.mNumCluster; k++)
+		//for (u64 k = 0; k < p1.mNumCluster; k++)
+			for (u64 k = 0; k < step; k++)
 				{
 					auto a = (p1.mSharePoint[idxPoint][idxDim].mArithShare - p1.mShareCluster[k][idxDim].mArithShare)%p1.mMod;
 					std::cout <<"a= " << a << "\n";
 					b.push_back(a);
 
 				}
-		p1.amortAdaptMULsend(idxPoint, idxDim, b);
+		m0=p1.amortAdaptMULsend(idxPoint, idxDim, b);
 
 	
 		thrd.join();
 
+		for (u64 k = 0; k < step; k++)
+		{
+			std::cout << m0[k] << " + " << mi[k] << " = " << (m0[k] + mi[k] % p1.mMod) << "\n";
+			std::cout << b[k] << " * " << p0.mSharePoint[idxPoint][idxDim].mArithShare << " = " << (b[k] * p0.mSharePoint[idxPoint][idxDim].mArithShare) % p1.mMod << "\n";
+		}
 
 
 		timer.setTimePoint("OTkeysDone");
