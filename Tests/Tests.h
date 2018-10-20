@@ -8,6 +8,7 @@ namespace osuCrypto
 	void AdaptiveMUL_test();
 	void readData_test();
 	void ClusteringTest();
+	void testDecAES();
 
 
 }

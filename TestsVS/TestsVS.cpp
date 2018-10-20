@@ -44,6 +44,12 @@ namespace osuCrypto
 			ClusteringTest();
 		}
 
+		TEST_METHOD(DecAESTesttVS)
+		{
+			InitDebugPrinting();
+			testDecAES();
+		}
+
 		
 	
 		

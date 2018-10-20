@@ -380,7 +380,7 @@ namespace osuCrypto
 
 		int securityParams = 128;
 		int inDimension = 2;
-		int inExMod = 8;
+		int inExMod = 20;
 		u64 inNumCluster = 15;
 
 
@@ -538,21 +538,19 @@ namespace osuCrypto
 
 		std::vector<Word> m0, mi;
 		std::vector<Word> b;// (p0.mTotalNumPoints*p0.mNumCluster*p0.mDimension);
-		u64 step = p0.mNumCluster;
 
 		thrd = std::thread([&]() {
 
 			int idxPoint = 0;
 			int idxDim = 0;
 			//mi = p0.amortAdaptMULrecv(idxPoint, idxDim, p0.mNumCluster);
-			mi=p0.amortAdaptMULrecv(idxPoint, idxDim, step);
+			mi=p0.amortAdaptMULrecv(idxPoint, idxDim, p0.mNumCluster);
 
 		});
 
 		int idxPoint = 0;
 		int idxDim = 0;
-		//for (u64 k = 0; k < p1.mNumCluster; k++)
-			for (u64 k = 0; k < step; k++)
+		for (u64 k = 0; k < p1.mNumCluster; k++)
 				{
 					auto a = (p1.mSharePoint[idxPoint][idxDim].mArithShare - p1.mShareCluster[k][idxDim].mArithShare)%p1.mMod;
 					std::cout <<"a= " << a << "\n";
@@ -564,9 +562,9 @@ namespace osuCrypto
 	
 		thrd.join();
 
-		for (u64 k = 0; k < step; k++)
+		for (u64 k = 0; k < p0.mNumCluster; k++)
 		{
-			std::cout << m0[k] << " + " << mi[k] << " = " << (m0[k] + mi[k] % p1.mMod) << "\n";
+			std::cout << m0[k] << " + " << mi[k] << " = " << (m0[k] + mi[k]) % p1.mMod << "\n";
 			std::cout << b[k] << " * " << p0.mSharePoint[idxPoint][idxDim].mArithShare << " = " << (b[k] * p0.mSharePoint[idxPoint][idxDim].mArithShare) % p1.mMod << "\n";
 		}
 
@@ -576,7 +574,40 @@ namespace osuCrypto
 		p0.Print();
 		p1.Print();
 
+
+		
+
+
 	}
+
+	void testDecAES()
+	{
+		PRNG prng(ZeroBlock);
+		block* plaintexts = new block[10];
+		block* plaintexts1=new block[10];
+		block key = prng.get<block>();
+		AES encAES(key);
+		AESDec decAES(key);
+		
+		for (size_t i = 0; i < 10; i++)
+		{
+			plaintexts[i] = prng.get<block>();
+		}
+
+		block* cipher = new block[10];
+		encAES.ecbEncBlocks(plaintexts, 10, cipher);
+		decAES.ecbDecBlocks(cipher, 10, plaintexts1);
+
+		for (size_t i = 0; i < 10; i++)
+		{
+			//if(!memcmp((u8*)&plaintexts[i], (u8*)&plaintexts1[i], sizeof(block)));
+			{
+				std::cout << plaintexts[i] << " vs " << plaintexts1[i] << " \n";
+				//throw std::exception();
+			}
+		}
+	}
+
 
 
 
