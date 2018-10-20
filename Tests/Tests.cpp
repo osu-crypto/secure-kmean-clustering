@@ -490,11 +490,11 @@ namespace osuCrypto
 		{
 			for (u64 j = 0; j < inDimension; j++)
 			{
-				if ((p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])
+				if ((p0.mShareCluster[i][j] + p1.mShareCluster[i][j]) % inMod != p0.mCluster[i][j])
 				{
 
 					std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
-					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
+					std::cout << i << "-" << j << ": " << p0.mShareCluster[i][j] << " vs " << p1.mShareCluster[i][j] << "\n";
 					throw std::exception();
 				}
 			}
@@ -505,11 +505,11 @@ namespace osuCrypto
 		{
 			for (u64 j = 0; j < inDimension; j++)
 			{
-				if ((p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p1.mCluster[i][j])
+				if ((p0.mShareCluster[i][j]+ p1.mShareCluster[i][j]) % inMod != p1.mCluster[i][j])
 				{
 
 					std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
-					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
+					std::cout << i << "-" << j << ": " << p0.mShareCluster[i][j] << " vs " << p1.mShareCluster[i][j] << "\n";
 					throw std::exception();
 				}
 			}
@@ -538,6 +538,8 @@ namespace osuCrypto
 
 		std::vector<Word> m0, mi;
 		std::vector<Word> b;// (p0.mTotalNumPoints*p0.mNumCluster*p0.mDimension);
+		std::vector<std::vector<Word>> c0;
+		std::vector<std::vector<Word>> ci;
 
 		thrd = std::thread([&]() {
 
@@ -546,18 +548,21 @@ namespace osuCrypto
 			//mi = p0.amortAdaptMULrecv(idxPoint, idxDim, p0.mNumCluster);
 			mi=p0.amortAdaptMULrecv(idxPoint, idxDim, p0.mNumCluster);
 
+			ci=p0.amortMULrecv(p0.mShareCluster);
 		});
 
 		int idxPoint = 0;
 		int idxDim = 0;
 		for (u64 k = 0; k < p1.mNumCluster; k++)
 				{
-					auto a = (p1.mSharePoint[idxPoint][idxDim].mArithShare - p1.mShareCluster[k][idxDim].mArithShare)%p1.mMod;
+					auto a = (p1.mSharePoint[idxPoint][idxDim].mArithShare - p1.mShareCluster[k][idxDim])%p1.mMod;
 					std::cout <<"a= " << a << "\n";
 					b.push_back(a);
 
 				}
 		m0=p1.amortAdaptMULsend(idxPoint, idxDim, b);
+
+		c0=p1.amortMULsend(p1.mShareCluster);
 
 	
 		thrd.join();
@@ -566,6 +571,17 @@ namespace osuCrypto
 		{
 			std::cout << m0[k] << " + " << mi[k] << " = " << (m0[k] + mi[k]) % p1.mMod << "\n";
 			std::cout << b[k] << " * " << p0.mSharePoint[idxPoint][idxDim].mArithShare << " = " << (b[k] * p0.mSharePoint[idxPoint][idxDim].mArithShare) % p1.mMod << "\n";
+		}
+
+		std::cout << "--------------\n";
+		for (u64 k = 0; k < p0.mNumCluster; k++)
+		{
+			for (u64 d = 0; d < p0.mDimension; d++)
+			{
+				std::cout << c0[k][d] << " + " << ci[k][d] << " = " << (c0[k][d] + ci[k][d]) % p0.mMod << "\n";
+				std::cout << p0.mShareCluster[k][d] << " * " << p1.mShareCluster[k][d]<< " = " << (p1.mShareCluster[k][d] * p0.mShareCluster[k][d]) % p1.mMod << "\n";
+
+			}
 		}
 
 

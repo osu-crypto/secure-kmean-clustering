@@ -146,20 +146,20 @@ namespace osuCrypto
 		for (u64 l = 0; l < mLenMod; l++)
 		{
 			
-				for (u64 j = 0; j < b.size(); j++)
+				for (u64 d = 0; d < b.size(); d++)
 				{
 					Word r0Check = 0;
-					memcpy((u8*)&r0Check, allPlaintexts[l][0].data() + mLenModinByte*j, mLenModinByte);
+					memcpy((u8*)&r0Check, allPlaintexts[l][0].data() + mLenModinByte*d, mLenModinByte);
 					std::cout << r0Check << "  r0Check\n";
 				}
 
 
 				std::vector<u8> vecCheckk((allBlkPlaintexts[l][0].size()* sizeof(block)));
 
-				for (u64 j = 0; j < allBlkPlaintexts[l][0].size(); j++)
+				for (u64 d = 0; d < allBlkPlaintexts[l][0].size(); d++)
 				{
-					auto check = ByteArray(allBlkPlaintexts[l][0][j]);
-					memcpy(vecCheckk.data()+j* sizeof(block), check, sizeof(block)); //merging all blocks
+					auto check = ByteArray(allBlkPlaintexts[l][0][d]);
+					memcpy(vecCheckk.data()+d* sizeof(block), check, sizeof(block)); //merging all blocks
 				}
 
 				for (u64 l = 0; l < b.size(); l++)
@@ -252,6 +252,112 @@ namespace osuCrypto
 		}
 
 		return mi;
+	}
+
+	std::vector<std::vector<Word>> DataShare::amortMULsend(std::vector<std::vector<Word>>& b)
+	{
+
+		std::vector<std::vector<Word>> prodShare(b.size());
+		std::vector<u8> sendBuff(b.size()*mDimension*mLenMod*mLenModinByte);
+
+
+		std::vector<std::array<block, 2>> sendOTmsgs(b.size()*mDimension*mLenMod);
+		sender.send(sendOTmsgs, mPrng, mChl); //randome OT
+
+		u64 idx = 0;
+		for (u64 i = 0; i < b.size(); i++)
+		{
+			prodShare[i].resize(mDimension,0);
+			for (u64 d = 0; d < mDimension; d++)
+			{
+				for (u64 l = 0; l < mLenMod; l++)
+				{
+					Word r0 = *(u64*)&sendOTmsgs[idx][0] % mMod;
+					Word r1= *(u64*)&sendOTmsgs[idx][1] % mMod;
+					Word correction = (Word)(b[i][d] * pow(2, l) + r0 - r1) % mMod; //
+
+					
+					std::cout << IoStream::lock;
+					std::cout << i << "-" << d << ":  " << r0 << " vs " << r1  << " \t "<< (Word)(b[i][d] * pow(2, l) + r0) % mMod << " c= " << correction << " s\n";
+					std::cout << IoStream::unlock;
+
+					//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
+					memcpy(sendBuff.data() + idx*mLenModinByte, (u8*)&correction, mLenModinByte);
+					prodShare[i][d]= (prodShare[i][d] + r0) % mMod;
+					idx++;
+				}
+				prodShare[i][d] = (0-prodShare[i][d]) % mMod; //r0=-r0
+			}
+		}
+		mChl.asyncSend(std::move(sendBuff));
+
+
+		return prodShare;
+	}
+
+	std::vector<std::vector<Word>> DataShare::amortMULrecv(std::vector<std::vector<Word>>& a)
+	{
+		std::vector<u8> recvBuff;
+		std::vector<std::vector<Word>> prodShare(a.size());
+
+		BitVector allChoices;
+		std::vector<block> recvOTmsg(a.size()*mDimension*mLenMod);
+	
+		std::vector<std::vector<BitVector>> aBitVectors(a.size());
+
+
+		for (u64 i = 0; i < a.size(); i++)
+		{
+			aBitVectors[i].resize(mDimension);
+			for (u64 d = 0; d < mDimension; d++)
+			{
+				aBitVectors[i][d] = getBinary(a[i][d], mLenMod);
+				allChoices.append(aBitVectors[i][d]);
+			}
+		}
+		recv.receive(allChoices, recvOTmsg, mPrng, mChl); //randome OT
+		
+		
+		mChl.recv(recvBuff);
+		if (recvBuff.size() != a.size()*mDimension*mLenMod*mLenModinByte)
+		{
+			std::cout << "recvBuff.size() != a.size()*mDimension*mLenMod*mLenModinByte" <<
+				recvBuff.size() << " vs " << (a.size()*mDimension*mLenMod*mLenModinByte) << "\n";
+			throw std::exception();
+		}
+
+		u64 idx = 0;
+		Word correction = 0;
+
+		for (u64 i = 0; i < a.size(); i++)
+		{
+			prodShare[i].resize(mDimension, 0);
+			for (u64 d = 0; d < mDimension; d++)
+			{
+				for (u64 l = 0; l < mLenMod; l++)
+				{
+					Word rb = *(u64*)&recvOTmsg[idx] % mMod;
+
+					if (aBitVectors[i][d][l] == 1)
+					{
+						//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
+						memcpy((u8*)&correction, recvBuff.data() + idx*mLenModinByte, mLenModinByte);
+						rb = (correction+rb) % mMod;
+					}
+					prodShare[i][d] = (prodShare[i][d] + rb) % mMod;
+
+
+					
+					std::cout << IoStream::lock;
+					std::cout << i << "-" << d << ":  " << rb << " vs " << aBitVectors[i][d][l] <<" c= " << correction << " r\n";
+					std::cout << IoStream::unlock;
+					
+					idx++;
+				}
+			}
+		}
+
+		return prodShare;
 	}
 
 
@@ -352,10 +458,9 @@ namespace osuCrypto
 		{
 			for (u64 j = 0; j < mDimension; j++)
 			{
-				mShareCluster[i][j].mArithShare = mSharedPrng.get<Word>() % mMod; //randome share
-				mShareCluster[i][j].mBitShare = mShareCluster[i][j].getBinary(mLenMod); //bit vector
+				mShareCluster[i][j] = mSharedPrng.get<Word>() % mMod; //randome share
 
-				auto theirShare = (mCluster[i][j] - mShareCluster[i][j].mArithShare) % mMod;
+				auto theirShare = (mCluster[i][j] - mShareCluster[i][j]) % mMod;
 				memcpy(sendBuff.data() + iter, (u8*)&theirShare, mLenModinByte);
 				iter += mLenModinByte;
 			}
@@ -388,9 +493,8 @@ namespace osuCrypto
 		{
 			for (u64 j = 0; j < mDimension; j++)
 			{
-				memcpy((u8*)&mShareCluster[i][j].mArithShare, recvBuff.data() + iter, mLenModinByte); //get their share
+				memcpy((u8*)&mShareCluster[i][j], recvBuff.data() + iter, mLenModinByte); //get their share
 				iter += mLenModinByte;
-				mShareCluster[i][j].mBitShare = mShareCluster[i][j].getBinary(mLenMod); //bit vector
 			}
 			//std::cout << i << "\n";
 		}

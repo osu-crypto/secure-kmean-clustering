@@ -40,9 +40,6 @@ namespace osuCrypto
 			return BitVector((u8*)&mArithShare, bitLen);
 		}
 
-		
-		
-
 	};
 
 	class DataShare
@@ -59,7 +56,7 @@ namespace osuCrypto
 		std::vector<std::vector<Share>> mSharePoint; //mSharePoint[i][j] <= point i, dimention j
 		
 		std::vector<std::vector<Word>> mCluster;
-		std::vector<std::vector<Share>> mShareCluster;
+		std::vector<std::vector<Word>> mShareCluster;
 
 
 		i64 mTheirSharePointCheck;
@@ -90,7 +87,10 @@ namespace osuCrypto
 		std::vector<std::array<block, 2>> mSendAllOtKeys;
 		std::vector<block> mRecvAllOtKeys;
 
-		
+		BitVector getBinary(u64& value, u64 bitLen)
+		{
+			return BitVector((u8*)&value, bitLen);
+		}
 
 		//compute shares[i]*b where choice bit is the bitvector of shares[i], b is "OT sender message"
 		// first concating all b-ri, ri. 
@@ -100,6 +100,13 @@ namespace osuCrypto
 		
 		//compute mi wiht OT receiver
 		std::vector<Word> amortAdaptMULrecv(u64 idxPoint, u64 idxDim, u64 theirbsize);
+
+
+		//for C^A * C^B as OT sender
+		std::vector<std::vector<Word>> amortMULsend(std::vector<std::vector<Word>>& b);
+		
+		//for C^A * C^B as OT receiver
+		std::vector<std::vector<Word>> amortMULrecv(std::vector<std::vector<Word>>& a);
 
 
 		void getInitClusters(u64 startIdx, u64 endIdx);
