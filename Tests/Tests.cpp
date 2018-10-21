@@ -535,42 +535,67 @@ namespace osuCrypto
 
 
 		//=======================online ED===============================
-
-		std::vector<Word> m0, mi;
-		std::vector<Word> b;// (p0.mTotalNumPoints*p0.mNumCluster*p0.mDimension);
-		std::vector<std::vector<Word>> c0;
-		std::vector<std::vector<Word>> ci;
-
+		
 		thrd = std::thread([&]() {
+			p0.mProdCluster = p0.amortMULrecv(p0.mShareCluster); //compute C^Ak*C^Bk
 
-			int idxPoint = 0;
-			int idxDim = 0;
-			//mi = p0.amortAdaptMULrecv(idxPoint, idxDim, p0.mNumCluster);
-			mi=p0.amortAdaptMULrecv(idxPoint, idxDim, p0.mNumCluster);
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			{
+				for (u64 d = 0; d < p0.mDimension; d++)
+				{
+					std::cout << IoStream::lock;
+					std::cout << i << " - " << d << "\t" << p0.mTotalNumPoints<< " r\n";
+					std::cout << IoStream::unlock;
 
-			ci=p0.amortMULrecv(p0.mShareCluster);
+					p0.mProdPoint[i][d] = p0.amortAdaptMULrecv(i, d, p0.mNumCluster); //for each point to all clusters
+				}
+
+			}
+
 		});
 
-		int idxPoint = 0;
-		int idxDim = 0;
-		for (u64 k = 0; k < p1.mNumCluster; k++)
+		p1.mProdCluster = p1.amortMULsend(p1.mShareCluster);
+
+		
+
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+		{
+			for (u64 d = 0; d < p1.mDimension; d++)
+			{
+				
+				std::cout << IoStream::lock;
+				std::cout << i << " - " << d << "\t"<< p1.mTotalNumPoints << " s\n";
+				std::cout << IoStream::unlock;
+
+				for (u64 k = 0; k < p1.mNumCluster; k++)
 				{
-					auto a = (p1.mSharePoint[idxPoint][idxDim].mArithShare - p1.mShareCluster[k][idxDim])%p1.mMod;
-					std::cout <<"a= " << a << "\n";
-					b.push_back(a);
-
+					p1.prodTemp[i][d][k] = (p1.mSharePoint[i][d].mArithShare - p1.mShareCluster[k][d]) % p1.mMod;
 				}
-		m0=p1.amortAdaptMULsend(idxPoint, idxDim, b);
+				p1.mProdPoint[i][d] = p1.amortAdaptMULsend(i, d, p1.prodTemp[i][d]);
 
-		c0=p1.amortMULsend(p1.mShareCluster);
+			}
+		}
 
 	
 		thrd.join();
 
-		for (u64 k = 0; k < p0.mNumCluster; k++)
+#if 1
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 		{
-			std::cout << m0[k] << " + " << mi[k] << " = " << (m0[k] + mi[k]) % p1.mMod << "\n";
-			std::cout << b[k] << " * " << p0.mSharePoint[idxPoint][idxDim].mArithShare << " = " << (b[k] * p0.mSharePoint[idxPoint][idxDim].mArithShare) % p1.mMod << "\n";
+			for (u64 d = 0; d < p0.mDimension; d++)
+			{
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					Word sum1 = (p0.mProdPoint[i][d][k] + p1.mProdPoint[i][d][k]) % p1.mMod;
+					Word sum2 = (p0.mSharePoint[i][d].mArithShare * p1.prodTemp[i][d][k]) % p1.mMod;
+					if (sum1 != sum2)
+					{
+						std::cout << p0.mProdPoint[i][d][k] << " + " << p1.mProdPoint[i][d][k]<< " = " << sum1 << "\n";
+						std::cout << p1.prodTemp[i][d][k] << " * "<< p0.mSharePoint[i][d].mArithShare << " = " << sum2 << "\n";
+						throw std::exception();
+					}
+				}
+			}
 		}
 
 		std::cout << "--------------\n";
@@ -578,12 +603,17 @@ namespace osuCrypto
 		{
 			for (u64 d = 0; d < p0.mDimension; d++)
 			{
-				std::cout << c0[k][d] << " + " << ci[k][d] << " = " << (c0[k][d] + ci[k][d]) % p0.mMod << "\n";
-				std::cout << p0.mShareCluster[k][d] << " * " << p1.mShareCluster[k][d]<< " = " << (p1.mShareCluster[k][d] * p0.mShareCluster[k][d]) % p1.mMod << "\n";
-
+				Word sum1 = (p0.mProdCluster[k][d] + p1.mProdCluster[k][d]) % p1.mMod;
+				Word sum2 = (p0.mShareCluster[k][d] * p1.mShareCluster[k][d]) % p1.mMod;
+				if (sum1 != sum2)
+				{
+					std::cout << p0.mProdCluster[k][d] << " + " << p1.mProdCluster[k][d] << " = " << sum1 << "\n";
+					std::cout << p0.mShareCluster[k][d] << " * " << p1.mShareCluster[k][d] << " = " << sum2 << "\n";
+					throw std::exception();
+				}
 			}
 		}
-
+#endif
 
 		timer.setTimePoint("OTkeysDone");
 
@@ -592,6 +622,256 @@ namespace osuCrypto
 
 
 		
+
+
+	}
+
+
+
+	void MulTest()
+	{
+		Timer timer;
+		IOService ios;
+		Session ep01(ios, "127.0.0.1", SessionMode::Server);
+		Session ep10(ios, "127.0.0.1", SessionMode::Client);
+		Channel chl01 = ep01.addChannel();
+		Channel chl10 = ep10.addChannel();
+
+		int securityParams = 128;
+		int inDimension = 2;
+		int inExMod = 20;
+		u64 inNumCluster = 15;
+
+
+		int inMod = pow(2, inExMod);
+		std::vector<std::vector<Word>> inputA, inputB;
+		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+
+		PRNG prng(ZeroBlock);
+		u64 numberTest = 10;
+		inputA.resize(numberTest);
+		inputB.resize(numberTest);
+		for (int i = 0; i < numberTest; i++)
+		{
+			inputA[i].resize(inDimension);
+			inputB[i].resize(inDimension);
+			for (size_t j = 0; j < inDimension; j++)
+			{
+				inputA[i][j] = prng.get<Word>() % inMod;
+				inputB[i][j] = prng.get<Word>() % inMod;
+			}
+		}
+
+		u64 inTotalPoint = inputA.size() + inputB.size();
+		//=======================offline===============================
+		DataShare p0, p1;
+
+		timer.setTimePoint("starts");
+		std::thread thrd = std::thread([&]() {
+			p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
+				, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension);
+
+			NaorPinkas baseOTs;
+			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
+			p0.recv.setBaseOts(p0.mSendBaseMsg);
+
+
+			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
+			p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
+
+
+		});
+
+
+		p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
+			, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
+
+		NaorPinkas baseOTs;
+		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
+		p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
+
+
+		baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
+		p1.recv.setBaseOts(p1.mSendBaseMsg);
+
+
+
+		thrd.join();
+
+		timer.setTimePoint("offlineDone");
+		//=======================online (sharing)===============================
+
+		thrd = std::thread([&]() {
+
+			p0.sendShareInput(0, 0, inNumCluster / 2);
+			p0.recvShareInput(p0.mPoint.size(), inNumCluster / 2, inNumCluster);
+
+		});
+
+		p1.recvShareInput(0, 0, inNumCluster / 2);
+		p1.sendShareInput(p1.mTheirNumPoints, inNumCluster / 2, inNumCluster);
+
+
+		thrd.join();
+		timer.setTimePoint("sharingInputsDone");
+
+#if 1
+		//check share
+		for (u64 i = 0; i < p0.mPoint.size(); i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != p0.mPoint[i][j])
+				{
+
+					std::cout << "(p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != 0\n";
+					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
+					throw std::exception();
+				}
+			}
+		}
+
+		for (u64 i = p0.mPoint.size(); i < inTotalPoint; i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != p1.mPoint[i - p0.mPoint.size()][j])
+				{
+
+					std::cout << "(p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != 0\n";
+					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
+					throw std::exception();
+				}
+			}
+		}
+
+		for (u64 i = 0; i < inNumCluster / 2; i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mShareCluster[i][j] + p1.mShareCluster[i][j]) % inMod != p0.mCluster[i][j])
+				{
+
+					std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
+					std::cout << i << "-" << j << ": " << p0.mShareCluster[i][j] << " vs " << p1.mShareCluster[i][j] << "\n";
+					throw std::exception();
+				}
+			}
+		}
+
+
+		for (u64 i = inNumCluster / 2; i<inNumCluster; i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mShareCluster[i][j] + p1.mShareCluster[i][j]) % inMod != p1.mCluster[i][j])
+				{
+
+					std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
+					std::cout << i << "-" << j << ": " << p0.mShareCluster[i][j] << " vs " << p1.mShareCluster[i][j] << "\n";
+					throw std::exception();
+				}
+			}
+		}
+
+
+#endif
+
+		//=======================online OT (setting up keys for adaptive ED)===============================
+
+		thrd = std::thread([&]() {
+
+			p0.recv.receive(p0.mChoiceAllBitSharePoints, p0.mRecvAllOtKeys, p0.mPrng, p0.mChl);
+			p0.sender.send(p0.mSendAllOtKeys, p0.mPrng, p0.mChl);
+			p0.setAESkeys();
+
+			
+
+		});
+
+		p1.sender.send(p1.mSendAllOtKeys, p1.mPrng, p1.mChl);
+		p1.recv.receive(p1.mChoiceAllBitSharePoints, p1.mRecvAllOtKeys, p1.mPrng, p1.mChl);
+		p1.setAESkeys();
+
+
+		thrd.join();
+
+		for (u64 i = 0; i < p0.mSendAllOtKeys.size(); i++)
+		{
+			std::cout << p0.mSendAllOtKeys[i][0]
+				<< " vs " << p0.mSendAllOtKeys[i][1] << "\n";
+
+			std::cout << p1.mRecvAllOtKeys[i] << "\n";
+		}
+
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			for (u64 j = 0; j < p0.mDimension; j++)
+			{
+				for (u64 l = 0; l < p0.mLenMod; l++)
+				{
+					std::cout << p0.mSharePoint[i][j].sendOtKeys[l][0]
+						<< " vs " << p0.mSharePoint[i][j].sendOtKeys[l][1] << " tt\n";
+
+					std::cout << p1.mSharePoint[i][j].recvOtKeys[l] << " tt\n";
+				}
+				std::cout <<  "============\n";
+			}
+		//=======================online ED===============================
+#if 1
+		std::vector<Word> m0, mi;
+		std::vector<Word> b;// (p0.mTotalNumPoints*p0.mNumCluster*p0.mDimension);
+
+		int idxPoint = 1;
+		int idxDim = 0;
+		thrd = std::thread([&]() {
+
+			
+			//mi = p0.amortAdaptMULrecv(idxPoint, idxDim, p0.mNumCluster);
+			mi = p0.amortAdaptMULrecv(idxPoint, idxDim, p0.mNumCluster);
+
+			//p0.mProdCluster = p0.amortMULrecv(p0.mShareCluster);
+		});
+
+		
+		for (u64 k = 0; k < p1.mNumCluster; k++)
+		{
+			auto a = (p1.mSharePoint[idxPoint][idxDim].mArithShare - p1.mShareCluster[k][idxDim]) % p1.mMod;
+			std::cout << "a= " << a << "\n";
+			b.push_back(a);
+
+		}
+		m0 = p1.amortAdaptMULsend(idxPoint, idxDim, b);
+
+	//	p1.mProdCluster = p1.amortMULsend(p1.mShareCluster);
+
+
+		thrd.join();
+
+		for (u64 k = 0; k < p0.mNumCluster; k++)
+		{
+			std::cout << m0[k] << " + " << mi[k] << " = " << (m0[k] + mi[k]) % p1.mMod << "\n";
+			std::cout << b[k] << " * " << p0.mSharePoint[idxPoint][idxDim].mArithShare << " = " << (b[k] * p0.mSharePoint[idxPoint][idxDim].mArithShare) % p1.mMod << "\n";
+		}
+
+	/*	std::cout << "--------------\n";
+		for (u64 k = 0; k < p0.mNumCluster; k++)
+		{
+			for (u64 d = 0; d < p0.mDimension; d++)
+			{
+				std::cout << p0.mProdCluster[k][d] << " + " << p1.mProdCluster[k][d] << " = " << (p1.mProdCluster[k][d] + p0.mProdCluster[k][d]) % p0.mMod << "\n";
+				std::cout << p0.mShareCluster[k][d] << " * " << p1.mShareCluster[k][d] << " = " << (p1.mShareCluster[k][d] * p0.mShareCluster[k][d]) % p1.mMod << "\n";
+
+			}
+		}*/
+
+
+		timer.setTimePoint("OTkeysDone");
+
+		p0.Print();
+		p1.Print();
+
+
+#endif
 
 
 	}

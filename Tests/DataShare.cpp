@@ -45,22 +45,19 @@ namespace osuCrypto
 				{
 					Word r0 = (mPrng.get<Word>()) % mMod; //OT message
 					auto r1= (Word)(b[k]*pow(2, l) + r0) % mMod;
-
-					std::cout << IoStream::lock;
-					std::cout << k << "-" << l << ":  "<< r0 << " r0\n";
-					std::cout << k << "-" << l<<":  "<< r1 << " r1\n";
-					std::cout << IoStream::unlock;
-
 					m0[k]= (m0[k]+r0) % mMod;
 
 					memcpy(allPlaintexts[l][0].data()+ mLenModinByte*k, (u8*)&r0, mLenModinByte); //OT len
 					memcpy(allPlaintexts[l][1].data() + mLenModinByte*k, (u8*)&r1, mLenModinByte);
 					
-
-					//Word r0Check=0;
-					//memcpy((u8*)&r0Check, allPlaintexts[l][0].data() + mLenModinByte*l, mLenModinByte);
-					//std::cout << r0 <<" " << mLenModinByte << "\n";
-					//std::cout << r0Check << "\n";
+					std::cout << IoStream::lock;
+					std::cout << k << "-" << l << ":  " << r0 << " vs " << r1 << " r1\n";
+					Word r0Check = 0;
+					memcpy((u8*)&r0Check, allPlaintexts[l][0].data() + mLenModinByte*l, mLenModinByte);
+					std::cout << r0 << " " << mLenModinByte << "\n";
+					std::cout << r0Check << "\n";
+					std::cout << IoStream::unlock;
+					
 
 				}
 		}
@@ -92,7 +89,7 @@ namespace osuCrypto
 			{
 				allBlkPlaintexts[l][0][i] = toBlock(allPlaintexts[l][0].data()+i*sizeof(block));
 				allBlkPlaintexts[l][1][i] = toBlock(allPlaintexts[l][1].data() + i*sizeof(block));
-				//std::cout << allBlkPlaintexts[l][0][i] << "  Block\n";
+				std::cout << allBlkPlaintexts[l][0][i] << "  Block\n";
 			}
 
 
@@ -100,20 +97,18 @@ namespace osuCrypto
 			mSharePoint[theirIdxPoint][theirIdxDim].sendAES[l][0].ecbEncBlocks
 			(allBlkPlaintexts[l][0].data(), allBlkPlaintexts[l][0].size(), cipher); //r0||r1||r2
 			
-			std::cout << IoStream::lock;
-			std::cout << mSharePoint[theirIdxPoint][theirIdxDim].sendOtKeys[l][0] << " s0 key \n";
-			std::cout << allBlkPlaintexts[l][0][0] << " snd allBlkPlaintexts[l][0][0]\n";
-			for (size_t ii = 0; ii <allBlkPlaintexts[l][0].size(); ii++)
-			{
-				std::cout << cipher[ii] << " snd cipher0\n";
-
-			}
-			std::cout << IoStream::unlock;
+			//std::cout << IoStream::lock;
+			//std::cout << mSharePoint[theirIdxPoint][theirIdxDim].sendOtKeys[l][0] << " s0 key \n";
+			//std::cout << allBlkPlaintexts[l][0][0] << " snd allBlkPlaintexts[l][0][0]\n";
+			//for (size_t ii = 0; ii <allBlkPlaintexts[l][0].size(); ii++)
+			//	std::cout << cipher[ii] << " snd cipher0\n";
+			//std::cout << IoStream::unlock;
 
 			memcpy(sendBuff.data()+ iter, (u8 *)&cipher[0], allBlkPlaintexts[l][0].size()*sizeof(block));
 
 			block test;
 			memcpy(&test, sendBuff.data() + iter, sizeof(block));
+
 			std::cout << IoStream::lock;
 			std::cout << test << "  sendBuff.data() test \n";
 			std::cout << IoStream::unlock;
@@ -128,6 +123,7 @@ namespace osuCrypto
 			std::cout << allBlkPlaintexts[l][1][0] << " snd allBlkPlaintexts[l][1][0]\n";
 			std::cout << cipher[0] << " snd cipher1\n";
 			std::cout << IoStream::unlock;
+
 			memcpy(sendBuff.data() + iter, (u8 *)&cipher[0], allBlkPlaintexts[l][0].size() * sizeof(block));
 			iter += roundUpNumBlks * sizeof(block);
 		}
@@ -231,7 +227,6 @@ namespace osuCrypto
 			(allBlkCipherexts[l][choice].data(), allBlkCipherexts[l][choice].size(), allBlkPlaintexts);
 
 			std::cout << IoStream::lock;
-
 			std::cout << "r: k= "<< mSharePoint[idxPoint][idxDim].recvOtKeys[l] << "\t ";
 			std::cout << "cr01= " << allBlkCipherexts[l][0][0] << " vs " << allBlkCipherexts[l][1][0] <<"\t";
 			std::cout << "rb=" << allBlkPlaintexts[0] << "  vs " << mSharePoint[idxPoint][idxDim].mBitShare[l] << "\n";
@@ -397,17 +392,31 @@ namespace osuCrypto
 		mTheirNumPoints = mTotalNumPoints -mPoint.size();
 
 		mSharePoint.resize(mTotalNumPoints);
+		mProdPoint.resize(mTotalNumPoints);
+		prodTemp.resize(mTotalNumPoints);
 		for (u64 i = 0; i < mSharePoint.size(); i++)
+		{
 			mSharePoint[i].resize(mDimension);
+			mProdPoint[i].resize(mDimension);
+			prodTemp[i].resize(mDimension);
 
+			for (u64 d = 0; d < mDimension; d++)
+			{
+				prodTemp[i][d].resize(numCluster);
+			}
+		}
 		
+
 		mNumCluster = numCluster;
 		mCluster.resize(mNumCluster);
 		mShareCluster.resize(mNumCluster);
+		mProdCluster.resize(mNumCluster);
 		for (u64 i = 0; i < mShareCluster.size(); i++)
 		{
 			mCluster[i].resize(mDimension);
 			mShareCluster[i].resize(mDimension);
+			mProdCluster[i].resize(mDimension);
+
 		}
 		getInitClusters(idxStartCluster, idxEndCluster);
 
@@ -439,14 +448,14 @@ namespace osuCrypto
 		//Data
 		for (u64 i = startPointIdx; i < startPointIdx+mPoint.size(); i++)
 		{
-			for (u64 j = 0; j < mDimension; j++)
+			for (u64 d = 0; d < mDimension; d++)
 			{
-				mSharePoint[i][j].mArithShare = mSharedPrng.get<Word>() % mMod; //randome share
-				mSharePoint[i][j].mBitShare = mSharePoint[i][j].getBinary(mLenMod); //bit vector
+				mSharePoint[i][d].mArithShare = mSharedPrng.get<Word>() % mMod; //randome share
+				mSharePoint[i][d].mBitShare = mSharePoint[i][d].getBinary(mLenMod); //bit vector
 
-				mChoiceAllBitSharePoints.append(mSharePoint[i][j].mBitShare);
+				mChoiceAllBitSharePoints.append(mSharePoint[i][d].mBitShare);
 
-				auto theirShare = (mPoint[i - startPointIdx][j]-mSharePoint[i][j].mArithShare) % mMod;
+				auto theirShare = (mPoint[i - startPointIdx][d]-mSharePoint[i][d].mArithShare) % mMod;
 				memcpy(sendBuff.data() + iter, (u8*)&theirShare, mLenModinByte);
 				iter += mLenModinByte;
 			}
@@ -506,12 +515,12 @@ namespace osuCrypto
 
 		u64 iterSend = 0;
 		u64 iterRecv = 0;
-		for (u64 i = 0; i < 1; i++)
+		for (u64 i = 0; i < mTotalNumPoints; i++)
 		{
-			for (u64 j = 0; j < 1; j++)
+			for (u64 j = 0; j < mDimension; j++)
 			{
 				mSharePoint[i][j].sendOtKeys.resize(mLenMod);
-				memcpy(mSharePoint[i][j].sendOtKeys.data(), mSendAllOtKeys.data() + iterSend, mLenMod *sizeof(block)*2); //get their share
+				memcpy((u8*)&mSharePoint[i][j].sendOtKeys[0][0], (u8*)&mSendAllOtKeys[0] + iterSend, mLenMod *sizeof(block)*2); //get their share
 				iterSend += mLenMod * sizeof(block) * 2;
 
 
@@ -524,7 +533,7 @@ namespace osuCrypto
 				}
 
 				mSharePoint[i][j].recvOtKeys.resize(mLenMod);
-				memcpy(mSharePoint[i][j].recvOtKeys.data(), mRecvAllOtKeys.data() + iterRecv, mLenMod * sizeof(block) ); //get their share
+				memcpy((u8*)&mSharePoint[i][j].recvOtKeys[0], (u8*)&mRecvAllOtKeys[0]+ iterRecv, mLenMod * sizeof(block)); //get their share
 				iterRecv += mLenMod * sizeof(block);
 
 				mSharePoint[i][j].recvAES.resize(mLenMod);

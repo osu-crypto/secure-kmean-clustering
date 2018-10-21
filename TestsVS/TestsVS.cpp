@@ -50,6 +50,11 @@ namespace osuCrypto
 			testDecAES();
 		}
 
+		TEST_METHOD(MulTesttVS)
+		{
+			InitDebugPrinting();
+			MulTest();
+		}
 		
 	
 		

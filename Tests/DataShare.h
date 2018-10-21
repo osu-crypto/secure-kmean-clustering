@@ -54,9 +54,12 @@ namespace osuCrypto
 		u64 mPartyIdx;
 		std::vector<std::vector<Word>> mPoint;
 		std::vector<std::vector<Share>> mSharePoint; //mSharePoint[i][j] <= point i, dimention j
-		
+		std::vector<std::vector<std::vector<Word>>> mProdPoint; //[i][d][k] share p^A[i][d]*c^B[k][d]
+		std::vector<std::vector<std::vector<Word>>> prodTemp; //to save d-c for test
+
 		std::vector<std::vector<Word>> mCluster;
-		std::vector<std::vector<Word>> mShareCluster;
+		std::vector<std::vector<Word>> mShareCluster; //share cluster
+		std::vector<std::vector<Word>> mProdCluster; //share of product C^A*C^B
 
 
 		i64 mTheirSharePointCheck;
