@@ -580,7 +580,7 @@ namespace osuCrypto
 		thrd.join();
 
 #if 1
-		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
 		{
 			for (u64 d = 0; d < p0.mDimension; d++)
 			{
@@ -590,6 +590,7 @@ namespace osuCrypto
 					Word sum2 = (p0.mSharePoint[i][d].mArithShare * p1.prodTemp[i][d][k]) % p1.mMod;
 					if (sum1 != sum2)
 					{
+						std::cout << i << " - " << d << "\t" << p1.mTotalNumPoints << " sss\n";
 						std::cout << p0.mProdPoint[i][d][k] << " + " << p1.mProdPoint[i][d][k]<< " = " << sum1 << "\n";
 						std::cout << p1.prodTemp[i][d][k] << " * "<< p0.mSharePoint[i][d].mArithShare << " = " << sum2 << "\n";
 						throw std::exception();
@@ -821,7 +822,7 @@ namespace osuCrypto
 		std::vector<Word> m0, mi;
 		std::vector<Word> b;// (p0.mTotalNumPoints*p0.mNumCluster*p0.mDimension);
 
-		int idxPoint = 1;
+		int idxPoint = 10;
 		int idxDim = 0;
 		thrd = std::thread([&]() {
 
