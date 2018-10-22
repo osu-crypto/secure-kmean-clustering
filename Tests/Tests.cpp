@@ -379,7 +379,7 @@ namespace osuCrypto
 		Channel chl10 = ep10.addChannel();
 
 		int securityParams = 128;
-		int inDimension = 2;
+		int inDimension = 1;
 		int inExMod = 20;
 		u64 inNumCluster = 15;
 
@@ -400,6 +400,8 @@ namespace osuCrypto
 			{
 				inputA[i][j] = prng.get<Word>() % inMod;
 				inputB[i][j] = prng.get<Word>() % inMod;
+
+				std::cout << inputA[i][j] << "\t" << inputB[i][j] << " p\n";
 			}
 		}
 
@@ -670,19 +672,54 @@ namespace osuCrypto
 			{
 				i64 expectedDist = 0;
 				for (u64 d = 0; d < p0.mDimension; d++)
-					expectedDist = (expectedDist +(i64)pow(points[i][d] - clusters[k][d], 2)) % (i64)pow(p0.mMod, 2);
-				
-				i64 ourDist = (p0.mDist[i][k]+ p1.mDist[i][k]) % (i64)pow(p0.mMod, 2);
+				{
+					Word diff = (points[i][d] - clusters[k][d]) % p0.mMod;
+					expectedDist = (expectedDist + (i64)pow(diff, 2)) % (i64)pow(p0.mMod, 1);
+				}
+				i64 ourDist = (p0.mDist[i][k]+ p1.mDist[i][k]) % (i64)pow(p0.mMod, 1);
 
 				if (expectedDist != ourDist)
 				{
-					std::cout << i << " - " << k << "\t" << p1.mTotalNumPoints << " ED\n";
-					std::cout << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << ourDist << "\t vs \t";
+					std::cout << i << "-" << k << ": ";
+					std::cout << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << ourDist << " vs ";
 					std::cout << expectedDist << "\n";
+
+					for (u64 d = 0; d < p0.mDimension; d++)
+					{
+						std::cout << points[i][d] << " vs " << (p0.mSharePoint[i][d].mArithShare + p1.mSharePoint[i][d].mArithShare)% p0.mMod << "= " << p0.mSharePoint[i][d].mArithShare << " + " << p1.mSharePoint[i][d].mArithShare << " p \n";
+						std::cout << clusters[k][d] << "= " <<p0.mShareCluster[k][d] << " + " << p1.mShareCluster[k][d] << " c \n";
+						Word diff2p0 = (p0.mSharePoint[i][d].mArithShare - p0.mShareCluster[k][d]) % p0.mMod;
+						Word diff2p1 = (p1.mSharePoint[i][d].mArithShare - p1.mShareCluster[k][d]) % p0.mMod;
+						
+						Word secondtermp0 = (p0.mProdPointPPC[i][d][k] - p0.mProdPointPC[i][d][k] + p0.mProdCluster[k][d]) % p0.mMod;
+						Word secondtermp1 = (p1.mProdPointPPC[i][d][k] - p1.mProdPointPC[i][d][k] + p1.mProdCluster[k][d]) % p0.mMod;
+
+						std::cout << diff2p0 << " * " << diff2p1 << " = " << (diff2p0*diff2p1) % (p0.mMod) << " \n";
+						std::cout << secondtermp1 << " + " << secondtermp0 << " = " << (secondtermp1+secondtermp0)%(p0.mMod) << " \n";
+
+
+
+					/*	Word distP0 = (Word)(pow(diff2p0, 2) + 2 * secondtermp0) % (i64)pow(p0.mMod, 2);
+						Word distP1 = (Word)(pow(diff2p1, 2) + 2 * secondtermp1) % (i64)pow(p0.mMod, 2);
+
+						std::cout << diff2p0 << " vs " << secondtermp0 << ": " << distP0 << " p0\n";
+						std::cout << diff2p1 << " vs " << secondtermp1 << ": " << distP1 << " p1\n";*/
+
+
+
+
+						
+
+					}
+
+
+
 					throw std::exception();
 				}
-
 			}
+
+		std::cout << " ------ED done-------\n";
+
 
 #endif
 

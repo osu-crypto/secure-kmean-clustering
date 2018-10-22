@@ -364,9 +364,13 @@ namespace osuCrypto
 
 		for (u64 i = startIdx; i < endIdx; i++)
 		{
-			for (u64 j = 0; j < mDimension; j++)
+			for (u64 d = 0; d < mDimension; d++)
 			{
-				mCluster[i][j] = mSharedPrng.get<Word>() % mMod; //TODO:choose local cluster or using Locality sensitive hashing
+				mCluster[i][d] = mSharedPrng.get<Word>() % mMod; //TODO:choose local cluster or using Locality sensitive hashing
+			
+				std::cout << IoStream::lock;
+				std::cout << i << "-" << d << ":  " << mCluster[i][d] << " c\n";
+				std::cout << IoStream::unlock;
 			}
 		}
 
@@ -378,10 +382,11 @@ namespace osuCrypto
 	{
 		mPartyIdx = partyIdx;
 		mChl = chl;
-		mPrng.SetSeed(seed ^ toBlock(323452345 * partyIdx));
-		mSharedPrng.SetSeed(toBlock(64823974291));
+		mPrng.SetSeed(seed ^ toBlock(64823974291 * partyIdx));
+		mSharedPrng.SetSeed(seed ^toBlock(64823391 * partyIdx));
 		mPoint = data;
 		mMod = 1<<len;
+		mModSquare = mMod*mMod;
 		mLenMod = len;
 		mLenModinByte = (len + 7) / 8;
 
@@ -583,9 +588,10 @@ namespace osuCrypto
 			for (u64 k = 0; k < mNumCluster; k++)
 				for (u64 d = 0; d < mDimension; d++)
 					{
-					 mDist[i][k] = (Word)(mDist[i][k]
-									+ (i64)pow(mSharePoint[i][d].mArithShare-mShareCluster[k][d],2)
-									+2*(mProdPointPPC[i][d][k]-mProdPointPC[i][d][k]+mProdCluster[k][d]))% (i64)pow(mMod,2);
+					Word diff2 = (mSharePoint[i][d].mArithShare - mShareCluster[k][d]) % mMod;
+					Word secondterm = (mProdPointPPC[i][d][k] - mProdPointPC[i][d][k] + mProdCluster[k][d]) % mMod;
+
+					 mDist[i][k] = (Word)(mDist[i][k] + pow(diff2,2)+2* secondterm)% mMod;
 					
 				}
 

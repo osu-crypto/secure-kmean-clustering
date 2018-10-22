@@ -79,8 +79,11 @@ namespace osuCrypto
 		u64 mTotalNumPoints;
 		u64 mNumCluster;
 		u64 mMod;
+		u64 mModSquare;
 		u64 mLenMod;
+		u64 mLenModSquare;
 		u64 mLenModinByte;
+		u64 mLenModSquareinByte;
 		u64 mDimension;
 
 		//OT
