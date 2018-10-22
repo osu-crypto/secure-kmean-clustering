@@ -397,7 +397,6 @@ namespace osuCrypto
 		prodTempPC.resize(mTotalNumPoints);
 		
 
-
 		for (u64 i = 0; i < mSharePoint.size(); i++)
 		{
 			mSharePoint[i].resize(mDimension);
@@ -430,6 +429,15 @@ namespace osuCrypto
 
 		}
 		getInitClusters(idxStartCluster, idxEndCluster);
+
+
+		mDist.resize(mTotalNumPoints);
+		for (u64 i = 0; i < mTotalNumPoints; i++)
+		{
+			mDist[i].resize(mNumCluster);
+			for (u64 k = 0; k < mNumCluster; k++)
+				mDist[i][k].resize(mDimension,0);
+		}
 
 		//base OT
 		mSecurityParam = securityParam;
@@ -569,6 +577,18 @@ namespace osuCrypto
 
 			}
 		}
+
+	}
+
+	void DataShare::computeDist()
+	{
+		for (u64 i = 0; i < mTotalNumPoints; i++)
+			for (u64 k = 0; k < mNumCluster; k++)
+				for (u64 d = 0; d < mDimension; d++)
+					for (u64 l = 0; l < mLenMod; l++)
+					{
+					//	mDist[i][k][d] = mDist[i][k][d]+ prodTempPC[];
+					}
 
 	}
 	

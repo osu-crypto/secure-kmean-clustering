@@ -544,7 +544,7 @@ namespace osuCrypto
 		thrd.join();
 
 
-		//=======================online ED===============================
+		//=======================online MUL===============================
 		
 		thrd = std::thread([&]() {
 			//(c^A[k][d]*c^B[k][d])
@@ -552,38 +552,17 @@ namespace osuCrypto
 
 			//(p^A[i][d]*(p^B[i][d]-c^B[k][d]) => A receiver
 			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-			{
 				for (u64 d = 0; d < p0.mDimension; d++)
-				{
-					/*std::cout << IoStream::lock;
-					std::cout << i << " - " << d << "\t" << p0.mTotalNumPoints<< " r\n";
-					std::cout << IoStream::unlock;*/
-
 					p0.mProdPointPPC[i][d] = p0.amortAdaptMULrecv(i, d, p0.mNumCluster); //for each point to all clusters
-				}
-
-			}
-
 
 			//(p^B[i][d]*c^A[k][d]) => A is sender
 			for (u64 d = 0; d < p0.mDimension; d++)
-			{
-				//c^A[k][d]
 				for (u64 k = 0; k < p0.mNumCluster; k++)
-				{
-					memcpy((u8*)&p0.prodTempC[d][k], (u8*)&p0.mShareCluster[k][d], p0.mLenModinByte);
-					std::cout << p0.prodTempC[d][k] << " vs " << p0.mShareCluster[k][d] << " c^A[k][d]\n";
-				}
-			}
+					memcpy((u8*)&p0.prodTempC[d][k], (u8*)&p0.mShareCluster[k][d], p0.mLenModinByte); //c^A[k][d]
 
 			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-			{
 				for (u64 d = 0; d < p0.mDimension; d++)
-				{
 					p0.mProdPointPC[i][d] = p0.amortAdaptMULsend(i, d, p0.prodTempC[d]); //for each point to all clusters
-				}
-
-			}
 
 		});
 
@@ -592,14 +571,8 @@ namespace osuCrypto
 
 		//(p^A[i][d]*(p^B[i][d]-c^B[k][d])
 		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
-		{
 			for (u64 d = 0; d < p1.mDimension; d++)
 			{
-				
-				/*std::cout << IoStream::lock;
-				std::cout << i << " - " << d << "\t"<< p1.mTotalNumPoints << " s\n";
-				std::cout << IoStream::unlock;*/
-
 				//prodTempPC=pid-ckl
 				for (u64 k = 0; k < p1.mNumCluster; k++)
 					p1.prodTempPC[i][d][k] = (p1.mSharePoint[i][d].mArithShare - p1.mShareCluster[k][d]) % p1.mMod;
@@ -607,19 +580,11 @@ namespace osuCrypto
 				p1.mProdPointPPC[i][d] = p1.amortAdaptMULsend(i, d, p1.prodTempPC[i][d]);
 
 			}
-		}
 
 		//(p^B[i][d]*c^A[k][d]) => B is recv
 		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
-		{
 			for (u64 d = 0; d < p1.mDimension; d++)
-			{
 				p1.mProdPointPC[i][d] = p1.amortAdaptMULrecv(i, d, p1.mNumCluster); //for each point to all clusters
-			}
-
-		}
-
-
 	
 		thrd.join();
 
@@ -627,7 +592,6 @@ namespace osuCrypto
 		std::cout << "--------c^A[k][d]*c^B[k][d]------\n";
 
 		for (u64 k = 0; k < p0.mNumCluster; k++)
-		{
 			for (u64 d = 0; d < p0.mDimension; d++)
 			{
 				Word sum1 = (p0.mProdCluster[k][d] + p1.mProdCluster[k][d]) % p1.mMod;
@@ -639,15 +603,13 @@ namespace osuCrypto
 					throw std::exception();
 				}
 			}
-		}
+
 		std::cout << "--------(p^A[i][d]*(p^B[i][d]-c^B[k][d])------\n";
 
 		
 
 		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
-		{
 			for (u64 d = 0; d < p0.mDimension; d++)
-			{
 				for (u64 k = 0; k < p0.mNumCluster; k++)
 				{
 					Word sum1 = (p0.mProdPointPPC[i][d][k] + p1.mProdPointPPC[i][d][k]) % p1.mMod;
@@ -660,15 +622,11 @@ namespace osuCrypto
 						throw std::exception();
 					}
 				}
-			}
-		}
 
 		std::cout << "--------(p^B[i][d]*c^A[k][d])------\n";
 
 		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
-		{
 			for (u64 d = 0; d < p0.mDimension; d++)
-			{
 				for (u64 k = 0; k < p0.mNumCluster; k++)
 				{
 					Word sum1 = (p0.mProdPointPC[i][d][k] + p1.mProdPointPC[i][d][k]) % p1.mMod;
@@ -681,13 +639,10 @@ namespace osuCrypto
 						throw std::exception();
 					}
 				}
-			}
-		}
-
-
 
 #endif
-
+		//=======================online locally compute ED===============================
+		
 		timer.setTimePoint("OTkeysDone");
 
 		p0.Print();

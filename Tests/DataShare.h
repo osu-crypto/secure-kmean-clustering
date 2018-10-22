@@ -65,6 +65,10 @@ namespace osuCrypto
 		std::vector<std::vector<Word>> mProdCluster; //share of product C^A*C^B
 
 
+		std::vector<std::vector<std::vector<Word>>> mDist; //[i][k][d]
+
+
+
 		i64 mTheirSharePointCheck;
 
 
@@ -129,7 +133,7 @@ namespace osuCrypto
 		//using batch aes with fixed key is faster than ...
 		void setAESkeys();
 
-
+		void computeDist();
 
 		void Print();
 
