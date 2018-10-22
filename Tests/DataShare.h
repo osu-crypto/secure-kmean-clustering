@@ -53,7 +53,7 @@ namespace osuCrypto
 
 		u64 mPartyIdx;
 		std::vector<std::vector<Word>> mPoint;
-		std::vector<std::vector<Share>> mSharePoint; //mSharePoint[i][j] <= point i, dimention j
+		std::vector<std::vector<Share>> mSharePoint; //mSharePoint[i][d] <= point i, dimention d
 		std::vector<std::vector<std::vector<Word>>> mProdPointPPC; //[i][d][k] share (p^A[i][d]*(p^B[i][d]-c^B[k][d])
 		std::vector<std::vector<std::vector<Word>>> prodTempPC; //save p^B[i][d]-c^B[k][d] for test
 
@@ -61,11 +61,11 @@ namespace osuCrypto
 		std::vector<std::vector<std::vector<Word>>> mProdPointPC; //[i][d][k] share (p^B[i][d]*c^A[k][d])
 
 		std::vector<std::vector<Word>> mCluster;
-		std::vector<std::vector<Word>> mShareCluster; //share cluster
-		std::vector<std::vector<Word>> mProdCluster; //share of product C^A*C^B
+		std::vector<std::vector<Word>> mShareCluster; //[k][d] share cluster
+		std::vector<std::vector<Word>> mProdCluster; // //[k][d]share of product C^A*C^B
 
 
-		std::vector<std::vector<std::vector<Word>>> mDist; //[i][k][d]
+		std::vector<std::vector<Word>> mDist; //[i][k]
 
 
 

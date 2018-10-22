@@ -389,7 +389,7 @@ namespace osuCrypto
 		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
 		
 		PRNG prng(ZeroBlock);
-		u64 numberTest = 10;
+		u64 numberTest = 5;
 		inputA.resize(numberTest);
 		inputB.resize(numberTest);
 		for (int i = 0; i < numberTest; i++)
@@ -642,7 +642,51 @@ namespace osuCrypto
 
 #endif
 		//=======================online locally compute ED===============================
+		thrd = std::thread([&]() {
+			p0.computeDist();
+		});
+		p1.computeDist();
+
+#if 1
+		std::vector<std::vector<Word>> points(p0.mTotalNumPoints);
+		std::vector<std::vector<Word>> clusters(p0.mNumCluster);
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++) //original points
+		{
+			points[i].resize(p0.mDimension);
+			for (u64 d = 0; d < p0.mDimension; d++)
+				points[i][d] = (Word)(p0.mSharePoint[i][d].mArithShare + p1.mSharePoint[i][d].mArithShare) % p0.mMod;
+		}
 		
+		
+		for (u64 k = 0; k < p0.mNumCluster; k++) //original cluster
+		{
+				clusters[k].resize(p0.mDimension);
+				for (u64 d = 0; d < p0.mDimension; d++)
+					clusters[k][d] = (Word)(p0.mShareCluster[k][d] + p1.mShareCluster[k][d]) % p0.mMod;
+		}
+
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++) //original points
+			for (u64 k = 0; k < p0.mNumCluster; k++) //original cluster
+			{
+				i64 expectedDist = 0;
+				for (u64 d = 0; d < p0.mDimension; d++)
+					expectedDist = (expectedDist +(i64)pow(points[i][d] - clusters[k][d], 2)) % (i64)pow(p0.mMod, 2);
+				
+				i64 ourDist = (p0.mDist[i][k]+ p1.mDist[i][k]) % (i64)pow(p0.mMod, 2);
+
+				if (expectedDist != ourDist)
+				{
+					std::cout << i << " - " << k << "\t" << p1.mTotalNumPoints << " ED\n";
+					std::cout << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << ourDist << "\t vs \t";
+					std::cout << expectedDist << "\n";
+					throw std::exception();
+				}
+
+			}
+
+#endif
+
+		thrd.join();
 		timer.setTimePoint("OTkeysDone");
 
 		p0.Print();

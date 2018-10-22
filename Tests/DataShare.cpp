@@ -381,7 +381,7 @@ namespace osuCrypto
 		mPrng.SetSeed(seed ^ toBlock(323452345 * partyIdx));
 		mSharedPrng.SetSeed(toBlock(64823974291));
 		mPoint = data;
-		mMod = pow(2,len);
+		mMod = 1<<len;
 		mLenMod = len;
 		mLenModinByte = (len + 7) / 8;
 
@@ -433,11 +433,7 @@ namespace osuCrypto
 
 		mDist.resize(mTotalNumPoints);
 		for (u64 i = 0; i < mTotalNumPoints; i++)
-		{
-			mDist[i].resize(mNumCluster);
-			for (u64 k = 0; k < mNumCluster; k++)
-				mDist[i][k].resize(mDimension,0);
-		}
+			mDist[i].resize(mNumCluster,0);
 
 		//base OT
 		mSecurityParam = securityParam;
@@ -462,7 +458,7 @@ namespace osuCrypto
 	{
 		std::vector<u8> sendBuff((mPoint.size()+ endClusterIdx- startClusterIdx+1)*mDimension*mLenModinByte);
 
-		int iter = 0;
+		u64 iter = 0;
 
 		//Data
 		for (u64 i = startPointIdx; i < startPointIdx+mPoint.size(); i++)
@@ -503,7 +499,7 @@ namespace osuCrypto
 	{
 		std::vector<u8> recvBuff((mTheirNumPoints + endClusterIdx - startClusterIdx + 1)*mDimension*mLenModinByte);
 		mChl.recv(recvBuff);
-		int iter = 0;
+		u64 iter = 0;
 
 		for (u64 i = startPointIdx; i < startPointIdx +mTheirNumPoints; i++)
 		{
@@ -582,13 +578,16 @@ namespace osuCrypto
 
 	void DataShare::computeDist()
 	{
+		//(pa+pb-ca-cb)^2=(pa-ca)^2+(pb-cb)^2-2(pa-ca)(pb-cb)
 		for (u64 i = 0; i < mTotalNumPoints; i++)
 			for (u64 k = 0; k < mNumCluster; k++)
 				for (u64 d = 0; d < mDimension; d++)
-					for (u64 l = 0; l < mLenMod; l++)
 					{
-					//	mDist[i][k][d] = mDist[i][k][d]+ prodTempPC[];
-					}
+					 mDist[i][k] = (Word)(mDist[i][k]
+									+ (i64)pow(mSharePoint[i][d].mArithShare-mShareCluster[k][d],2)
+									+2*(mProdPointPPC[i][d][k]-mProdPointPC[i][d][k]+mProdCluster[k][d]))% (i64)pow(mMod,2);
+					
+				}
 
 	}
 	
