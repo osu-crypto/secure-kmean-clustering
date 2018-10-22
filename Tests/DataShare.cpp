@@ -97,12 +97,12 @@ namespace osuCrypto
 			mSharePoint[theirIdxPoint][theirIdxDim].sendAES[l][0].ecbEncBlocks
 			(allBlkPlaintexts[l][0].data(), allBlkPlaintexts[l][0].size(), cipher); //r0||r1||r2
 			
-			//std::cout << IoStream::lock;
-			//std::cout << mSharePoint[theirIdxPoint][theirIdxDim].sendOtKeys[l][0] << " s0 key \n";
-			//std::cout << allBlkPlaintexts[l][0][0] << " snd allBlkPlaintexts[l][0][0]\n";
-			//for (size_t ii = 0; ii <allBlkPlaintexts[l][0].size(); ii++)
-			//	std::cout << cipher[ii] << " snd cipher0\n";
-			//std::cout << IoStream::unlock;
+			std::cout << IoStream::lock;
+			std::cout << mSharePoint[theirIdxPoint][theirIdxDim].sendOtKeys[l][0] << " s0 key \n";
+			std::cout << allBlkPlaintexts[l][0][0] << " snd allBlkPlaintexts[l][0][0]\n";
+			for (size_t ii = 0; ii <allBlkPlaintexts[l][0].size(); ii++)
+				std::cout << cipher[ii] << " snd cipher0\n";
+			std::cout << IoStream::unlock;
 
 			memcpy(sendBuff.data()+ iter, (u8 *)&cipher[0], allBlkPlaintexts[l][0].size()*sizeof(block));
 
@@ -392,25 +392,36 @@ namespace osuCrypto
 		mTheirNumPoints = mTotalNumPoints -mPoint.size();
 
 		mSharePoint.resize(mTotalNumPoints);
-		mProdPoint.resize(mTotalNumPoints);
-		prodTemp.resize(mTotalNumPoints);
+		mProdPointPPC.resize(mTotalNumPoints);
+		mProdPointPC.resize(mTotalNumPoints);
+		prodTempPC.resize(mTotalNumPoints);
+		
+
+
 		for (u64 i = 0; i < mSharePoint.size(); i++)
 		{
 			mSharePoint[i].resize(mDimension);
-			mProdPoint[i].resize(mDimension);
-			prodTemp[i].resize(mDimension);
+			mProdPointPPC[i].resize(mDimension);
+			mProdPointPC[i].resize(mDimension);
+			prodTempPC[i].resize(mDimension);
 
 			for (u64 d = 0; d < mDimension; d++)
 			{
-				prodTemp[i][d].resize(numCluster);
+				prodTempPC[i][d].resize(numCluster);
 			}
 		}
 		
+		prodTempC.resize(mDimension);
+		for (u64 d = 0; d < mDimension; d++)
+		{
+			prodTempC[d].resize(numCluster);
+		}
 
 		mNumCluster = numCluster;
 		mCluster.resize(mNumCluster);
 		mShareCluster.resize(mNumCluster);
 		mProdCluster.resize(mNumCluster);
+
 		for (u64 i = 0; i < mShareCluster.size(); i++)
 		{
 			mCluster[i].resize(mDimension);
@@ -453,7 +464,6 @@ namespace osuCrypto
 				mSharePoint[i][d].mArithShare = mSharedPrng.get<Word>() % mMod; //randome share
 				mSharePoint[i][d].mBitShare = mSharePoint[i][d].getBinary(mLenMod); //bit vector
 
-				mChoiceAllBitSharePoints.append(mSharePoint[i][d].mBitShare);
 
 				auto theirShare = (mPoint[i - startPointIdx][d]-mSharePoint[i][d].mArithShare) % mMod;
 				memcpy(sendBuff.data() + iter, (u8*)&theirShare, mLenModinByte);
@@ -511,6 +521,13 @@ namespace osuCrypto
 
 	}
 
+	void DataShare::appendAllChoice()
+	{
+		for (u64 i = 0; i < mTotalNumPoints; i++)
+			for (u64 d = 0; d < mDimension; d++)
+				mChoiceAllBitSharePoints.append(mSharePoint[i][d].mBitShare);
+	};
+
 	void DataShare::setAESkeys() {
 
 		u64 iterSend = 0;
@@ -529,6 +546,10 @@ namespace osuCrypto
 				{
 					mSharePoint[i][j].sendAES[l][0].setKey(mSharePoint[i][j].sendOtKeys[l][0]);
 					mSharePoint[i][j].sendAES[l][1].setKey(mSharePoint[i][j].sendOtKeys[l][1]);
+					std::cout << IoStream::lock;
+					std::cout << mSharePoint[i][j].sendOtKeys[l][0]
+						<< " vs " << mSharePoint[i][j].sendOtKeys[l][1] << " \t s setAESkeys\n";
+					std::cout << IoStream::unlock;
 
 				}
 
@@ -540,6 +561,10 @@ namespace osuCrypto
 				for (u64 k = 0; k < mLenMod; k++)
 				{
 					mSharePoint[i][j].recvAES[k].setKey(mSharePoint[i][j].recvOtKeys[k]);
+
+					std::cout << IoStream::lock;
+					std::cout << mSharePoint[i][j].recvOtKeys[k] << " \t r setAESkeys\n";
+					std::cout << IoStream::unlock;
 				}
 
 			}

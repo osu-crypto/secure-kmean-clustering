@@ -54,8 +54,11 @@ namespace osuCrypto
 		u64 mPartyIdx;
 		std::vector<std::vector<Word>> mPoint;
 		std::vector<std::vector<Share>> mSharePoint; //mSharePoint[i][j] <= point i, dimention j
-		std::vector<std::vector<std::vector<Word>>> mProdPoint; //[i][d][k] share p^A[i][d]*c^B[k][d]
-		std::vector<std::vector<std::vector<Word>>> prodTemp; //to save d-c for test
+		std::vector<std::vector<std::vector<Word>>> mProdPointPPC; //[i][d][k] share (p^A[i][d]*(p^B[i][d]-c^B[k][d])
+		std::vector<std::vector<std::vector<Word>>> prodTempPC; //save p^B[i][d]-c^B[k][d] for test
+
+		std::vector<std::vector<Word>> prodTempC; //save all c^B[d][k] for test
+		std::vector<std::vector<std::vector<Word>>> mProdPointPC; //[i][d][k] share (p^B[i][d]*c^A[k][d])
 
 		std::vector<std::vector<Word>> mCluster;
 		std::vector<std::vector<Word>> mShareCluster; //share cluster
@@ -105,6 +108,8 @@ namespace osuCrypto
 		std::vector<Word> amortAdaptMULrecv(u64 idxPoint, u64 idxDim, u64 theirbsize);
 
 
+		
+
 		//for C^A * C^B as OT sender
 		std::vector<std::vector<Word>> amortMULsend(std::vector<std::vector<Word>>& b);
 		
@@ -119,6 +124,7 @@ namespace osuCrypto
 
 		void sendShareInput(u64 startPointIdx, u64 startClusterIdx, u64 endClusterIdx);
 		void recvShareInput(u64 startPointIdx, u64 startClusterIdx, u64 endClusterIdx);
+		void appendAllChoice();
 
 		//using batch aes with fixed key is faster than ...
 		void setAESkeys();

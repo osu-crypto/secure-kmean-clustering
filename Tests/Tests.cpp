@@ -521,85 +521,111 @@ namespace osuCrypto
 		//=======================online OT (setting up keys for adaptive ED)===============================
 
 		thrd = std::thread([&]() {
-			
-			p0.recv.receive(p0.mChoiceAllBitSharePoints, p0.mRecvAllOtKeys,p0.mPrng, p0.mChl);
+
+			//1st OT
+			p0.appendAllChoice();
+			p0.recv.receive(p0.mChoiceAllBitSharePoints, p0.mRecvAllOtKeys, p0.mPrng, p0.mChl);
+
+			//other OT direction
 			p0.sender.send(p0.mSendAllOtKeys, p0.mPrng, p0.mChl);
+
 			p0.setAESkeys();
 
 		});
-
+		//1st OT
 		p1.sender.send(p1.mSendAllOtKeys, p1.mPrng, p1.mChl);
+
+		//other OT direction
+		p1.appendAllChoice();
 		p1.recv.receive(p1.mChoiceAllBitSharePoints, p1.mRecvAllOtKeys, p1.mPrng, p1.mChl);
+
 		p1.setAESkeys();
+
 		thrd.join();
 
 
 		//=======================online ED===============================
 		
 		thrd = std::thread([&]() {
+			//(c^A[k][d]*c^B[k][d])
 			p0.mProdCluster = p0.amortMULrecv(p0.mShareCluster); //compute C^Ak*C^Bk
+
+			//(p^A[i][d]*(p^B[i][d]-c^B[k][d]) => A receiver
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			{
+				for (u64 d = 0; d < p0.mDimension; d++)
+				{
+					/*std::cout << IoStream::lock;
+					std::cout << i << " - " << d << "\t" << p0.mTotalNumPoints<< " r\n";
+					std::cout << IoStream::unlock;*/
+
+					p0.mProdPointPPC[i][d] = p0.amortAdaptMULrecv(i, d, p0.mNumCluster); //for each point to all clusters
+				}
+
+			}
+
+
+			//(p^B[i][d]*c^A[k][d]) => A is sender
+			for (u64 d = 0; d < p0.mDimension; d++)
+			{
+				//c^A[k][d]
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					memcpy((u8*)&p0.prodTempC[d][k], (u8*)&p0.mShareCluster[k][d], p0.mLenModinByte);
+					std::cout << p0.prodTempC[d][k] << " vs " << p0.mShareCluster[k][d] << " c^A[k][d]\n";
+				}
+			}
 
 			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 			{
 				for (u64 d = 0; d < p0.mDimension; d++)
 				{
-					std::cout << IoStream::lock;
-					std::cout << i << " - " << d << "\t" << p0.mTotalNumPoints<< " r\n";
-					std::cout << IoStream::unlock;
-
-					p0.mProdPoint[i][d] = p0.amortAdaptMULrecv(i, d, p0.mNumCluster); //for each point to all clusters
+					p0.mProdPointPC[i][d] = p0.amortAdaptMULsend(i, d, p0.prodTempC[d]); //for each point to all clusters
 				}
 
 			}
 
 		});
 
-		p1.mProdCluster = p1.amortMULsend(p1.mShareCluster);
+			
+		p1.mProdCluster = p1.amortMULsend(p1.mShareCluster);//(c^A[k][d]*c^B[k][d])
 
-		
-
+		//(p^A[i][d]*(p^B[i][d]-c^B[k][d])
 		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
 		{
 			for (u64 d = 0; d < p1.mDimension; d++)
 			{
 				
-				std::cout << IoStream::lock;
+				/*std::cout << IoStream::lock;
 				std::cout << i << " - " << d << "\t"<< p1.mTotalNumPoints << " s\n";
-				std::cout << IoStream::unlock;
+				std::cout << IoStream::unlock;*/
 
+				//prodTempPC=pid-ckl
 				for (u64 k = 0; k < p1.mNumCluster; k++)
-				{
-					p1.prodTemp[i][d][k] = (p1.mSharePoint[i][d].mArithShare - p1.mShareCluster[k][d]) % p1.mMod;
-				}
-				p1.mProdPoint[i][d] = p1.amortAdaptMULsend(i, d, p1.prodTemp[i][d]);
+					p1.prodTempPC[i][d][k] = (p1.mSharePoint[i][d].mArithShare - p1.mShareCluster[k][d]) % p1.mMod;
+				
+				p1.mProdPointPPC[i][d] = p1.amortAdaptMULsend(i, d, p1.prodTempPC[i][d]);
 
 			}
 		}
+
+		//(p^B[i][d]*c^A[k][d]) => B is recv
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+		{
+			for (u64 d = 0; d < p1.mDimension; d++)
+			{
+				p1.mProdPointPC[i][d] = p1.amortAdaptMULrecv(i, d, p1.mNumCluster); //for each point to all clusters
+			}
+
+		}
+
 
 	
 		thrd.join();
 
 #if 1
-		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
-		{
-			for (u64 d = 0; d < p0.mDimension; d++)
-			{
-				for (u64 k = 0; k < p0.mNumCluster; k++)
-				{
-					Word sum1 = (p0.mProdPoint[i][d][k] + p1.mProdPoint[i][d][k]) % p1.mMod;
-					Word sum2 = (p0.mSharePoint[i][d].mArithShare * p1.prodTemp[i][d][k]) % p1.mMod;
-					if (sum1 != sum2)
-					{
-						std::cout << i << " - " << d << "\t" << p1.mTotalNumPoints << " sss\n";
-						std::cout << p0.mProdPoint[i][d][k] << " + " << p1.mProdPoint[i][d][k]<< " = " << sum1 << "\n";
-						std::cout << p1.prodTemp[i][d][k] << " * "<< p0.mSharePoint[i][d].mArithShare << " = " << sum2 << "\n";
-						throw std::exception();
-					}
-				}
-			}
-		}
+		std::cout << "--------c^A[k][d]*c^B[k][d]------\n";
 
-		std::cout << "--------------\n";
 		for (u64 k = 0; k < p0.mNumCluster; k++)
 		{
 			for (u64 d = 0; d < p0.mDimension; d++)
@@ -614,6 +640,52 @@ namespace osuCrypto
 				}
 			}
 		}
+		std::cout << "--------(p^A[i][d]*(p^B[i][d]-c^B[k][d])------\n";
+
+		
+
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+		{
+			for (u64 d = 0; d < p0.mDimension; d++)
+			{
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					Word sum1 = (p0.mProdPointPPC[i][d][k] + p1.mProdPointPPC[i][d][k]) % p1.mMod;
+					Word sum2 = (p0.mSharePoint[i][d].mArithShare * p1.prodTempPC[i][d][k]) % p1.mMod;
+					if (sum1 != sum2)
+					{
+						std::cout << i << " - " << d << "\t" << p1.mTotalNumPoints << " sss\n";
+						std::cout << p0.mProdPointPPC[i][d][k] << " + " << p1.mProdPointPPC[i][d][k] << " = " << sum1 << "\n";
+						std::cout << p1.prodTempPC[i][d][k] << " * " << p0.mSharePoint[i][d].mArithShare << " = " << sum2 << "\n";
+						throw std::exception();
+					}
+				}
+			}
+		}
+
+		std::cout << "--------(p^B[i][d]*c^A[k][d])------\n";
+
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+		{
+			for (u64 d = 0; d < p0.mDimension; d++)
+			{
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					Word sum1 = (p0.mProdPointPC[i][d][k] + p1.mProdPointPC[i][d][k]) % p1.mMod;
+					Word sum2 = (p1.mSharePoint[i][d].mArithShare * p0.prodTempC[d][k]) % p1.mMod;
+					if (sum1 != sum2)
+					{
+						std::cout << i << " - " << d << "\t" << p1.mTotalNumPoints << " sss\n";
+						std::cout << p0.mProdPointPC[i][d][k] << " + " << p1.mProdPointPC[i][d][k] << " = " << sum1 << "\n";
+						std::cout << p0.prodTempC[d][k] << " * " << p1.mSharePoint[i][d].mArithShare << " = " << sum2 << "\n";
+						throw std::exception();
+					}
+				}
+			}
+		}
+
+
+
 #endif
 
 		timer.setTimePoint("OTkeysDone");
@@ -649,7 +721,7 @@ namespace osuCrypto
 		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
 
 		PRNG prng(ZeroBlock);
-		u64 numberTest = 10;
+		u64 numberTest = 12;
 		inputA.resize(numberTest);
 		inputB.resize(numberTest);
 		for (int i = 0; i < numberTest; i++)
@@ -782,38 +854,60 @@ namespace osuCrypto
 
 		thrd = std::thread([&]() {
 
+			//1st OT
+			p0.appendAllChoice();
 			p0.recv.receive(p0.mChoiceAllBitSharePoints, p0.mRecvAllOtKeys, p0.mPrng, p0.mChl);
+			
+			//other OT direction
 			p0.sender.send(p0.mSendAllOtKeys, p0.mPrng, p0.mChl);
+
 			p0.setAESkeys();
 
-			
-
 		});
-
+		//1st OT
 		p1.sender.send(p1.mSendAllOtKeys, p1.mPrng, p1.mChl);
+
+		//other OT direction
+		p1.appendAllChoice();
 		p1.recv.receive(p1.mChoiceAllBitSharePoints, p1.mRecvAllOtKeys, p1.mPrng, p1.mChl);
+		
 		p1.setAESkeys();
-
-
+		
 		thrd.join();
+
+		std::cout << p0.mChoiceAllBitSharePoints << " mChoiceAllBitSharePoints \n";
+		std::cout << p1.mChoiceAllBitSharePoints << " mChoiceAllBitSharePoints \n";
+		std::cout << p0.mSendAllOtKeys.size() << " = " << p0.mChoiceAllBitSharePoints.size()<<" ====\n";
+
 
 		for (u64 i = 0; i < p0.mSendAllOtKeys.size(); i++)
 		{
-			std::cout << p0.mSendAllOtKeys[i][0]
-				<< " vs " << p0.mSendAllOtKeys[i][1] << "\n";
+			std::cout << p1.mSendAllOtKeys[i][0]
+				<< " vs " << p1.mSendAllOtKeys[i][1] << "\t";
 
-			std::cout << p1.mRecvAllOtKeys[i] << "\n";
+			std::cout << p0.mRecvAllOtKeys[i] << " vs "
+				<< p0.mChoiceAllBitSharePoints[i]<< "\n";
 		}
 
+		int idx = 0;
 		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 			for (u64 j = 0; j < p0.mDimension; j++)
 			{
 				for (u64 l = 0; l < p0.mLenMod; l++)
 				{
-					std::cout << p0.mSharePoint[i][j].sendOtKeys[l][0]
+				/*	std::cout << p0.mSharePoint[i][j].sendOtKeys[l][0]
 						<< " vs " << p0.mSharePoint[i][j].sendOtKeys[l][1] << " tt\n";
 
-					std::cout << p1.mSharePoint[i][j].recvOtKeys[l] << " tt\n";
+					std::cout << p1.mSharePoint[i][j].recvOtKeys[l] 
+						<< " tt\n";*/
+
+					std::cout << p1.mSharePoint[i][j].sendOtKeys[l][0]
+						<< " vs " << p1.mSharePoint[i][j].sendOtKeys[l][1] << " ttt\n";
+
+					std::cout << p0.mSharePoint[i][j].recvOtKeys[l] << " vs " 
+					<<	p0.mSharePoint[i][j].mBitShare[l] <<" ttt\n";
+
+					idx++;
 				}
 				std::cout <<  "============\n";
 			}
@@ -822,7 +916,7 @@ namespace osuCrypto
 		std::vector<Word> m0, mi;
 		std::vector<Word> b;// (p0.mTotalNumPoints*p0.mNumCluster*p0.mDimension);
 
-		int idxPoint = 10;
+		int idxPoint = 12;
 		int idxDim = 0;
 		thrd = std::thread([&]() {
 
