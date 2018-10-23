@@ -1064,6 +1064,8 @@ namespace osuCrypto
 
 		auto lt = input0<input1 ;
 
+		auto min = lt.ifelse(input1, input0);
+
 
 		u8 b=0;
 
@@ -1084,6 +1086,8 @@ namespace osuCrypto
 		auto share = PermuteBit((*v->mLabels)[0]);
 		ostreamLock(std::cout) << "share lt    " << int(share) << " " << (*v->mLabels)[0] << std::endl;
 		
+		ShGcInt * v1 = static_cast<ShGcInt*>(min.mData.get());
+
 	
 
 		return share;
