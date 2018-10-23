@@ -24,7 +24,10 @@
 #include <boost/tokenizer.hpp>
 #include "DataShare.h"
 #include <libOTe/Base/naor-pinkas.h>
-
+#include <ivory/Circuit/CircuitLibrary.h>
+#include <ivory/Runtime/sInt.h>
+#include <ivory/Runtime/Party.h>
+#include <ivory/Runtime/ShGc/ShGcInt.h>
 #ifdef GetMessage
 #undef GetMessage
 #endif
@@ -36,6 +39,7 @@
 
 using namespace std;
 using namespace osuCrypto;
+#include <ivory/Runtime/ShGc/ShGcRuntime.h>
 
 
 i64 signExtend1(i64 v, u64 b, bool print = false)
@@ -1036,6 +1040,179 @@ namespace osuCrypto
 	}
 
 
+
+	u8 programLessThan(std::array<Party, 2> parties, i64 myInput)
+	{
+		// choose how large the arithmetic should be.
+		u64 bitCount = 16;
+
+		// get the two input variables. If this party is the local party, then 
+		// lets use our input value. Otherwise the remote party will provide the value.
+		// In addition, the bitCount parameter means a value with that many bits
+		// will fit into this secure variable. However, the runtime reserver the right
+		// to increase the bits or to use something like a prime feild, in which case
+		// the exact wrap around point is undefined. However, the binary circuit base runtimes
+		// will always use exactly that many bits.
+		auto input0 = parties[0].isLocalParty() ?
+			parties[0].input<sInt>(myInput, bitCount) :
+			parties[0].input<sInt>(bitCount);
+
+		auto input1 = parties[1].isLocalParty() ?
+			parties[1].input<sInt>(myInput, bitCount) :
+			parties[1].input<sInt>(bitCount);
+
+
+		auto lt = input0<input1 ;
+
+
+		u8 b=0;
+
+		parties[0].reveal(lt);
+		
+		if (parties[0].isLocalParty())
+		{
+			std::cout << "lt   " << lt.getValue() << std::endl;
+		}
+
+		// operations can get queued up in the background. Eventually this call should not
+		// be required but in the mean time, if one party does not call getValue(), then
+		// processesQueue() should be called.
+		parties[1].getRuntime().processesQueue();
+
+
+		ShGcInt * v = static_cast<ShGcInt*>(lt.mData.get());
+		auto share = PermuteBit((*v->mLabels)[0]);
+		ostreamLock(std::cout) << "share lt    " << int(share) << " " << (*v->mLabels)[0] << std::endl;
+		
+	
+
+		return share;
+	}
+
+	void testMinDist()
+	{
+		Timer timer;
+		IOService ios;
+		Session ep01(ios, "127.0.0.1", SessionMode::Server);
+		Session ep10(ios, "127.0.0.1", SessionMode::Client);
+		Channel chl01 = ep01.addChannel();
+		Channel chl10 = ep10.addChannel();
+
+		CircuitLibrary lib;
+
+		int securityParams = 128;
+		int inDimension = 1;
+		int inExMod = 20;
+		u64 inNumCluster = 15;
+		int inMod = pow(2, inExMod);
+		std::vector<Word> inputA, inputB;
+		
+		PRNG prng(ZeroBlock);
+		u64 numberTest = 5;
+		inputA.resize(numberTest);
+		inputB.resize(numberTest);
+		for (int i = 0; i < numberTest; i++)
+		{
+				inputA[i] = prng.get<Word>() % inMod;
+				inputB[i] = (i- inputA[i]) % inMod;
+				std::cout << i <<":" << inputA[i] << " + " << inputB[i] <<" = " << (inputA[i] + inputB[i]) % inMod << " p\n";
+		}
+
+		//compare point[0]=A0+B0 vs point[1]=A1+B1: A0+B0 < A1+B1 <=> A0-A1 < B1-B0?
+		bool c = inputA[0] + inputB[0] < inputA[1] + inputB[1];
+
+
+		//==========TEST
+		//{
+		//	u64 a = (inputA[0] - inputA[1]);
+		//	u64 b = (inputB[1] - inputB[0]);
+		//	auto* cir = lib.int_int_lt(inExMod, inExMod);
+
+		//	std::vector<BitVector> inputs(2), output(1);
+		//	inputs[0].append((u8*)&a, inExMod);
+		//	inputs[1].append((u8*)&b, inExMod);
+		//	output[0].resize(1);
+
+		//	cir->evaluate(inputs, output);
+
+		//	i64 cc = 0;
+		//	memcpy(&cc, output[0].data(), output[0].sizeBytes());
+		//}
+
+		//==========REAL
+
+		bool debug = false;
+
+			std::thread thrd = std::thread([&]() { //party 1
+				u64 a = (inputA[0] - inputA[1]);
+
+				chl01.waitForConnection();
+
+				// set up the runtime, see above for details
+				ShGcRuntime rt0;
+				rt0.mDebugFlag = debug;
+				rt0.init(chl01, prng.get<block>(), ShGcRuntime::Garbler, 0);
+
+				// instantiate the parties
+				std::array<Party, 2> parties{
+					Party(rt0, 0),
+					Party(rt0, 1)
+				};
+
+				auto shareLT=programLessThan(parties, a);
+				ostreamLock(std::cout) << "0share lt    " << int(shareLT) <<  std::endl;
+
+
+			});
+
+			u64 b = (inputB[1] - inputB[0]);
+			chl10.waitForConnection();
+
+
+			// set up the runtime, see above for details
+			ShGcRuntime rt1;
+			rt1.mDebugFlag = debug;
+			rt1.init(chl10, prng.get<block>(), ShGcRuntime::Evaluator, 1);
+
+			// instantiate the parties
+			std::array<Party, 2> parties{
+				Party(rt1, 0),
+				Party(rt1, 1)
+			};
+
+			auto shareLT = programLessThan(parties, b);
+			ostreamLock(std::cout) << "1share lt    " << int(shareLT) << std::endl;
+
+			//party 2
+
+
+			thrd.join();
+
+
+		//if ((bool)cc != c)
+		//{
+		//	//std::cout << "i " << i << std::endl;
+		//	std::cout << " a : " << inputs[0] << "  " << a << std::endl;
+		//	std::cout << "<b : " << inputs[1] << "  " << b << std::endl;
+		//	std::cout << "exp: " << c << std::endl;
+		//	std::cout << "act: " << output[0] << "   " << cc << std::endl;
+
+
+		//	cir = lib.int_int_subtract(inExMod, inExMod, std::max(inExMod, inExMod));
+		//	output.clear();
+		//	output.emplace_back(std::max(inExMod, inExMod));
+
+		//	cir->evaluate(inputs, output);
+
+		//	std::cout << "act: " << output[0] << "   " << cc << std::endl;
+
+
+		//	//throw UnitTestFail();
+		//}
+
+
+
+	}
 
 
 }

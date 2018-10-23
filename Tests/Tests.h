@@ -10,6 +10,7 @@ namespace osuCrypto
 	void ClusteringTest();
 	void testDecAES();
 	void MulTest();
+	void testMinDist();
 
 
 }
