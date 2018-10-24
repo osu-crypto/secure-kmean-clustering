@@ -1103,10 +1103,11 @@ namespace osuCrypto
 		int securityParams = 128;
 		int inDimension = 1;
 		int inExMod = 20;
+		int inExModinByte = (20+7)/8;
 		u64 inNumCluster = 15;
 		int inMod = pow(2, inExMod);
 		PRNG prng(ZeroBlock);
-		u64 numberTest = 6;
+		u64 numberTest = 8;
 
 		std::vector<Word> inputA(numberTest), inputB(numberTest);
 		BitVector vecMinA(numberTest), vecMinB(numberTest);
@@ -1123,12 +1124,14 @@ namespace osuCrypto
 		
 		bool debug = false;
 
+		u64 numLeaveGC = numberTest / 2;
+
 		//TODO: case for odd #cluster
 			std::thread thrd = std::thread([&]() { //party 1
 
 				std::vector<i64> Diffs;
-				for (u64 i = 0; i < inputA.size()-1; i+=2)
-					Diffs.push_back(inputA[i] - inputA[i+1]);
+				for (u64 i = 0; i < numLeaveGC; i++)
+					Diffs.push_back(inputA[2*i] - inputA[2*i+1]);
 
 
 				std::cout << IoStream::lock;
@@ -1156,10 +1159,9 @@ namespace osuCrypto
 			});
 
 			std::vector<i64> Diffs;
-			for (u64 i = 0; i < inputB.size() - 1; i += 2)
-			{
-				Diffs.push_back( inputB[i + 1]- inputB[i]);
-			}
+
+			for (u64 i = 0; i < numLeaveGC; i++)
+				Diffs.push_back(inputB[2 * i+1] - inputB[2 * i ]);
 
 
 			std::cout << IoStream::lock;
@@ -1192,28 +1194,86 @@ namespace osuCrypto
 			ostreamLock(std::cout) << vecMinA << " bitv A\n";
 			ostreamLock(std::cout) << vecMinB << " bitv B";
 
-		//if ((bool)cc != c)
-		//{
-		//	//std::cout << "i " << i << std::endl;
-		//	std::cout << " a : " << inputs[0] << "  " << a << std::endl;
-		//	std::cout << "<b : " << inputs[1] << "  " << b << std::endl;
-		//	std::cout << "exp: " << c << std::endl;
-		//	std::cout << "act: " << output[0] << "   " << cc << std::endl;
+	
+
+			//
+			u64 numOTs = 1000;
+			std::vector<block> offOtRecvA(numOTs), offOtRecvB(numOTs);
+			std::vector<std::array<block, 2>> offOtSendA(numOTs), offOtSendB(numOTs);
+			BitVector offChoiceA(numOTs), offChoiceB(numOTs);
+			offChoiceA.randomize(prng);
+			offChoiceB.randomize(prng);
+
+			prng.get((u8*)offOtSendA.data()->data(), sizeof(block) * 2 * offOtSendA.size());
+			prng.get((u8*)offOtSendB.data()->data(), sizeof(block) * 2 * offOtSendB.size());
+			for (u64 i = 0; i < numOTs; ++i)
+			{
+				offOtRecvB[i] = offOtSendA[i][offChoiceA[i]];
+				offOtRecvA[i] = offOtSendB[i][offChoiceB[i]];
+			}
 
 
-		//	cir = lib.int_int_subtract(inExMod, inExMod, std::max(inExMod, inExMod));
-		//	output.clear();
-		//	output.emplace_back(std::max(inExMod, inExMod));
 
-		//	cir->evaluate(inputs, output);
+			std::vector<Word> minA(numLeaveGC);
+			std::vector<Word> minB(numLeaveGC);
+			//compute (M^A+M^B)*(P^A+P^B)
+			std::thread thrd = std::thread([&]() { //party 1
 
-		//	std::cout << "act: " << output[0] << "   " << cc << std::endl;
+				std::vector<u8> recvBuffCorrectChoice;
+				chl01.recv(recvBuffCorrectChoice);
+				if (recvBuffCorrectChoice.size() != numLeaveGC * 2)
+				{
+					std::cout << "recvBuffCorrectChoice.size() != numLeaveGC * 2" <<
+						recvBuffCorrectChoice.size() << " vs " << numLeaveGC * 2 << "\n";
+					throw std::exception();
+				}
 
 
-		//	//throw UnitTestFail();
-		//}
+				std::vector<u8> sendBuffDelta(recvBuffCorrectChoice.size()*inExModinByte);
 
 
+				for (u64 i = 0; i < recvBuffCorrectChoice.size(); i++)
+				{
+					auto isSwap = recvBuffCorrectChoice[i];
+					
+					Word r0, r1;
+					memcpy((u8*)&r0, (u8*)& offOtSendA[i][0], inExModinByte);
+					memcpy((u8*)&r1, (u8*)& offOtSendA[i][1], inExModinByte);
+
+					u64 delta = ((1 - 2 * vecMinA[i])*inputA[i] + r0+r1)% inMod;
+
+					memcpy(sendBuffDelta.data() + i*inExModinByte, (u8*)&delta, inExModinByte);
+
+					memcpy((u8*)&minA[i], (u8*)& r0, inExModinByte);
+
+				}
+				chl01.asyncSend(std::move(sendBuffDelta));
+
+
+			});
+
+			// C^B is OT choice bit
+			std::vector<u8> sendBuffCorrectChoice(numLeaveGC * 2,0);
+			for (u64 i = 0; i < numLeaveGC*2; i++)
+			{
+				if (memcmp(&vecMinB[i], &offOtRecvB[i], 1))
+					sendBuffCorrectChoice[i] = 1;
+			}
+			chl10.asyncSend(std::move(sendBuffCorrectChoice));
+
+
+			std::vector<u8> recvBuffDelta;
+			chl10.recv(recvBuffDelta);
+			if (recvBuffDelta.size() != numLeaveGC * 2* inExModinByte)
+			{
+				std::cout << "recvBuffCorrectChoice.size() != numLeaveGC * 2" <<
+					recvBuffDelta.size() << " vs " << numLeaveGC * 2* inExModinByte << "\n";
+				throw std::exception();
+			}
+
+
+
+			thrd.join();
 
 	}
 
