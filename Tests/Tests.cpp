@@ -1041,7 +1041,7 @@ namespace osuCrypto
 
 
 
-	u8 programLessThan(std::array<Party, 2> parties, std::vector<i64> myInput, u64 bitCount)
+	void programLessThan(std::array<Party, 2> parties, std::vector<i64>& myInput, BitVector& myOutput, u64 bitCount)
 	{
 
 		// choose how large the arithmetic should be.
@@ -1058,20 +1058,35 @@ namespace osuCrypto
 				parties[1].input<sInt>(bitCount);
 		
 			auto lt = input0 < input1;
-			parties[0].reveal(lt);
 
+			auto invert=~lt;
+
+			 parties[0].reveal(lt);
+			 parties[0].reveal(invert);
+			parties[1].getRuntime().processesQueue();
+
+			ShGcInt * v = static_cast<ShGcInt*>(lt.mData.get());
+			myOutput[2*i] = PermuteBit((*v->mLabels)[0]);
+			ShGcInt * v1 = static_cast<ShGcInt*>(invert.mData.get());
+			myOutput[2*i + 1] = PermuteBit((*v1->mLabels)[0]);
+			
 			if (parties[0].isLocalParty())
 			{
-				std::cout << "lt   " << lt.getValue() << std::endl;
+				ostreamLock(std::cout) << i << ": slt= " << int(myOutput[2*i]) << int(myOutput[2*i + 1]) << "    A\n";// << (*v1->mLabels)[0] << std::endl;
+				std::cout << i << ": lt= " << lt.getValue() << " vs " << invert.getValue() <<  " \n--------------\n";
+
 			}
-			parties[1].getRuntime().processesQueue();
-			ShGcInt * v = static_cast<ShGcInt*>(lt.mData.get());
-			auto share = PermuteBit((*v->mLabels)[0]);
-			ostreamLock(std::cout) << "share lt    " << int(share) << " " << (*v->mLabels)[0] << std::endl;
+
+			if (parties[1].isLocalParty())
+			{
+				//std::cout << i << ": lt= " << lt.getValue() << " vs " << invert.getValue() << std::endl;
+				ostreamLock(std::cout) << i << ": slt= " << int(myOutput[2*i]) << int(myOutput[2*i + 1]) << "    B\n";// << (*v1->mLabels)[0] << std::endl;
+			}
+
+
 		}
 					
 		
-		return 0;
 	}
 
 	void testMinDist()
@@ -1090,12 +1105,13 @@ namespace osuCrypto
 		int inExMod = 20;
 		u64 inNumCluster = 15;
 		int inMod = pow(2, inExMod);
-		std::vector<Word> inputA, inputB;
-		
 		PRNG prng(ZeroBlock);
 		u64 numberTest = 6;
-		inputA.resize(numberTest);
-		inputB.resize(numberTest);
+
+		std::vector<Word> inputA(numberTest), inputB(numberTest);
+		BitVector vecMinA(numberTest), vecMinB(numberTest);
+
+
 		for (int i = 0; i < numberTest; i++)
 		{
 				u64 num = rand() % 10;
@@ -1104,38 +1120,15 @@ namespace osuCrypto
 				std::cout << num <<":" << inputA[i] << " + " << inputB[i] <<" = " << (inputA[i] + inputB[i]) % inMod << " p\n";
 		}
 
-		//compare point[0]=A0+B0 vs point[1]=A1+B1: A0+B0 < A1+B1 <=> A0-A1 < B1-B0?
-		bool c = inputA[0] + inputB[0] < inputA[1] + inputB[1];
-
-
-		//==========TEST
-		//{
-		//	u64 a = (inputA[0] - inputA[1]);
-		//	u64 b = (inputB[1] - inputB[0]);
-		//	auto* cir = lib.int_int_lt(inExMod, inExMod);
-
-		//	std::vector<BitVector> inputs(2), output(1);
-		//	inputs[0].append((u8*)&a, inExMod);
-		//	inputs[1].append((u8*)&b, inExMod);
-		//	output[0].resize(1);
-
-		//	cir->evaluate(inputs, output);
-
-		//	i64 cc = 0;
-		//	memcpy(&cc, output[0].data(), output[0].sizeBytes());
-		//}
-
-		//==========REAL
-
+		
 		bool debug = false;
 
+		//TODO: case for odd #cluster
 			std::thread thrd = std::thread([&]() { //party 1
 
 				std::vector<i64> Diffs;
 				for (u64 i = 0; i < inputA.size()-1; i+=2)
-				{
 					Diffs.push_back(inputA[i] - inputA[i+1]);
-				}
 
 
 				std::cout << IoStream::lock;
@@ -1143,7 +1136,7 @@ namespace osuCrypto
 					std::cout <<Diffs[i]  << "   A\n";
 				std::cout << IoStream::unlock;
 
-				chl01.waitForConnection();
+				//chl01.waitForConnection();
 
 				// set up the runtime, see above for details
 				ShGcRuntime rt0;
@@ -1156,7 +1149,7 @@ namespace osuCrypto
 					Party(rt0, 1)
 				};
 
-				auto shareLT=programLessThan(parties, Diffs, inExMod+1);
+				programLessThan(parties, Diffs, vecMinA,inExMod+1);
 				//ostreamLock(std::cout) << "0share lt    " << int(shareLT) <<  std::endl;
 
 
@@ -1175,7 +1168,7 @@ namespace osuCrypto
 			std::cout << IoStream::unlock;
 
 
-			chl10.waitForConnection();
+			//chl10.waitForConnection();
 
 
 			// set up the runtime, see above for details
@@ -1189,14 +1182,15 @@ namespace osuCrypto
 				Party(rt1, 1)
 			};
 
-			auto shareLT = programLessThan(parties, Diffs, inExMod+1);
-			//ostreamLock(std::cout) << "1share lt    " << int(shareLT) << std::endl;
+			 programLessThan(parties, Diffs, vecMinB, inExMod+1);
 
 			//party 2
 
 
 			thrd.join();
 
+			ostreamLock(std::cout) << vecMinA << " bitv A\n";
+			ostreamLock(std::cout) << vecMinB << " bitv B";
 
 		//if ((bool)cc != c)
 		//{
