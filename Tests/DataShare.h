@@ -8,6 +8,11 @@
 #include <libOTe/TwoChooseOne/IknpOtExtSender.h>
 #include <libOTe/Base/naor-pinkas.h>
 #include <cryptoTools/Crypto/AES.h> 
+#include <ivory/Runtime/ShGc/ShGcRuntime.h>
+#include <ivory/Circuit/CircuitLibrary.h>
+#include <ivory/Runtime/sInt.h>
+#include <ivory/Runtime/Party.h>
+#include <ivory/Runtime/ShGc/ShGcInt.h>
 
 namespace osuCrypto
 {
@@ -137,10 +142,43 @@ namespace osuCrypto
 		void setAESkeys();
 
 		void computeDist();
+		
 
-		void Print();
+		//======================min cluster
+
+		//compute (M^A+M^B)*(P^A+P^B)
+		BitVector mOffOtChoices; 
+		std::vector<std::array<block, 2>> mMinClusterOtSends;
+		std::vector<block> mMinClusterOtRecv;
+
+		std::vector<BitVector> mVecIdxMin; //maintain 0000010000000 <-indicate min. size is always = #clusters
+		std::vector<BitVector> mVecGcMinOutput; //save output pairwise min, size=#node of each tree level
+		std::vector<std::vector<Word>> mShareBinArithMulSend; //[i][k], k depends tree level; save share of (b^A \xor b^B)*P^A
+		std::vector<std::vector<Word>> mShareBinArithMulRecv; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
+
+
+		ShGcRuntime rt;
+		std::array<Party, 2> parties{
+			Party(rt, 0),
+			Party(rt, 1)
+		};
+		
+		//compute (b^A \xor b^B)*(P^A+P^B)
+		//OT sender m0 = r + b^A*P^A;  m1 = r + (1-b^A)*P^A 
+		//Co-OT: deltaOT= (1-2*b^A)*P^A 
+		//NOTE: sender output= r-b^AP^A, receiver output=r+b^B*(1-2*b^A)*P^A=r+(b^A \xor b^B)*P^A -b^AP^A
+
+		std::vector<std::vector<Word>> amortBinArithMulsend(std::vector<BitVector>& bitVecs, std::vector<std::vector<Word>>& arithVecs); //[i][k], upto [k/2] all points
+
+		//compute mi wiht OT receiver
+		std::vector<std::vector<Word>> amortBinArithMULrecv(std::vector<BitVector>& bitVecs);
+
 
 		
+		//============print
+		void Print();
+		
+
 
 	};
 
