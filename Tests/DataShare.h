@@ -155,6 +155,8 @@ namespace osuCrypto
 		std::vector<BitVector> mVecGcMinOutput; //save output pairwise min, size=#node of each tree level
 		std::vector<std::vector<Word>> mShareBinArithMulSend; //[i][k], k depends tree level; save share of (b^A \xor b^B)*P^A
 		std::vector<std::vector<Word>> mShareBinArithMulRecv; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
+		std::vector<std::vector<Word>> mShareBinArithMul; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
+		std::vector<std::vector<Word>> mShareMin; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
 
 
 		ShGcRuntime rt;
@@ -173,6 +175,8 @@ namespace osuCrypto
 		//compute mi wiht OT receiver
 		std::vector<std::vector<Word>> amortBinArithMULrecv(std::vector<BitVector>& bitVecs);
 
+		void computeBinArithMUL(); //compute (b^A \xor b^B)*(P^A+P^B)
+		void computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
 
 		
 		//============print

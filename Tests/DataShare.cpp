@@ -458,7 +458,8 @@ namespace osuCrypto
 		mVecGcMinOutput.resize(mTotalNumPoints);
 		mShareBinArithMulSend.resize(mTotalNumPoints);
 		mShareBinArithMulRecv.resize(mTotalNumPoints);
-
+		mShareBinArithMul.resize(mTotalNumPoints);
+		mShareMin.resize(mTotalNumPoints);
 
 		for (u64 i = 0; i < mTotalNumPoints; i++)
 			mVecIdxMin[i].resize(mNumCluster);
@@ -619,10 +620,10 @@ namespace osuCrypto
 
 	std::vector<std::vector<Word>> DataShare::amortBinArithMulsend(std::vector<BitVector>& bitVecs, std::vector<std::vector<Word>>& arithVecs)
 	{
-		std::vector<std::vector<Word>> shares(bitVecs.size());
+		std::vector<std::vector<Word>> shares(mTotalNumPoints);
 		//OT concate all bitvector
 		BitVector allBitVecs;
-		for (size_t i = 0; i < bitVecs.size(); i++)
+		for (size_t i = 0; i < mTotalNumPoints; i++)
 			allBitVecs.append(bitVecs[i]);
 		
 		std::cout << IoStream::lock;
@@ -641,7 +642,7 @@ namespace osuCrypto
 
 		std::vector<u8> sendBuff(allBitVecs.size()*mLenModinByte);
 		u64 iter = 0;
-		for (u64 i = 0; i < bitVecs.size(); i++) //all points
+		for (u64 i = 0; i <mTotalNumPoints; i++) //all points
 		{
 			mShareBinArithMulSend[i].resize(bitVecs[i].size());
 			for (u64 k = 0; k < bitVecs[i].size(); k++)
@@ -650,9 +651,12 @@ namespace osuCrypto
 					Word r1 = *(u64*)&mMinClusterOtSends[i*bitVecs[i].size() + k][1] % mMod;
 					Word correction = (Word)((1-2* bitVecs[i][k])*arithVecs[i][k] + r0 - r1) % mMod; //
 
-					mShareBinArithMulSend[i][k]= (r0 - bitVecs[i][k] * arithVecs[i][k]) % mMod;
+					mShareBinArithMulSend[i][k]= (bitVecs[i][k] * arithVecs[i][k]- r0) % mMod;
 					std::cout << IoStream::lock;
-					std::cout << i << "-" << k << ":  " << r0 << " vs " << r1 << " \t " << (Word)((1 - 2 * bitVecs[i][k])*arithVecs[i][k] + r0) % mMod << " c= " << correction << " s\n";
+					std::cout << i << "-" << k << ":  " << r0 << " vs " << r1 
+						<< " \t " << (Word)((1 - 2 * bitVecs[i][k])*arithVecs[i][k] + r0) % mMod
+						<< " \t " << mShareBinArithMulSend[i][k]
+						<< " c= " << correction << " s\n";
 					std::cout << IoStream::unlock;
 
 					//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
@@ -667,11 +671,11 @@ namespace osuCrypto
 
 	std::vector<std::vector<Word>> DataShare::amortBinArithMULrecv(std::vector<BitVector>& bitVecs)
 	{
-		std::vector<std::vector<Word>> shares(bitVecs.size());
+		std::vector<std::vector<Word>> shares(mTotalNumPoints);
 
 		//OT concate all bitvector
 		BitVector allBitVecs;
-		for (size_t i = 0; i < bitVecs.size(); i++)
+		for (size_t i = 0; i < mTotalNumPoints; i++)
 			allBitVecs.append(bitVecs[i]);
 
 		std::cout << IoStream::lock;
@@ -694,7 +698,7 @@ namespace osuCrypto
 		Word correction = 0;
 		u64 iter = 0;
 
-		for (u64 i = 0; i < bitVecs.size(); i++) //all points
+		for (u64 i = 0; i < mTotalNumPoints; i++) //all points
 		{
 			mShareBinArithMulRecv[i].resize(bitVecs[i].size());
 			for (u64 k = 0; k < bitVecs[i].size(); k++)
@@ -719,6 +723,38 @@ namespace osuCrypto
 
 
 		return shares;
+	}
+
+	void DataShare::computeBinArithMUL()
+	{
+		for (u64 i = 0; i < mTotalNumPoints; i++)
+		{
+			mShareBinArithMul[i].resize(mShareBinArithMulSend[i].size());
+			for (u64 k = 0; k < mShareBinArithMulSend[i].size(); k++)
+			{
+				mShareBinArithMul[i][k] = (mShareBinArithMulSend[i][k] + mShareBinArithMulRecv[i][k]) % mMod;
+			}
+		}
+	}
+
+	void DataShare::computeShareMin()
+	{
+		for (u64 i = 0; i < mTotalNumPoints; i++)
+		{
+
+			if (mShareBinArithMulSend[i].size() % 2 == 1)
+			{
+				std::cout << i << " computeShareMin error";
+				throw std::exception();
+			}
+			mShareMin[i].resize(mShareBinArithMulSend[i].size()/2);
+
+			for (u64 k = 0; k < mShareMin[i].size(); k++)
+			{
+				mShareMin[i][k] = ((mShareBinArithMulSend[i][2 * k] + mShareBinArithMulRecv[i][2 * k]) % mMod //(b1^A \xor b1^B)*(P1^A+P1^B)
+										+ (mShareBinArithMulSend[i][2 * k+1] + mShareBinArithMulRecv[i][2 * k+1]) % mMod) % mMod; //(b2^A \xor b2^B)*(P2^A+P2^B) 
+			}
+		}
 	}
 
 	void DataShare::Print() {
