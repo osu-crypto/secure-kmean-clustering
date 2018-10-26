@@ -170,10 +170,10 @@ namespace osuCrypto
 		//Co-OT: deltaOT= (1-2*b^A)*P^A 
 		//NOTE: sender output= r-b^AP^A, receiver output=r+b^B*(1-2*b^A)*P^A=r+(b^A \xor b^B)*P^A -b^AP^A
 
-		std::vector<std::vector<Word>> amortBinArithMulsend(std::vector<BitVector>& bitVecs, std::vector<std::vector<Word>>& arithVecs); //[i][k], upto [k/2] all points
+		void amortBinArithMulsend(std::vector<BitVector>& bitVecs, std::vector<std::vector<Word>>& arithVecs); //[i][k], upto [k/2] all points
 
 		//compute mi wiht OT receiver
-		std::vector<std::vector<Word>> amortBinArithMULrecv(std::vector<BitVector>& bitVecs);
+		void amortBinArithMULrecv(std::vector<BitVector>& bitVecs);
 
 		void computeBinArithMUL(); //compute (b^A \xor b^B)*(P^A+P^B)
 		void computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
@@ -186,35 +186,4 @@ namespace osuCrypto
 
 	};
 
-
-	
-
-
-	/*inline DataShare::Share& DataShare::Share::operator=(const DataShare::Share& copy)
-	{
-		mData = copy.mData;
-		return *this;
-	}
-
-	inline DataShare::Share DataShare::Share::operator+(const DataShare::Share& val) const
-	{
-		return Share{ mData + val.mData };
-	}
-
-	inline DataShare::Share DataShare::Share::operator-(const DataShare::Share& val) const
-	{
-		return Share{ mData - val.mData };
-	}
-
-	inline DataShare::Share& DataShare::Share::operator+=(const DataShare::Share& val)
-	{
-		mData += val.mData;
-		return *this;
-	}
-
-	inline DataShare::Share& DataShare::Share::operator-=(const DataShare::Share& val)
-	{
-		mData -= val.mData;
-		return *this;
-	}*/
 }

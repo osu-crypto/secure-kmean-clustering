@@ -618,7 +618,7 @@ namespace osuCrypto
 	}
 	
 
-	std::vector<std::vector<Word>> DataShare::amortBinArithMulsend(std::vector<BitVector>& bitVecs, std::vector<std::vector<Word>>& arithVecs)
+	void DataShare::amortBinArithMulsend(std::vector<BitVector>& bitVecs, std::vector<std::vector<Word>>& arithVecs)
 	{
 		std::vector<std::vector<Word>> shares(mTotalNumPoints);
 		//OT concate all bitvector
@@ -666,12 +666,10 @@ namespace osuCrypto
 		}
 		mChl.asyncSend(std::move(sendBuff));
 
-		return shares;
 	}
 
-	std::vector<std::vector<Word>> DataShare::amortBinArithMULrecv(std::vector<BitVector>& bitVecs)
+	void DataShare::amortBinArithMULrecv(std::vector<BitVector>& bitVecs)
 	{
-		std::vector<std::vector<Word>> shares(mTotalNumPoints);
 
 		//OT concate all bitvector
 		BitVector allBitVecs;
@@ -721,8 +719,6 @@ namespace osuCrypto
 			}
 		}
 
-
-		return shares;
 	}
 
 	void DataShare::computeBinArithMUL()
