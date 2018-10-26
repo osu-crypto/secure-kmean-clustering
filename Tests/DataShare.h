@@ -152,12 +152,15 @@ namespace osuCrypto
 		std::vector<std::array<block, 2>> mMinClusterOtSends;
 		std::vector<block> mMinClusterOtRecv;
 
-		std::vector<BitVector> mVecIdxMin; //maintain 0000010000000 <-indicate min. size is always = #clusters
 		std::vector<BitVector> mVecGcMinOutput; //save output pairwise min, size=#node of each tree level
 		std::vector<std::vector<Word>> mShareBinArithMulSend; //[i][k], k depends tree level; save share of (b^A \xor b^B)*P^A
 		std::vector<std::vector<Word>> mShareBinArithMulRecv; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
 		std::vector<std::vector<Word>> mShareBinArithMul; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
 		std::vector<std::vector<Word>> mShareMin; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
+
+		std::vector<BitVector> mVecIdxMin; //maintain 0000010000000 <-indicate min. size is always = #clusters
+		std::vector<std::vector<BitVector>> mVecIdxMinSend; //[i][k], k depends tree level; save share of (b^A \xor b^B)*P^A
+		std::vector<std::vector<BitVector>> mVecIdxMinRecv; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
 
 
 		ShGcRuntime rt;
@@ -183,6 +186,7 @@ namespace osuCrypto
 
 		void computeBinArithMUL(); //compute (b^A \xor b^B)*(P^A+P^B)
 		void computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
+		void computeShareIdxMin(u64 stepIdxMin); //compute (b1^A \xor b1^B)*(V1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
 
 		
 		//============print
