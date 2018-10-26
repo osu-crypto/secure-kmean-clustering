@@ -1407,7 +1407,7 @@ namespace osuCrypto
 				Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
 				Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
 
-				u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 15;
+				u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 32;
 
 				int inMod = pow(2, inExMod);
 				std::vector<std::vector<Word>> inputA, inputB;
@@ -1580,6 +1580,16 @@ namespace osuCrypto
 						//std::cout << IoStream::unlock;
 
 						programLessThan(p0.parties, diffDist, p0.mVecGcMinOutput[i], p0.mLenMod + 1);
+						
+						memcpy(p0.mVecIdxMin[i].data(), p0.mVecGcMinOutput[i].data(), p0.mVecGcMinOutput[i].sizeBytes()); //first level 10||01||01||01|1
+						if (numNodeThisLevel % 2) //odd number
+							p0.mVecIdxMin[i][p0.mNumCluster - 1] = 1; //make sure last vecIdxMin[i]=1 
+
+						std::cout << IoStream::lock;
+						std::cout << i << ": " << p0.mVecGcMinOutput[i].size() << "\t " << p0.mVecGcMinOutput[i] << " vs " << p0.mVecIdxMin[i] << " p0.mVecGcMinOutput[i].size()\n";
+						std::cout << IoStream::unlock;
+																														
+						
 					}
 
 					p0.amortBinArithMulsend(p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
@@ -1587,10 +1597,16 @@ namespace osuCrypto
 					p0.computeShareMin();//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 					numNodePreviousLevel = numNodeThisLevel;
 
+					//std::cout << IoStream::lock;
+					//for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+					//	std::cout << i << ": " <<p0.mVecIdxMin[i] << "   mVecIdxMinA\n";
+					//std::cout << IoStream::unlock;
 
 					//=============2nd level loop until root==================================
+					int stepIdxMin = 0;
 					while (p0.mShareMin[0].size()>1)
 					{
+						stepIdxMin += 2;
 						ostreamLock(std::cout) << "p0.mShareMin[0].size()=" << p0.mShareMin[0].size() << "\n";
 
 						if (numNodePreviousLevel % 2 == 1) //odd number => add last node to this level
@@ -1617,11 +1633,18 @@ namespace osuCrypto
 							programLessThan(p0.parties, diffDist, p0.mVecGcMinOutput[i], p0.mLenMod + 1);
 						}
 
-						p0.amortBinArithMulsend(p0.mVecGcMinOutput, p0.mShareMin); //(b^A \xor b^B)*(P^A)
-						p0.amortBinArithMULrecv(p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
+						p0.amortBinArithMulGCsend(p0.mVecGcMinOutput, p0.mShareMin, p0.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^A)
+						p0.amortBinArithMulGCrecv(p0.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^B)
 						p0.computeShareMin();//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 						numNodePreviousLevel = numNodeThisLevel;
+
+
+						std::cout << IoStream::lock;
+						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+							std::cout << i << ": " << p0.mVecIdxMin[i] << "   mVecIdxMinA\n";
+						std::cout << IoStream::unlock;
 					}
+
 
 				});
 				//party 2
@@ -1646,16 +1669,21 @@ namespace osuCrypto
 
 					programLessThan(p1.parties, diffDist, p1.mVecGcMinOutput[i], p1.mLenMod + 1);
 
+					memcpy(p1.mVecIdxMin[i].data(), p1.mVecGcMinOutput[i].data(), p1.mVecGcMinOutput[i].sizeBytes()); //first level 10||01||01||01|1
+					if (numNodeThisLevel % 2) //odd number
+						p1.mVecIdxMin[i][p1.mNumCluster - 1] = 1; //make sure last vecIdxMin[i]=1 
 				}
 
 				p1.amortBinArithMULrecv(p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
 				p1.amortBinArithMulsend(p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
 				p1.computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 				numNodePreviousLevel = numNodeThisLevel;
-
+				
 				//=============2nd level loop until root==================================
-				while (p1.mShareMin[0].size()>1)
+				int stepIdxMin = 0;
+				while(p1.mShareMin[0].size()>1)
 				{
+					stepIdxMin += 2;
 					ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << "\n";
 
 					if (numNodePreviousLevel % 2 == 1) //odd number => add last node to this level
@@ -1681,10 +1709,15 @@ namespace osuCrypto
 						programLessThan(p1.parties, diffDist, p1.mVecGcMinOutput[i], p1.mLenMod + 1);
 					}
 
-					p1.amortBinArithMULrecv(p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
-					p1.amortBinArithMulsend(p1.mVecGcMinOutput, p1.mShareMin); //(b^A \xor b^B)*(P^B)
+					p1.amortBinArithMulGCrecv(p1.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^A)
+					p1.amortBinArithMulGCsend(p1.mVecGcMinOutput, p1.mShareMin, p1.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^B)
 					p1.computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 					numNodePreviousLevel = numNodeThisLevel;
+
+					std::cout << IoStream::lock;
+					for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+						std::cout << i << ": " << p1.mVecIdxMin[i] << "   mVecIdxMinB\n";
+					std::cout << IoStream::unlock;
 				}
 
 				ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << " end\n";
@@ -1715,6 +1748,13 @@ namespace osuCrypto
 
 				timer.setTimePoint("OTkeysDone");
 
+
+				block data = p0.mPrng.get<block>();
+				u64 aa1 = ((u64*)&data)[0];
+				u64 aa2 = ((u64*)&data)[1];
+				std::cout << data << "\n";
+				std::cout << toBlock(aa1) << "\n";
+				std::cout << toBlock(aa2) << "\n";
 
 
 

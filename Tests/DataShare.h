@@ -110,6 +110,7 @@ namespace osuCrypto
 			return BitVector((u8*)&value, bitLen);
 		}
 
+
 		//compute shares[i]*b where choice bit is the bitvector of shares[i], b is "OT sender message"
 		// first concating all b-ri, ri. 
 		//then using the enc OT keys corressponding to share[i][j] to encrypt and send them to receiver		
@@ -174,6 +175,11 @@ namespace osuCrypto
 
 		//compute mi wiht OT receiver
 		void amortBinArithMULrecv(std::vector<BitVector>& bitVecs);
+
+		//bitVecsIdxMin maintain index of min: input as 1010||1001, output=1010*b||1001*!b
+		//stepIdxMin=4 for above example
+		void amortBinArithMulGCsend(std::vector<BitVector>& bitGcMinOutVecs, std::vector<std::vector<Word>>& arithVecs, std::vector<BitVector>& bitVecsIdxMin, u64 stepIdxMin);
+		void amortBinArithMulGCrecv(std::vector<BitVector>& bitGcMinOutVecsk, u64 stepIdxMin);
 
 		void computeBinArithMUL(); //compute (b^A \xor b^B)*(P^A+P^B)
 		void computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
