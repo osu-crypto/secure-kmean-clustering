@@ -1417,7 +1417,7 @@ namespace osuCrypto
 				Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
 				Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
 
-				u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 10;
+				u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 3;
 
 				int inMod = pow(2, inExMod);
 				std::vector<std::vector<Word>> inputA, inputB;
@@ -1577,7 +1577,7 @@ namespace osuCrypto
 						}
 					}
 
-
+				//41 467 334 500 169 724 478 358 962 464
 				thrd = std::thread([&]() { //party 1
 					int stepIdxMin = 1;
 					u64 numNodeThisLevel = p0.mNumCluster;
@@ -1596,7 +1596,7 @@ namespace osuCrypto
 
 						std::vector<i64> diffDist; //lastNode move to next level
 						for (u64 k = 0; k < numNodeThisLevel / 2; k++)
-							diffDist.push_back(p0.mDist[i][2 * k] - p0.mDist[i][2 * k + 1]);
+							diffDist.push_back((p0.mDist[i][2 * k] - p0.mDist[i][2 * k + 1])%p0.mMod);
 
 						//std::cout << IoStream::lock;
 						//for (u64 j = 0; j < diffDist.size(); j++)
@@ -1640,13 +1640,20 @@ namespace osuCrypto
 								lastNode[i] = p0.mShareMin[i][p0.mShareMin[i].size() - 1];
 							std::vector<i64> diffDist;
 							for (u64 k = 0; k < numNodeThisLevel / 2; k++)
-								diffDist.push_back(p0.mShareMin[i][2 * k] - p0.mShareMin[i][2 * k + 1]);
+								diffDist.push_back((p0.mShareMin[i][2 * k] - p0.mShareMin[i][2 * k + 1]) % p0.mMod);
 
 							std::cout << IoStream::lock;
-							std::cout << i << "===================\n";
-							for (u64 j = 0; j < diffDist.size(); j++)
-								std::cout << diffDist[j] << "   diffDistA\n";
+							if (p0.mShareMin[1].size() == 3 && i==0) //
+							{
+								std::cout << p0.mShareMin[i][0] << " " << p0.mShareMin[i][1] << " mShareMin s\n";
+
+								std::cout << i << "===================\n";
+								for (u64 j = 0; j < diffDist.size(); j++)
+									std::cout << diffDist[j] << "   diffDistA\n";
+							}
 							std::cout << IoStream::unlock;
+
+
 
 							programLessThan(p0.parties, diffDist, p0.mVecGcMinOutput[i], p0.mLenMod + 1);
 						}
@@ -1698,7 +1705,7 @@ namespace osuCrypto
 
 					std::vector<i64> diffDist; //lastNode move to next level
 					for (u64 k = 0; k < numNodeThisLevel / 2; k++)
-						diffDist.push_back(p1.mDist[i][2 * k + 1] - p1.mDist[i][2 * k]);
+						diffDist.push_back((p1.mDist[i][2 * k + 1] - p1.mDist[i][2 * k]) % p0.mMod);
 
 					/*std::cout << IoStream::lock;
 					for (u64 j = 0; j < diffDist.size(); j++)
@@ -1746,12 +1753,17 @@ namespace osuCrypto
 
 						std::vector<i64> diffDist;
 						for (u64 k = 0; k < numNodeThisLevel / 2; k++)
-							diffDist.push_back(p1.mShareMin[i][2 * k + 1] - p1.mShareMin[i][2 * k]);
+							diffDist.push_back((p1.mShareMin[i][2 * k + 1] - p1.mShareMin[i][2 * k]) % p0.mMod);
 
 						std::cout << IoStream::lock;
-						std::cout << i << "===================\n";
-						for (u64 j = 0; j < diffDist.size(); j++)
-							std::cout << diffDist[j] << "   diffDistB\n";
+						if (p1.mShareMin[1].size() == 3 && i == 0) //
+						{
+							std::cout << p1.mShareMin[i][0] << " " << p1.mShareMin[i][1] << " mShareMin r\n";
+
+							std::cout << i << "===================\n";
+							for (u64 j = 0; j < diffDist.size(); j++)
+								std::cout << diffDist[j] << "   diffDistB\n";
+						}
 						std::cout << IoStream::unlock;
 						programLessThan(p1.parties, diffDist, p1.mVecGcMinOutput[i], p1.mLenMod + 1);
 					}
@@ -1793,7 +1805,54 @@ namespace osuCrypto
 
 
 
+#if 1
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				{
+					Word minDist= (p0.mShareMin[i][0] + p1.mShareMin[i][0]) % p0.mMod;
+					BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
 
+					u64 minIdx;
+
+					for (u64 k = 0; k < vecDist.size(); k++)
+						if (vecDist[k] == 1)
+						{
+							minIdx = k;
+							break;
+						}
+
+					Word actualMin = (p0.mDist[i][0] + p1.mDist[i][0]) % p0.mMod;
+					Word actualMinIdx = 0;
+					for (u64 k = 1; k < p0.mNumCluster; k++)
+					{
+						Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+						if (actualMin > point)
+						{
+							actualMin = point;
+							actualMinIdx = k;
+						}
+						//std::cout << point << " ";
+					}
+
+					if (actualMin != minDist || actualMinIdx != minIdx)
+					{
+						std::cout << i << ": min= " << minDist << " "
+							<< vecDist << " idx= " << minIdx << "\n";
+
+						std::cout << actualMin << " " << actualMinIdx <<"\t ";
+
+
+						for (u64 k = 0; k < p0.mNumCluster; k++)
+						{
+							Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+							std::cout << point << " ";
+						}
+
+						throw std::exception();
+
+					}
+				}
+
+#endif
 				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 				{
 					std::cout << i << ": min=";
@@ -1821,13 +1880,13 @@ namespace osuCrypto
 
 				timer.setTimePoint("OTkeysDone");
 
-
+/*
 				block data = p0.mPrng.get<block>();
 				u64 aa1 = ((u64*)&data)[0];
 				u64 aa2 = ((u64*)&data)[1];
 				std::cout << data << "\n";
 				std::cout << toBlock(aa1) << "\n";
-				std::cout << toBlock(aa2) << "\n";
+				std::cout << toBlock(aa2) << "\n";*/
 
 
 
