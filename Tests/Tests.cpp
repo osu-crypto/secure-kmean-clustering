@@ -1407,14 +1407,14 @@ namespace osuCrypto
 				Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
 				Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
 
-				u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 16;
+				u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 10;
 
 				int inMod = pow(2, inExMod);
 				std::vector<std::vector<Word>> inputA, inputB;
 				//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
 
 				PRNG prng(ZeroBlock);
-				u64 numberTest = 1;
+				u64 numberTest = 2;
 				inputA.resize(numberTest);
 				inputB.resize(numberTest);
 				for (int i = 0; i < numberTest; i++)
@@ -1547,14 +1547,24 @@ namespace osuCrypto
 
 				//fake dist
 				u64 num = 99;
+				u64 num2 = 1;
 				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 					for (u64 k = 0; k < p0.mNumCluster; k++)
 					{
-						// num = rand() % 100;
-						p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
-						p1.mDist[i][k] = (num - p0.mDist[i][k]) % p0.mMod;;
-						std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
-						num--;
+						if (i % 2)
+						{	num = rand() % 1000;
+							p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
+							p1.mDist[i][k] = (num - p0.mDist[i][k]) % p0.mMod;;
+							std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
+							num--;
+						}
+						else
+						{	num2 = rand() % 1000;
+							p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
+							p1.mDist[i][k] = (num2 - p0.mDist[i][k]) % p0.mMod;;
+							std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
+							num2++;
+						}
 					}
 
 
@@ -1564,12 +1574,17 @@ namespace osuCrypto
 					u64 numNodeThisLevel = p0.mNumCluster;
 					u64 numNodePreviousLevel;
 					std::vector<Word> lastNode(p0.mTotalNumPoints); //[i][#cluster-1]
+					std::vector<BitVector> lastVecIdxMin(p0.mTotalNumPoints); //[i][#cluster-1]
 
 																	//=================1st level //TODO: remove dist
 					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 					{
 						if (numNodeThisLevel % 2) //odd number
+						{
 							lastNode[i] = p0.mDist[i][p0.mNumCluster - 1];
+							lastVecIdxMin[i].resize(1);
+							lastVecIdxMin[i][0]= 1;
+						}
 
 						std::vector<i64> diffDist; //lastNode move to next level
 						for (u64 k = 0; k < numNodeThisLevel / 2; k++)
@@ -1581,18 +1596,21 @@ namespace osuCrypto
 						//std::cout << IoStream::unlock;
 
 						programLessThan(p0.parties, diffDist, p0.mVecGcMinOutput[i], p0.mLenMod + 1);
-						
-						memcpy(p0.mVecIdxMin[i].data(), p0.mVecGcMinOutput[i].data(), p0.mVecGcMinOutput[i].sizeBytes()); //first level 10||01||01||01|1
+						p0.mVecIdxMin[i].append(p0.mVecGcMinOutput[i]);
+						//memcpy(p0.mVecIdxMin[i].data(), p0.mVecGcMinOutput[i].data(), p0.mVecGcMinOutput[i].size()); //first level 10||01||01||01|1
 						if (numNodeThisLevel % 2) //odd number
-							p0.mVecIdxMin[i][p0.mNumCluster - 1] = 1; //make sure last vecIdxMin[i]=1 
+							p0.mVecIdxMin[i].append(lastVecIdxMin[i]); //make sure last vecIdxMin[i]=1 
 
-						
 					}
 
 					p0.amortBinArithMulsend(p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
 					p0.amortBinArithMULrecv(p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
 					p0.computeShareMin();//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
-					numNodePreviousLevel = numNodeThisLevel;
+
+					if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+							p0.mShareMin[i].push_back(lastNode[i]);
+
 
 					std::cout << IoStream::lock;
 					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
@@ -1603,19 +1621,23 @@ namespace osuCrypto
 					while (p0.mShareMin[0].size()>1)
 					{
 						stepIdxMin *= 2;
+
+						
 						ostreamLock(std::cout) << "p0.mShareMin[0].size()=" << p0.mShareMin[0].size() << "\n";
 
-						if (numNodePreviousLevel % 2 == 1) //odd number => add last node to this level
-							for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-								p0.mShareMin[i].push_back(lastNode[i]);
 
 						numNodeThisLevel = p0.mShareMin[0].size();
 
 						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 						{
 							if (numNodeThisLevel % 2) //odd number, keep last for next level
+							{
 								lastNode[i] = p0.mShareMin[i][p0.mShareMin[i].size() - 1];
 
+								//lastVecIdxMin[i].resize(p0.mNumCluster-stepIdxMin*numNodeThisLevel / 2);
+								//lastVecIdxMin[i].copy(p0.mVecIdxMin[i], stepIdxMin*numNodeThisLevel / 2, lastVecIdxMin[i].size());
+
+							}
 							std::vector<i64> diffDist;
 							for (u64 k = 0; k < numNodeThisLevel / 2; k++)
 								diffDist.push_back(p0.mShareMin[i][2 * k] - p0.mShareMin[i][2 * k + 1]);
@@ -1629,12 +1651,31 @@ namespace osuCrypto
 							programLessThan(p0.parties, diffDist, p0.mVecGcMinOutput[i], p0.mLenMod + 1);
 						}
 
+
+						if (p0.mShareMin[1].size() == 2) //near root
+						{
+							std::cout << IoStream::lock;
+							std::cout << p0.mVecGcMinOutput[1] << " =========mVecGcMinOutput[i]==========\n";
+							std::cout << IoStream::unlock;
+						}
+
 						p0.amortBinArithMulGCsend(p0.mVecGcMinOutput, p0.mShareMin, p0.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^A)
 						p0.amortBinArithMulGCrecv(p0.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^B)
 						p0.computeShareMin();//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 						p0.computeShareIdxMin(stepIdxMin);
-						numNodePreviousLevel = numNodeThisLevel;
 
+						/*std::cout << IoStream::lock;
+						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+							std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    bp A\n";
+						std::cout << IoStream::unlock;*/
+
+						if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+							for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+							{
+								p0.mShareMin[i].push_back(lastNode[i]);
+								//p0.mVecIdxMin[i].append(lastVecIdxMin[i]); //make sure last vecIdxMin[i]=1 
+
+							}
 
 						std::cout << IoStream::lock;
 						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
@@ -1650,11 +1691,16 @@ namespace osuCrypto
 				u64 numNodePreviousLevel;
 				std::vector<Word> lastNode(p1.mTotalNumPoints); //[i][#cluster-1]
 																//=================1st level //TODO: remove dist
+				std::vector<BitVector> lastVecIdxMin(p0.mTotalNumPoints); //[i][#cluster-1]
+
 				for (u64 i = 0; i < p1.mTotalNumPoints; i++)
 				{
 					if (numNodeThisLevel % 2) //odd number
+					{
 						lastNode[i] = p1.mDist[i][p1.mNumCluster - 1];
-
+						lastVecIdxMin[i].resize(1);
+						lastVecIdxMin[i][0] = 0;
+					}
 					std::vector<i64> diffDist; //lastNode move to next level
 					for (u64 k = 0; k < numNodeThisLevel / 2; k++)
 						diffDist.push_back(p1.mDist[i][2 * k + 1] - p1.mDist[i][2 * k]);
@@ -1666,10 +1712,11 @@ namespace osuCrypto
 
 					programLessThan(p1.parties, diffDist, p1.mVecGcMinOutput[i], p1.mLenMod + 1);
 
-					memcpy(p1.mVecIdxMin[i].data(), p1.mVecGcMinOutput[i].data(), p1.mVecGcMinOutput[i].sizeBytes()); //first level 10||01||01||01|1
+					p1.mVecIdxMin[i].append(p1.mVecGcMinOutput[i]);
+					//memcpy(p0.mVecIdxMin[i].data(), p0.mVecGcMinOutput[i].data(), p0.mVecGcMinOutput[i].size()); //first level 10||01||01||01|1
 					if (numNodeThisLevel % 2) //odd number
-						p1.mVecIdxMin[i][p1.mNumCluster - 1] = 1; //make sure last vecIdxMin[i]=1 
-			
+						p1.mVecIdxMin[i].append(lastVecIdxMin[i]); //make sure last vecIdxMin[i]=1 
+
 				
 		
 
@@ -1678,7 +1725,11 @@ namespace osuCrypto
 				p1.amortBinArithMULrecv(p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
 				p1.amortBinArithMulsend(p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
 				p1.computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
-				numNodePreviousLevel = numNodeThisLevel;
+
+				if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+					for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+						p1.mShareMin[i].push_back(lastNode[i]);
+
 
 				std::cout << IoStream::lock;
 				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
@@ -1686,21 +1737,25 @@ namespace osuCrypto
 				std::cout << IoStream::unlock;
 				
 				//=============2nd level loop until root==================================
+
+				
+				
 				while(p1.mShareMin[0].size()>1)
 				{
 					stepIdxMin *= 2;
-					ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << "\n";
 
-					if (numNodePreviousLevel % 2 == 1) //odd number => add last node to this level
-						for (u64 i = 0; i < p1.mTotalNumPoints; i++)
-							p1.mShareMin[i].push_back(lastNode[i]);
+					ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << "\n";
 
 					numNodeThisLevel = p1.mShareMin[0].size();
 
 					for (u64 i = 0; i < p1.mTotalNumPoints; i++)
 					{
 						if (numNodeThisLevel % 2) //odd number, keep last for next level
+						{
 							lastNode[i] = p1.mShareMin[i][p1.mShareMin[i].size() - 1];
+							//lastVecIdxMin[i].resize(p1.mNumCluster - stepIdxMin*numNodeThisLevel / 2);
+							//lastVecIdxMin[i].copy(p1.mVecIdxMin[i], stepIdxMin*numNodeThisLevel / 2, lastVecIdxMin[i].size());
+						}
 
 						std::vector<i64> diffDist;
 						for (u64 k = 0; k < numNodeThisLevel / 2; k++)
@@ -1714,11 +1769,32 @@ namespace osuCrypto
 						programLessThan(p1.parties, diffDist, p1.mVecGcMinOutput[i], p1.mLenMod + 1);
 					}
 
+					if (p1.mShareMin[1].size() == 2) //near root
+					{
+						std::cout << IoStream::lock;
+						std::cout << p1.mVecGcMinOutput[1] << " ========= mVecGcMinOutput r==========\n";
+						std::cout << IoStream::unlock;
+					}
+
 					p1.amortBinArithMulGCrecv(p1.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^A)
 					p1.amortBinArithMulGCsend(p1.mVecGcMinOutput, p1.mShareMin, p1.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^B)
 					p1.computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 					p1.computeShareIdxMin(stepIdxMin);
-					numNodePreviousLevel = numNodeThisLevel;
+
+					
+					/*std::cout << IoStream::lock;
+					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+						std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    bp B\n";
+					std::cout << IoStream::unlock;*/
+
+					if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+						for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+						{
+							p1.mShareMin[i].push_back(lastNode[i]);
+							//p1.mVecIdxMin[i].append(lastVecIdxMin[i]); //make sure last vecIdxMin[i]=1 
+
+						}
+
 
 					std::cout << IoStream::lock;
 					for (u64 i = 0; i < p0.mTotalNumPoints; i++)

@@ -466,8 +466,8 @@ namespace osuCrypto
 
 		
 
-		for (u64 i = 0; i < mTotalNumPoints; i++)
-			mVecIdxMin[i].resize(mNumCluster);
+		/*for (u64 i = 0; i < mTotalNumPoints; i++)
+			mVecIdxMin[i].resize(mNumCluster);*/
 
 		//GC
 		rt.mDebugFlag = false;
@@ -754,43 +754,51 @@ namespace osuCrypto
 			mVecIdxMinSend[i].resize(bitGcMinOutVecs[i].size());
 			for (u64 k = 0; k < bitGcMinOutVecs[i].size(); k++)
 			{
+				u64 stepIdxMin1= std::min(stepIdxMin, mNumCluster - k*stepIdxMin);
 
-				stepIdxMin = std::min(stepIdxMin, mNumCluster - k*stepIdxMin);
+				/*std::cout << IoStream::lock;
+				std::cout << i << "-" << bitGcMinOutVecs[i].size() << " stepIdxMin: " << k << " " << stepIdxMin << " vs " << stepIdxMin1 << " s\n";
+				std::cout << IoStream::unlock;*/
 
 				Word r0 = ((u64*)&mMinClusterOtSends[i*bitGcMinOutVecs[i].size() + k][0])[0] % mMod; //first 64 bit
 				Word r1 = ((u64*)&mMinClusterOtSends[i*bitGcMinOutVecs[i].size() + k][1])[0] % mMod;
 				Word correctionR = (Word)((1 - 2 * bitGcMinOutVecs[i][k])*arithVecs[i][k] + r0 - r1) % mMod; //
 				mShareBinArithMulSend[i][k] = (bitGcMinOutVecs[i][k] * arithVecs[i][k] - r0) % mMod;
 
-				BitVector v0 = getBinary(((u64*)&mMinClusterOtSends[i*bitGcMinOutVecs[i].size() + k][0])[1], stepIdxMin); //second 64 bit
-				BitVector v1 = getBinary(((u64*)&mMinClusterOtSends[i*bitGcMinOutVecs[i].size() + k][1])[1], stepIdxMin); //second 64 bit
-				chunk.copy(bitVecsIdxMin[i], k*stepIdxMin, stepIdxMin);
+				BitVector v0 = getBinary(((u64*)&mMinClusterOtSends[i*bitGcMinOutVecs[i].size() + k][0])[1], stepIdxMin1); //second 64 bit
+				BitVector v1 = getBinary(((u64*)&mMinClusterOtSends[i*bitGcMinOutVecs[i].size() + k][1])[1], stepIdxMin1); //second 64 bit
+				chunk.copy(bitVecsIdxMin[i], k*stepIdxMin, stepIdxMin1);
 				
 				mVecIdxMinSend[i][k] = v0;
 				if (bitGcMinOutVecs[i][k])
 					mVecIdxMinSend[i][k] = v0^chunk;
 
-				std::cout << IoStream::lock;
+			/*	std::cout << IoStream::lock;
 				std::cout << i << ": " << chunk << " vs " << bitVecsIdxMin[i] << " chunk \n";
-				std::cout << IoStream::unlock;
+				std::cout << IoStream::unlock;*/
 
 				BitVector correctionV = v0^v1^chunk;
 				BitVector msg0 = v0, msg1 = v0^chunk;
 
+				if (bitGcMinOutVecs[i].size() == 2 && k == 1 && i == 1)
+				{
+					std::cout << IoStream::lock;
+					/*std::cout << i << "-" << k << ":  " << r0 << " vs " << r1
+						<< " \t " << (Word)((1 - 2 * bitGcMinOutVecs[i][k])*arithVecs[i][k] + r0) % mMod
+						<< " \t " << mShareBinArithMulSend[i][k]
+						<< " c= " << correctionR << " rs\n";*/
 
-				std::cout << IoStream::lock;
-				std::cout << i << "-" << k << ":  " << r0 << " vs " << r1
-					<< " \t " << (Word)((1 - 2 * bitGcMinOutVecs[i][k])*arithVecs[i][k] + r0) % mMod
-					<< " \t " << mShareBinArithMulSend[i][k]
-					<< " c= " << correctionR << " rs\n";
+					std::cout << i << "-" << bitGcMinOutVecs[i].size() << " stepIdxMin: " << k << " " << stepIdxMin << " vs " << stepIdxMin1 << " s\n";
+					std::cout << i << "-" << k << ":  " //<< v0 << " vs " << v1
+						<< " \t " << msg0
+						<< " \t " << msg1
+						<< " c= " << correctionV << " s= " << mVecIdxMinSend[i][k]
+						<< " b= " << int(bitGcMinOutVecs[i][k]) << " v= " << chunk
+						<< " correctionV s\n";
 
-				std::cout << i << "-" << k << ":  " << v0 << " vs " << v1
-					<< " \t " << msg0
-					<< " \t " << msg1
-					<< " c= " << correctionV << " correctionV s\n";
-
-				std::cout << i << "-" << k << ":  " << bitGcMinOutVecs[i].size() << " bitGcMinOutVecs[i].size()\n";
-				std::cout << IoStream::unlock;
+					//std::cout << i << "-" << k << ":  " << bitGcMinOutVecs[i].size() << " bitGcMinOutVecs[i].size()\n";
+					std::cout << IoStream::unlock;
+				}
 
 				//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
 				memcpy(sendBuff.data() + iter, (u8*)&correctionR, mLenModinByte);
@@ -799,13 +807,13 @@ namespace osuCrypto
 
 				u8* test = new u8(chunk.sizeBytes());
 
-				auto bitTest = BitVector(sendBuff.data() + iter, stepIdxMin);
+				auto bitTest = BitVector(sendBuff.data() + iter, stepIdxMin1);
 
 				memcpy(&test, sendBuff.data() + iter, chunk.sizeBytes());
 
-				std::cout << IoStream::lock;
+				/*std::cout << IoStream::lock;
 				std::cout << i << "-" << k << ":  "<< correctionV <<" vs " << bitTest<< " testV s\n";
-				std::cout << IoStream::unlock;
+				std::cout << IoStream::unlock;*/
 
 				iter += chunk.sizeBytes();
 			}
@@ -850,10 +858,15 @@ namespace osuCrypto
 
 			for (u64 k = 0; k < bitGcMinOutVecs[i].size(); k++)
 			{
-				stepIdxMin = std::min(stepIdxMin, mNumCluster - k*stepIdxMin);
+
+				u64 stepIdxMin1 = std::min(stepIdxMin, mNumCluster - k*stepIdxMin);
+
+				/*std::cout << IoStream::lock;
+				std::cout << i << "-" << bitGcMinOutVecs[i].size() << " stepIdxMin: " << k << " " <<stepIdxMin << " vs " << stepIdxMin1 << " r\n";
+				std::cout << IoStream::unlock;*/
 
 				mShareBinArithMulRecv[i][k] = *(u64*)&mMinClusterOtRecv[i*bitGcMinOutVecs[i].size() + k] % mMod;
-				mVecIdxMinRecv[i][k] = getBinary(((u64*)&mMinClusterOtRecv[i*bitGcMinOutVecs[i].size() + k])[1], stepIdxMin); //second 64 bit
+				mVecIdxMinRecv[i][k] = getBinary(((u64*)&mMinClusterOtRecv[i*bitGcMinOutVecs[i].size() + k])[1], stepIdxMin1); //second 64 bit
 
 				if (bitGcMinOutVecs[i][k] == 1)
 				{
@@ -862,11 +875,11 @@ namespace osuCrypto
 					mShareBinArithMulRecv[i][k] = (correctionR + mShareBinArithMulRecv[i][k]) % mMod;
 					iter += mLenModinByte;
 					
-					correctionV = BitVector(recvBuff.data() + iter, stepIdxMin);
+					correctionV = BitVector(recvBuff.data() + iter, stepIdxMin1);
 
-					std::cout << IoStream::lock;
+					/*std::cout << IoStream::lock;
 					std::cout << i << "-" << k << ":  " << correctionV <<  " testV r\n";
-					std::cout << IoStream::unlock;
+					std::cout << IoStream::unlock;*/
 
 					iter += chunk.sizeBytes();
 					mVecIdxMinRecv[i][k] = correctionV^mVecIdxMinRecv[i][k];
@@ -874,11 +887,14 @@ namespace osuCrypto
 				else
 					iter += mLenModinByte+ chunk.sizeBytes();
 
-				std::cout << IoStream::lock;
-				std::cout << i << "-" << k << ":  " << mShareBinArithMulRecv[i][k] << " vs " << bitGcMinOutVecs[i][k] << " c= " << correctionR << " r\n";
-				std::cout << i << "-" << k << ":  " << mVecIdxMinRecv[i][k] << " vs " << bitGcMinOutVecs[i][k] << " c= " << correctionV <<  " cs " <<chunk.sizeBytes()<< " correctionV r\n";
-				std::cout << IoStream::unlock;
-
+				if (bitGcMinOutVecs[i].size() == 2 && k==1 && i==1)
+				{
+					std::cout << IoStream::lock;
+					std::cout << i << "-" << bitGcMinOutVecs[i].size() << " stepIdxMin: " << k << " " << stepIdxMin << " vs " << stepIdxMin1 << " r\n";
+					//std::cout << i << "-" << k << ":  " << mShareBinArithMulRecv[i][k] << " vs " << bitGcMinOutVecs[i][k] << " c= " << correctionR << " r\n";
+					std::cout << i << "-" << k << ":  s=" << mVecIdxMinRecv[i][k] << " b=" << bitGcMinOutVecs[i][k] << " c= " << correctionV << " cs " << chunk.sizeBytes() << " correctionV r\n";
+					std::cout << IoStream::unlock;
+				}
 
 			}
 		}
@@ -932,7 +948,12 @@ namespace osuCrypto
 			{
 				temp.append(mVecIdxMinSend[i][k] ^ mVecIdxMinRecv[i][k]);
 			}
-			mVecIdxMin[i].copy(temp, 0, temp.size());
+			std::cout << IoStream::lock;
+			std::cout << i << ":  " << mNumCluster - temp.size() << " append size() r\n";
+			std::cout << IoStream::unlock;
+
+			temp.append(mVecIdxMin[i].data(), mNumCluster - temp.size(), temp.size());
+			mVecIdxMin[i] = temp;
 
 		}
 	}
