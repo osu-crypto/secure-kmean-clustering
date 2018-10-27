@@ -1254,7 +1254,14 @@ namespace osuCrypto
 				std::cout  << p0.mDist[idxPoint][k] << " + " << p1.mDist[idxPoint][k] << " = " << (p0.mDist[idxPoint][k] + p1.mDist[idxPoint][k]) % p0.mMod << " dist\n";*/
 
 				//TODO: case for odd #cluster
+
+		std::vector<std::vector<Word>> outShareSend0, outShareRecv0;
+		std::vector<std::vector<Word>> outShareSend1, outShareRecv1;
+
+
 		thrd = std::thread([&]() { //party 1
+
+
 
 			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 			{
@@ -1270,11 +1277,12 @@ namespace osuCrypto
 				programLessThan(p0.parties, diffDist, p0.mVecGcMinOutput[i], p0.mLenMod + 1);
 			}
 
-			p0.amortBinArithMulsend(p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
-			p0.amortBinArithMULrecv(p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
-			p0.computeShareMin();//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+			p0.amortBinArithMulsend(outShareSend0,p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
+			p0.amortBinArithMULrecv(outShareRecv0, p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
+			p0.computeShareMin(outShareSend0, outShareRecv0);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 
 		});
+		std::vector<std::vector<Word>> outShareSend, outShareRecv;
 
 		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 		{
@@ -1295,9 +1303,9 @@ namespace osuCrypto
 		}
 		//party 2
 
-		p1.amortBinArithMULrecv(p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
-		p1.amortBinArithMulsend(p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
-		p1.computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+		p1.amortBinArithMULrecv(outShareSend1,p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
+		p1.amortBinArithMulsend(outShareRecv1,p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
+		p1.computeShareMin(outShareSend1, outShareRecv1); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 
 		thrd.join();
 
@@ -1332,26 +1340,26 @@ namespace osuCrypto
 			{
 				u8 b = p0.mVecGcMinOutput[i][k] ^ p1.mVecGcMinOutput[i][k];
 				Word res1 = b*p0.mDist[i][k]; //(b^A \xor b^B)*(P^A)
-				Word res2 = (p0.mShareBinArithMulSend[i][k] + p1.mShareBinArithMulRecv[i][k]) % p0.mMod;
+				Word res2 = (outShareSend0[i][k] + outShareRecv1[i][k]) % p0.mMod;
 
 				if (res1 != res2)
 				{
 					std::cout << i << " - " << k << ": ";
 					std::cout << p0.mVecGcMinOutput[i][k] << " ^ " << p1.mVecGcMinOutput[i][k] << " = " << int(b) << "\n";
 					std::cout << int(b) << " * " << p0.mDist[i][k] << " = " << res1 << "\n";
-					std::cout << p0.mShareBinArithMulSend[i][k] << " + " << p1.mShareBinArithMulRecv[i][k] << " = " << res2 << "\n";
+					std::cout << outShareSend0[i][k] << " + " << outShareRecv1[i][k] << " = " << res2 << "\n";
 					throw std::exception();
 				}
 
 				res1 = b*p1.mDist[i][k]; //(b^A \xor b^B)*(P^B)
-				res2 = (p0.mShareBinArithMulRecv[i][k] + p1.mShareBinArithMulSend[i][k]) % p0.mMod;
+				res2 = (outShareRecv0[i][k] + outShareSend1[i][k]) % p0.mMod;
 
 				if (res1 != res2)
 				{
 					std::cout << i << " - " << k << ": ";
 					std::cout << p0.mVecGcMinOutput[i][k] << " ^ " << p1.mVecGcMinOutput[i][k] << " = " << int(b) << "\n";
 					std::cout << int(b) << " * " << p1.mDist[i][k] << " = " << res1 << "\n";
-					std::cout << p0.mShareBinArithMulRecv[i][k] << " + " << p1.mShareBinArithMulSend[i][k] << " = " << res2 << "\n";
+					std::cout << outShareRecv0[i][k] << " + " << outShareSend1[i][k] << " = " << res2 << "\n";
 					throw std::exception();
 				}
 			}
@@ -1575,6 +1583,8 @@ namespace osuCrypto
 					u64 numNodeThisLevel = p0.mNumCluster;
 					std::vector<Word> lastNode(p0.mTotalNumPoints); //[i][#cluster-1]
 					BitVector oneBit("1");
+					std::vector<std::vector<Word>> outShareSend, outShareRecv;
+
 
 
 					//=================1st level //TODO: remove dist
@@ -1600,9 +1610,9 @@ namespace osuCrypto
 
 					}
 
-					p0.amortBinArithMulsend(p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
-					p0.amortBinArithMULrecv(p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
-					p0.computeShareMin();//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+					p0.amortBinArithMulsend(outShareSend,p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
+					p0.amortBinArithMULrecv(outShareRecv,p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
+					p0.computeShareMin(outShareSend, outShareRecv);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 
 					if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
 						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
@@ -1648,9 +1658,9 @@ namespace osuCrypto
 							std::cout << IoStream::unlock;
 						}
 
-						p0.amortBinArithMulGCsend(p0.mVecGcMinOutput, p0.mShareMin, p0.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^A)
-						p0.amortBinArithMulGCrecv(p0.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^B)
-						p0.computeShareMin();//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+						p0.amortBinArithMulGCsend(outShareSend, p0.mVecGcMinOutput, p0.mShareMin, p0.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^A)
+						p0.amortBinArithMulGCrecv(outShareRecv, p0.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^B)
+						p0.computeShareMin(outShareSend, outShareRecv);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 						p0.computeShareIdxMin();
 
 						/*std::cout << IoStream::lock;
@@ -1677,6 +1687,7 @@ namespace osuCrypto
 				BitVector zeroBit("0");
 				std::vector<Word> lastNode(p1.mTotalNumPoints); //[i][#cluster-1]
 																//=================1st level //TODO: remove dist
+				std::vector<std::vector<Word>> outShareSend, outShareRecv;
 
 				for (u64 i = 0; i < p1.mTotalNumPoints; i++)
 				{
@@ -1700,9 +1711,9 @@ namespace osuCrypto
 
 				}
 
-				p1.amortBinArithMULrecv(p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
-				p1.amortBinArithMulsend(p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
-				p1.computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+				p1.amortBinArithMULrecv(outShareRecv,p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
+				p1.amortBinArithMulsend(outShareSend,p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
+				p1.computeShareMin(outShareSend,outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 
 				if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
 					for (u64 i = 0; i < p1.mTotalNumPoints; i++)
@@ -1750,9 +1761,9 @@ namespace osuCrypto
 						std::cout << IoStream::unlock;
 					}
 
-					p1.amortBinArithMulGCrecv(p1.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^A)
-					p1.amortBinArithMulGCsend(p1.mVecGcMinOutput, p1.mShareMin, p1.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^B)
-					p1.computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+					p1.amortBinArithMulGCrecv(outShareRecv,p1.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^A)
+					p1.amortBinArithMulGCsend(outShareSend,p1.mVecGcMinOutput, p1.mShareMin, p1.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^B)
+					p1.computeShareMin(outShareSend, outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 					p1.computeShareIdxMin();
 
 					

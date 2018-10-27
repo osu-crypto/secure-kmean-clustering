@@ -154,8 +154,8 @@ namespace osuCrypto
 		std::vector<block> mMinClusterOtRecv;
 
 		std::vector<BitVector> mVecGcMinOutput; //save output pairwise min, size=#node of each tree level
-		std::vector<std::vector<Word>> mShareBinArithMulSend; //[i][k], k depends tree level; save share of (b^A \xor b^B)*P^A
-		std::vector<std::vector<Word>> mShareBinArithMulRecv; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
+		//std::vector<std::vector<Word>> mShareBinArithMulSend; //[i][k], k depends tree level; save share of (b^A \xor b^B)*P^A
+		//std::vector<std::vector<Word>> mShareBinArithMulRecv; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
 		std::vector<std::vector<Word>> mShareBinArithMul; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
 		std::vector<std::vector<Word>> mShareMin; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
 
@@ -175,18 +175,18 @@ namespace osuCrypto
 		//Co-OT: deltaOT= (1-2*b^A)*P^A 
 		//NOTE: sender output= r-b^AP^A, receiver output=r+b^B*(1-2*b^A)*P^A=r+(b^A \xor b^B)*P^A -b^AP^A
 
-		void amortBinArithMulsend(std::vector<BitVector>& bitVecs, std::vector<std::vector<Word>>& arithVecs); //[i][k], upto [k/2] all points
+		void amortBinArithMulsend(std::vector<std::vector<Word>>& outShareSend, std::vector<BitVector>& bitVecs, std::vector<std::vector<Word>>& arithVecs); //[i][k], upto [k/2] all points
 
 		//compute mi wiht OT receiver
-		void amortBinArithMULrecv(std::vector<BitVector>& bitVecs);
+		void amortBinArithMULrecv(std::vector<std::vector<Word>>& outShareRecv,std::vector<BitVector>& bitVecs);
 
 		//bitVecsIdxMin maintain index of min: input as 1010||1001, output=1010*b||1001*!b
 		//stepIdxMin=4 for above example
-		void amortBinArithMulGCsend(std::vector<BitVector>& bitGcMinOutVecs, std::vector<std::vector<Word>>& arithVecs, std::vector<BitVector>& bitVecsIdxMin, u64 stepIdxMin);
-		void amortBinArithMulGCrecv(std::vector<BitVector>& bitGcMinOutVecsk, u64 stepIdxMin);
+		void amortBinArithMulGCsend(std::vector<std::vector<Word>>& outShareSend, std::vector<BitVector>& bitGcMinOutVecs, std::vector<std::vector<Word>>& arithVecs, std::vector<BitVector>& bitVecsIdxMin, u64 stepIdxMin);
+		void amortBinArithMulGCrecv(std::vector<std::vector<Word>>& outShareRecv, std::vector<BitVector>& bitGcMinOutVecsk, u64 stepIdxMin);
 
-		void computeBinArithMUL(); //compute (b^A \xor b^B)*(P^A+P^B)
-		void computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
+		void computeBinArithMUL(std::vector<std::vector<Word>>& outShareSend, std::vector<std::vector<Word>>& outShareRecv); //compute (b^A \xor b^B)*(P^A+P^B)
+		void computeShareMin(std::vector<std::vector<Word>>& outShareSend, std::vector<std::vector<Word>>& outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
 		void computeShareIdxMin(); //compute (b1^A \xor b1^B)*(V1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
 
 		

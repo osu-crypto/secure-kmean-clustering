@@ -261,10 +261,10 @@
 2-1 mVecIdxMin: 1010011010    B
 3-1 mVecIdxMin: 0101010110    B
 p1.mShareMin[0].size()=5
+0-0:  107727 vs 1 c= 341329 r
 0===================
 296143   diffDistB
 178860   diffDistB
-0-0:  107727 vs 1 c= 341329 r
 0-1:  867346 vs 1 c= 974465 r
 0-2:  20584 vs 1 c= 551113 r
 0-3:  434346 vs 1 c= 813787 r
@@ -443,10 +443,10 @@ p0.mShareMin[0].size()=3
 2-4 mVecIdxMin: 0101100110    B
 3-4 mVecIdxMin: 0000010110    B
 p1.mShareMin[0].size()=2
-0===================
-92123   diffDistB
 1-2 stepIdxMin: 1 4 vs 4 r
 1-1:  s=1100 b=1 c= 0101 cs 1 correctionV r
+0===================
+92123   diffDistB
 0:  2 append size() r
 1:  2 append size() r
 2:  2 append size() r
