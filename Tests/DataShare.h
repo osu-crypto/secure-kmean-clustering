@@ -160,8 +160,8 @@ namespace osuCrypto
 		std::vector<std::vector<Word>> mShareMin; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
 
 		std::vector<BitVector> mVecIdxMin; //maintain 0000010000000 <-indicate min. size is always = #clusters
-		std::vector<std::vector<BitVector>> mVecIdxMinSend; //[i][k], k depends tree level; save share of (b^A \xor b^B)*P^A
-		std::vector<std::vector<BitVector>> mVecIdxMinRecv; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
+		//std::vector<std::vector<BitVector>> mVecIdxMinSend; //[i][k], k depends tree level; save share of (b^A \xor b^B)*P^A
+		//std::vector<std::vector<BitVector>> mVecIdxMinRecv; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
 
 
 		ShGcRuntime rt;
@@ -182,12 +182,16 @@ namespace osuCrypto
 
 		//bitVecsIdxMin maintain index of min: input as 1010||1001, output=1010*b||1001*!b
 		//stepIdxMin=4 for above example
-		void amortBinArithMulGCsend(std::vector<std::vector<Word>>& outShareSend, std::vector<BitVector>& bitGcMinOutVecs, std::vector<std::vector<Word>>& arithVecs, std::vector<BitVector>& bitVecsIdxMin, u64 stepIdxMin);
-		void amortBinArithMulGCrecv(std::vector<std::vector<Word>>& outShareRecv, std::vector<BitVector>& bitGcMinOutVecsk, u64 stepIdxMin);
+		void amortBinArithMulGCsend(std::vector<std::vector<Word>>& outShareSend
+			, std::vector<std::vector<BitVector>>& outIdxShareSend
+			, std::vector<BitVector>& bitGcMinOutVecs, std::vector<std::vector<Word>>& arithVecs, std::vector<BitVector>& bitVecsIdxMin, u64 stepIdxMin);
+		void amortBinArithMulGCrecv(std::vector<std::vector<Word>>& outShareRecv
+			, std::vector<std::vector<BitVector>>& outIdxShareRecv
+			, std::vector<BitVector>& bitGcMinOutVecsk, u64 stepIdxMin);
 
 		void computeBinArithMUL(std::vector<std::vector<Word>>& outShareSend, std::vector<std::vector<Word>>& outShareRecv); //compute (b^A \xor b^B)*(P^A+P^B)
 		void computeShareMin(std::vector<std::vector<Word>>& outShareSend, std::vector<std::vector<Word>>& outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
-		void computeShareIdxMin(); //compute (b1^A \xor b1^B)*(V1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
+		void computeShareIdxMin(std::vector<std::vector<BitVector>>& outShareSend, std::vector<std::vector<BitVector>>& outShareRecv); //compute (b1^A \xor b1^B)*(V1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
 
 		
 		//============print

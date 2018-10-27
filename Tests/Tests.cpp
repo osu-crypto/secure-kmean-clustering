@@ -1584,6 +1584,7 @@ namespace osuCrypto
 					std::vector<Word> lastNode(p0.mTotalNumPoints); //[i][#cluster-1]
 					BitVector oneBit("1");
 					std::vector<std::vector<Word>> outShareSend, outShareRecv;
+					std::vector<std::vector<BitVector>> outIdxShareSend, outIdxShareRecv;
 
 
 
@@ -1658,10 +1659,10 @@ namespace osuCrypto
 							std::cout << IoStream::unlock;
 						}
 
-						p0.amortBinArithMulGCsend(outShareSend, p0.mVecGcMinOutput, p0.mShareMin, p0.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^A)
-						p0.amortBinArithMulGCrecv(outShareRecv, p0.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^B)
+						p0.amortBinArithMulGCsend(outShareSend, outIdxShareSend, p0.mVecGcMinOutput, p0.mShareMin, p0.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^A)
+						p0.amortBinArithMulGCrecv(outShareRecv, outIdxShareRecv, p0.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^B)
 						p0.computeShareMin(outShareSend, outShareRecv);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
-						p0.computeShareIdxMin();
+						p0.computeShareIdxMin(outIdxShareSend, outIdxShareRecv);
 
 						/*std::cout << IoStream::lock;
 						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
@@ -1688,6 +1689,7 @@ namespace osuCrypto
 				std::vector<Word> lastNode(p1.mTotalNumPoints); //[i][#cluster-1]
 																//=================1st level //TODO: remove dist
 				std::vector<std::vector<Word>> outShareSend, outShareRecv;
+				std::vector<std::vector<BitVector>> outIdxShareSend, outIdxShareRecv;
 
 				for (u64 i = 0; i < p1.mTotalNumPoints; i++)
 				{
@@ -1761,10 +1763,10 @@ namespace osuCrypto
 						std::cout << IoStream::unlock;
 					}
 
-					p1.amortBinArithMulGCrecv(outShareRecv,p1.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^A)
-					p1.amortBinArithMulGCsend(outShareSend,p1.mVecGcMinOutput, p1.mShareMin, p1.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^B)
+					p1.amortBinArithMulGCrecv(outShareRecv, outIdxShareRecv,p1.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^A)
+					p1.amortBinArithMulGCsend(outShareSend, outIdxShareSend,p1.mVecGcMinOutput, p1.mShareMin, p1.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^B)
 					p1.computeShareMin(outShareSend, outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
-					p1.computeShareIdxMin();
+					p1.computeShareIdxMin(outIdxShareSend, outIdxShareRecv);
 
 					
 					/*std::cout << IoStream::lock;
