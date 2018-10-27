@@ -66,7 +66,12 @@ namespace osuCrypto
 			InitDebugPrinting();
 			testMinDistFirstLevel();
 		}
-		
+
+		TEST_METHOD(CircuiTesttVS)
+		{
+			InitDebugPrinting();
+			testCircuit();
+		}
 		
 	
 		

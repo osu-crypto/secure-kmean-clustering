@@ -12,6 +12,6 @@ namespace osuCrypto
 	void MulTest();
 	void testMinDist();
 	void testMinDistFirstLevel();
-
+	void testCircuit();
 
 }
