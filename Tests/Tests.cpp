@@ -720,6 +720,8 @@ namespace osuCrypto
 
 		std::cout << " ------ED done-------\n";
 
+		//=======================online closet cluster===============================
+		
 
 #endif
 
@@ -1568,23 +1570,18 @@ namespace osuCrypto
 					}
 
 
-				//TODO: case for odd #cluster
 				thrd = std::thread([&]() { //party 1
 					int stepIdxMin = 1;
 					u64 numNodeThisLevel = p0.mNumCluster;
-					u64 numNodePreviousLevel;
 					std::vector<Word> lastNode(p0.mTotalNumPoints); //[i][#cluster-1]
-					std::vector<BitVector> lastVecIdxMin(p0.mTotalNumPoints); //[i][#cluster-1]
+					BitVector oneBit("1");
 
-																	//=================1st level //TODO: remove dist
+
+					//=================1st level //TODO: remove dist
 					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 					{
 						if (numNodeThisLevel % 2) //odd number
-						{
 							lastNode[i] = p0.mDist[i][p0.mNumCluster - 1];
-							lastVecIdxMin[i].resize(1);
-							lastVecIdxMin[i][0]= 1;
-						}
 
 						std::vector<i64> diffDist; //lastNode move to next level
 						for (u64 k = 0; k < numNodeThisLevel / 2; k++)
@@ -1597,9 +1594,9 @@ namespace osuCrypto
 
 						programLessThan(p0.parties, diffDist, p0.mVecGcMinOutput[i], p0.mLenMod + 1);
 						p0.mVecIdxMin[i].append(p0.mVecGcMinOutput[i]);
-						//memcpy(p0.mVecIdxMin[i].data(), p0.mVecGcMinOutput[i].data(), p0.mVecGcMinOutput[i].size()); //first level 10||01||01||01|1
+
 						if (numNodeThisLevel % 2) //odd number
-							p0.mVecIdxMin[i].append(lastVecIdxMin[i]); //make sure last vecIdxMin[i]=1 
+							p0.mVecIdxMin[i].append(oneBit); //make sure last vecIdxMin[i]=1 
 
 					}
 
@@ -1622,22 +1619,14 @@ namespace osuCrypto
 					{
 						stepIdxMin *= 2;
 
-						
 						ostreamLock(std::cout) << "p0.mShareMin[0].size()=" << p0.mShareMin[0].size() << "\n";
-
 
 						numNodeThisLevel = p0.mShareMin[0].size();
 
 						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 						{
 							if (numNodeThisLevel % 2) //odd number, keep last for next level
-							{
 								lastNode[i] = p0.mShareMin[i][p0.mShareMin[i].size() - 1];
-
-								//lastVecIdxMin[i].resize(p0.mNumCluster-stepIdxMin*numNodeThisLevel / 2);
-								//lastVecIdxMin[i].copy(p0.mVecIdxMin[i], stepIdxMin*numNodeThisLevel / 2, lastVecIdxMin[i].size());
-
-							}
 							std::vector<i64> diffDist;
 							for (u64 k = 0; k < numNodeThisLevel / 2; k++)
 								diffDist.push_back(p0.mShareMin[i][2 * k] - p0.mShareMin[i][2 * k + 1]);
@@ -1662,7 +1651,7 @@ namespace osuCrypto
 						p0.amortBinArithMulGCsend(p0.mVecGcMinOutput, p0.mShareMin, p0.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^A)
 						p0.amortBinArithMulGCrecv(p0.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^B)
 						p0.computeShareMin();//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
-						p0.computeShareIdxMin(stepIdxMin);
+						p0.computeShareIdxMin();
 
 						/*std::cout << IoStream::lock;
 						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
@@ -1671,11 +1660,8 @@ namespace osuCrypto
 
 						if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
 							for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-							{
 								p0.mShareMin[i].push_back(lastNode[i]);
-								//p0.mVecIdxMin[i].append(lastVecIdxMin[i]); //make sure last vecIdxMin[i]=1 
 
-							}
 
 						std::cout << IoStream::lock;
 						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
@@ -1688,19 +1674,15 @@ namespace osuCrypto
 				//party 2
 				int stepIdxMin = 1;
 				u64 numNodeThisLevel = p1.mNumCluster;
-				u64 numNodePreviousLevel;
+				BitVector zeroBit("0");
 				std::vector<Word> lastNode(p1.mTotalNumPoints); //[i][#cluster-1]
 																//=================1st level //TODO: remove dist
-				std::vector<BitVector> lastVecIdxMin(p0.mTotalNumPoints); //[i][#cluster-1]
 
 				for (u64 i = 0; i < p1.mTotalNumPoints; i++)
 				{
 					if (numNodeThisLevel % 2) //odd number
-					{
 						lastNode[i] = p1.mDist[i][p1.mNumCluster - 1];
-						lastVecIdxMin[i].resize(1);
-						lastVecIdxMin[i][0] = 0;
-					}
+
 					std::vector<i64> diffDist; //lastNode move to next level
 					for (u64 k = 0; k < numNodeThisLevel / 2; k++)
 						diffDist.push_back(p1.mDist[i][2 * k + 1] - p1.mDist[i][2 * k]);
@@ -1712,13 +1694,9 @@ namespace osuCrypto
 
 					programLessThan(p1.parties, diffDist, p1.mVecGcMinOutput[i], p1.mLenMod + 1);
 
-					p1.mVecIdxMin[i].append(p1.mVecGcMinOutput[i]);
-					//memcpy(p0.mVecIdxMin[i].data(), p0.mVecGcMinOutput[i].data(), p0.mVecGcMinOutput[i].size()); //first level 10||01||01||01|1
+					p1.mVecIdxMin[i].append(p1.mVecGcMinOutput[i]);//first level 10||01||01||01|1
 					if (numNodeThisLevel % 2) //odd number
-						p1.mVecIdxMin[i].append(lastVecIdxMin[i]); //make sure last vecIdxMin[i]=1 
-
-				
-		
+						p1.mVecIdxMin[i].append(zeroBit); //make sure last vecIdxMin[i]=1 
 
 				}
 
@@ -1751,11 +1729,7 @@ namespace osuCrypto
 					for (u64 i = 0; i < p1.mTotalNumPoints; i++)
 					{
 						if (numNodeThisLevel % 2) //odd number, keep last for next level
-						{
 							lastNode[i] = p1.mShareMin[i][p1.mShareMin[i].size() - 1];
-							//lastVecIdxMin[i].resize(p1.mNumCluster - stepIdxMin*numNodeThisLevel / 2);
-							//lastVecIdxMin[i].copy(p1.mVecIdxMin[i], stepIdxMin*numNodeThisLevel / 2, lastVecIdxMin[i].size());
-						}
 
 						std::vector<i64> diffDist;
 						for (u64 k = 0; k < numNodeThisLevel / 2; k++)
@@ -1779,7 +1753,7 @@ namespace osuCrypto
 					p1.amortBinArithMulGCrecv(p1.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^A)
 					p1.amortBinArithMulGCsend(p1.mVecGcMinOutput, p1.mShareMin, p1.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^B)
 					p1.computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
-					p1.computeShareIdxMin(stepIdxMin);
+					p1.computeShareIdxMin();
 
 					
 					/*std::cout << IoStream::lock;
@@ -1789,11 +1763,8 @@ namespace osuCrypto
 
 					if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
 						for (u64 i = 0; i < p1.mTotalNumPoints; i++)
-						{
 							p1.mShareMin[i].push_back(lastNode[i]);
-							//p1.mVecIdxMin[i].append(lastVecIdxMin[i]); //make sure last vecIdxMin[i]=1 
 
-						}
 
 
 					std::cout << IoStream::lock;

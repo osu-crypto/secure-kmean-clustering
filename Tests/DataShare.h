@@ -27,6 +27,7 @@ namespace osuCrypto
 		//Share(const Share&) = default;
 		//Share(const i64& w) : mVal(w) {}
 
+		
 		Word mArithShare; 
 		BitVector mBitShare; 
 		std::vector<block> recvOtKeys;
@@ -186,7 +187,7 @@ namespace osuCrypto
 
 		void computeBinArithMUL(); //compute (b^A \xor b^B)*(P^A+P^B)
 		void computeShareMin(); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
-		void computeShareIdxMin(u64 stepIdxMin); //compute (b1^A \xor b1^B)*(V1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
+		void computeShareIdxMin(); //compute (b1^A \xor b1^B)*(V1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
 
 		
 		//============print

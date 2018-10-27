@@ -932,7 +932,7 @@ namespace osuCrypto
 		}
 	}
 
-	void DataShare::computeShareIdxMin(u64 stepIdxMin)
+	void DataShare::computeShareIdxMin()
 	{
 		for (u64 i = 0; i < mTotalNumPoints; i++)
 		{
@@ -953,7 +953,7 @@ namespace osuCrypto
 			std::cout << IoStream::unlock;
 
 			temp.append(mVecIdxMin[i].data(), mNumCluster - temp.size(), temp.size());
-			mVecIdxMin[i] = temp;
+			mVecIdxMin[i].assign(temp);
 
 		}
 	}
