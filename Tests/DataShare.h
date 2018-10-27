@@ -111,6 +111,12 @@ namespace osuCrypto
 			return BitVector((u8*)&value, bitLen);
 		}
 
+		ShGcRuntime rt;
+		std::array<Party, 2> parties{
+			Party(rt, 0),
+			Party(rt, 1)
+		};
+
 
 		//compute shares[i]*b where choice bit is the bitvector of shares[i], b is "OT sender message"
 		// first concating all b-ri, ri. 
@@ -164,11 +170,7 @@ namespace osuCrypto
 		//std::vector<std::vector<BitVector>> mVecIdxMinRecv; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
 
 
-		ShGcRuntime rt;
-		std::array<Party, 2> parties{
-			Party(rt, 0),
-			Party(rt, 1)
-		};
+		
 		
 		//compute (b^A \xor b^B)*(P^A+P^B)
 		//OT sender m0 = r + b^A*P^A;  m1 = r + (1-b^A)*P^A 
