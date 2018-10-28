@@ -73,7 +73,17 @@ namespace osuCrypto
 			testCircuit();
 		}
 		
-	
+		TEST_METHOD(UpdateCTesttVS)
+		{
+			InitDebugPrinting();
+			testUpdateCluster();
+		}
+		
+		TEST_METHOD(DistTesttVS)
+		{
+			InitDebugPrinting();
+			DistTest();
+		}
 		
 	
     };

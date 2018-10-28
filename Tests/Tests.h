@@ -13,5 +13,7 @@ namespace osuCrypto
 	void testMinDist();
 	void testMinDistFirstLevel();
 	void testCircuit();
+	void testUpdateCluster();
 
+	void DistTest();
 }

@@ -60,6 +60,8 @@ namespace osuCrypto
 		u64 mPartyIdx;
 		std::vector<std::vector<Word>> mPoint;
 		std::vector<std::vector<Share>> mSharePoint; //mSharePoint[i][d] <= point i, dimention d
+		std::vector<std::vector<Word>> mSharePointsPerDim; //[d][i]
+
 		std::vector<std::vector<std::vector<Word>>> mProdPointPPC; //[i][d][k] share (p^A[i][d]*(p^B[i][d]-c^B[k][d])
 		std::vector<std::vector<std::vector<Word>>> prodTempPC; //save p^B[i][d]-c^B[k][d] for test
 
@@ -117,6 +119,7 @@ namespace osuCrypto
 			Party(rt, 1)
 		};
 
+		void getPointPerDimension();
 
 		//compute shares[i]*b where choice bit is the bitvector of shares[i], b is "OT sender message"
 		// first concating all b-ri, ri. 
@@ -170,15 +173,13 @@ namespace osuCrypto
 		//std::vector<std::vector<BitVector>> mVecIdxMinRecv; //[i][k] k depends tree level; save share of (b^A \xor b^B)*P^B
 
 
-		
+		std::vector<BitVector> mVecIdxMinTranspose; //[k][i] //transpose of mVecIdxMin
 		
 		//compute (b^A \xor b^B)*(P^A+P^B)
 		//OT sender m0 = r + b^A*P^A;  m1 = r + (1-b^A)*P^A 
 		//Co-OT: deltaOT= (1-2*b^A)*P^A 
 		//NOTE: sender output= r-b^AP^A, receiver output=r+b^B*(1-2*b^A)*P^A=r+(b^A \xor b^B)*P^A -b^AP^A
-
 		void amortBinArithMulsend(std::vector<std::vector<Word>>& outShareSend, std::vector<BitVector>& bitVecs, std::vector<std::vector<Word>>& arithVecs); //[i][k], upto [k/2] all points
-
 		//compute mi wiht OT receiver
 		void amortBinArithMULrecv(std::vector<std::vector<Word>>& outShareRecv,std::vector<BitVector>& bitVecs);
 
@@ -195,7 +196,16 @@ namespace osuCrypto
 		void computeShareMin(std::vector<std::vector<Word>>& outShareSend, std::vector<std::vector<Word>>& outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
 		void computeShareIdxMin(std::vector<std::vector<BitVector>>& outShareSend, std::vector<std::vector<BitVector>>& outShareRecv); //compute (b1^A \xor b1^B)*(V1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B) where b2=P1<P2, b1=!b2
 
-		
+		//=================Update Cluster
+
+
+		void vecMinTranspose(); //TODO: matrix transpose
+
+		//outShareClustSend[k][d], bitVecs[i], compute b*((P1||P2||...||Pd)||1)
+		void amortBinArithClustsend(std::vector<std::vector<Word>>& outShareClustSend, std::vector<Word>& outDenSend, std::vector<BitVector>& bitVecs);
+																																							 //compute mi wiht OT receiver
+		void amortBinArithClustrecv(std::vector<std::vector<Word>>& outShareClustRecv, std::vector<Word>& outDenRecv, std::vector<BitVector>& bitVecs);
+
 		//============print
 		void Print();
 		
