@@ -1136,7 +1136,7 @@ namespace osuCrypto
 			//other OT direction
 			p0.sender.send(p0.mSendAllOtKeys, p0.mPrng, p0.mChl);
 
-			p0.setAESkeys();
+			p0.setPRNGseeds();
 
 		});
 		//1st OT
@@ -1146,7 +1146,7 @@ namespace osuCrypto
 		p1.appendAllChoice();
 		p1.recv.receive(p1.mChoiceAllBitSharePoints, p1.mRecvAllOtKeys, p1.mPrng, p1.mChl);
 
-		p1.setAESkeys();
+		p1.setPRNGseeds();
 
 		thrd.join();
 
@@ -1498,7 +1498,7 @@ namespace osuCrypto
 			//other OT direction
 			p0.sender.send(p0.mSendAllOtKeys, p0.mPrng, p0.mChl);
 
-			p0.setAESkeys();
+			p0.setPRNGseeds();
 
 		});
 		//1st OT
@@ -1508,7 +1508,7 @@ namespace osuCrypto
 		p1.appendAllChoice();
 		p1.recv.receive(p1.mChoiceAllBitSharePoints, p1.mRecvAllOtKeys, p1.mPrng, p1.mChl);
 
-		p1.setAESkeys();
+		p1.setPRNGseeds();
 
 		thrd.join();
 
@@ -2130,7 +2130,7 @@ namespace osuCrypto
 			//other OT direction
 			p0.sender.send(p0.mSendAllOtKeys, p0.mPrng, p0.mChl);
 
-			p0.setAESkeys();
+			p0.setPRNGseeds();
 
 		});
 		//1st OT
@@ -2140,7 +2140,7 @@ namespace osuCrypto
 		p1.appendAllChoice();
 		p1.recv.receive(p1.mChoiceAllBitSharePoints, p1.mRecvAllOtKeys, p1.mPrng, p1.mChl);
 
-		p1.setAESkeys();
+		p1.setPRNGseeds();
 
 		thrd.join();
 

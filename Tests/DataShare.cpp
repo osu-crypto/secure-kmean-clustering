@@ -19,154 +19,54 @@ namespace osuCrypto
 	{
 
 		std::cout << b.size() << " b.size()\n";
-		u64 roundUpNumBlks = (b.size()*mLenModinByte + 15) / 16;
-		std::vector<u8> sendBuff(mLenMod*roundUpNumBlks * 2 * sizeof(block));
-
-
-		std::vector<std::array<std::vector<u8>, 2>> allPlaintexts(mLenMod);
-		std::vector<std::array<std::vector<block>, 2>> allBlkPlaintexts(mLenMod);
-
+		std::vector<u8> sendBuff(mLenModinByte*b.size()*mLenMod);
 		std::vector<Word> m0(b.size(), 0); //sum OT m0 messages
-
-
+		std::vector<std::array<Word*,2>> maskSendOT(mLenMod); //[l][0/1][k]
+		
 		for (u64 l = 0; l < mLenMod; l++)
 		{
-			allPlaintexts[l][0].resize(b.size()*mLenModinByte); //b.size x OT len x |x|
-			allPlaintexts[l][1].resize(b.size()*mLenModinByte);
-			allBlkPlaintexts[l][0].resize(roundUpNumBlks); //block
-			allBlkPlaintexts[l][1].resize(roundUpNumBlks);
+			maskSendOT[l][0] = new Word[b.size()];
+			maskSendOT[l][1] = new Word[b.size()];
+			mSendPRNG[theirIdxPoint][theirIdxDim][l][0].get<Word>(maskSendOT[l][0], b.size());
+			mSendPRNG[theirIdxPoint][theirIdxDim][l][1].get<Word>(maskSendOT[l][1], b.size());
+
+			std::cout << IoStream::lock;
+			std::cout << maskSendOT[l][0][0] << " " << maskSendOT[l][1][0] << " PRNG s \n";
+			std::cout << maskSendOT[l][0][b.size()-1] << " " << maskSendOT[l][1][b.size() - 1] << " PRNG s \n";
+			std::cout << mSendPRNG[theirIdxPoint][theirIdxDim][l][0].getSeed() << " PRNG  getSeed s \n";;
+			std::cout <<  mSendPRNG[theirIdxPoint][theirIdxDim][l][1].getSeed() << " PRNG  getSeed s \n";;
+			std::cout << IoStream::unlock;
 		}
 
 
-
+		u64 iter = 0;
 		for (u64 k = 0; k < b.size(); k++)
 		{
 			for (u64 l = 0; l < mLenMod; l++)
 			{
-				Word r0 = (mPrng.get<Word>()) % mMod; //OT message
-				auto r1 = (Word)(b[k] * pow(2, l) + r0) % mMod;
-				m0[k] = (m0[k] + r0) % mMod;
-
-				memcpy(allPlaintexts[l][0].data() + mLenModinByte*k, (u8*)&r0, mLenModinByte); //OT len
-				memcpy(allPlaintexts[l][1].data() + mLenModinByte*k, (u8*)&r1, mLenModinByte);
+				m0[k] = (m0[k] + maskSendOT[l][0][k]) % mMod; //r0= maskSendOT[l][0][k]
 
 				std::cout << IoStream::lock;
-				std::cout << k << "-" << l << ":  " << r0 << " vs " << r1 << " r1\n";
-				Word r0Check = 0;
-				memcpy((u8*)&r0Check, allPlaintexts[l][0].data() + mLenModinByte*l, mLenModinByte);
-				std::cout << r0 << " " << mLenModinByte << "\n";
-				std::cout << r0Check << "\n";
+				Word r0 = maskSendOT[l][0][k] % mMod; //OT message
+				auto delta = (Word)(b[k] * pow(2, l)) % mMod;
+				std::cout << k << "-" << l << ":  " << r0 << " vs " << (r0 + delta) % mMod << " r1\n";
 				std::cout << IoStream::unlock;
 
-
+				//mask
+				Word mask = (maskSendOT[l][0][k] % mMod + maskSendOT[l][1][k] % mMod + (Word)(b[k] * pow(2, l)) % mMod) % mMod;;
+				memcpy(sendBuff.data() + iter, (u8*)&mask, mLenModinByte);
+				iter += mLenModinByte;
 			}
 		}
 
-		//for (u64 i = 0; i < b.size(); i++)
-		//{
-		//	Word r0Check = 0;
-		//	memcpy((u8*)&r0Check, allPlaintexts[0][0].data() + mLenModinByte*i, mLenModinByte);
+		//Word test;
+		//memcpy(&test, sendBuff.data(), mLenModinByte);
+		//std::cout << IoStream::lock;
+		//std::cout << test << "  sendBuff.data() \n";
+		//std::cout << IoStream::unlock;
 
-		//	std::cout << r0Check << "  r0Check\n";
-
-		//}
-
-		//for (u64 i = 0; i < allPlaintexts[0][0].size(); i += mLenModinByte)
-		//{
-		//	Word r0Check = 0;
-		//	memcpy((u8*)&r0Check, allPlaintexts[0][0].data() + i, mLenModinByte);
-
-		//	std::cout << r0Check << "  rrr0Check\n";
-
-		//}
-
-
-		u64 iter = 0;
-		for (u64 l = 0; l < mLenMod; l++)
-		{
-			//std::cout << "allPlaintexts[l][0].size(): " << allPlaintexts[l][0].size() << "\n";
-			for (u64 i = 0; i < (allPlaintexts[l][0].size() + 15) / 16; i++)
-			{
-				allBlkPlaintexts[l][0][i] = toBlock(allPlaintexts[l][0].data() + i * sizeof(block));
-				allBlkPlaintexts[l][1][i] = toBlock(allPlaintexts[l][1].data() + i * sizeof(block));
-				std::cout << allBlkPlaintexts[l][0][i] << "  Block\n";
-			}
-
-
-			block* cipher = new block[allBlkPlaintexts[l][0].size()];
-			mSharePoint[theirIdxPoint][theirIdxDim].sendAES[l][0].ecbEncBlocks
-			(allBlkPlaintexts[l][0].data(), allBlkPlaintexts[l][0].size(), cipher); //r0||r1||r2
-
-			std::cout << IoStream::lock;
-			std::cout << mSharePoint[theirIdxPoint][theirIdxDim].sendOtKeys[l][0] << " s0 key \n";
-			std::cout << allBlkPlaintexts[l][0][0] << " snd allBlkPlaintexts[l][0][0]\n";
-			for (size_t ii = 0; ii < allBlkPlaintexts[l][0].size(); ii++)
-				std::cout << cipher[ii] << " snd cipher0\n";
-			std::cout << IoStream::unlock;
-
-			memcpy(sendBuff.data() + iter, (u8 *)&cipher[0], allBlkPlaintexts[l][0].size() * sizeof(block));
-
-			block test;
-			memcpy(&test, sendBuff.data() + iter, sizeof(block));
-
-			std::cout << IoStream::lock;
-			std::cout << test << "  sendBuff.data() test \n";
-			std::cout << IoStream::unlock;
-
-			iter += roundUpNumBlks * sizeof(block);
-
-			mSharePoint[theirIdxPoint][theirIdxDim].sendAES[l][1].ecbEncBlocks
-			(allBlkPlaintexts[l][1].data(), allBlkPlaintexts[l][1].size(), cipher); //c0-r0||c1-r1||c2=r2
-
-			std::cout << IoStream::lock;
-			std::cout << mSharePoint[theirIdxPoint][theirIdxDim].sendOtKeys[l][1] << " s1 key \n";
-			std::cout << allBlkPlaintexts[l][1][0] << " snd allBlkPlaintexts[l][1][0]\n";
-			std::cout << cipher[0] << " snd cipher1\n";
-			std::cout << IoStream::unlock;
-
-			memcpy(sendBuff.data() + iter, (u8 *)&cipher[0], allBlkPlaintexts[l][0].size() * sizeof(block));
-			iter += roundUpNumBlks * sizeof(block);
-		}
-
-
-		block test;
-		memcpy(&test, sendBuff.data(), sizeof(block));
-		std::cout << IoStream::lock;
-		std::cout << test << "  sendBuff.data() \n";
-		std::cout << IoStream::unlock;
 		mChl.asyncSend(std::move(sendBuff));
 
-
-
-#if 0 //check
-		for (u64 l = 0; l < mLenMod; l++)
-		{
-
-			for (u64 d = 0; d < b.size(); d++)
-			{
-				Word r0Check = 0;
-				memcpy((u8*)&r0Check, allPlaintexts[l][0].data() + mLenModinByte*d, mLenModinByte);
-				std::cout << r0Check << "  r0Check\n";
-			}
-
-
-			std::vector<u8> vecCheckk((allBlkPlaintexts[l][0].size() * sizeof(block)));
-
-			for (u64 d = 0; d < allBlkPlaintexts[l][0].size(); d++)
-			{
-				auto check = ByteArray(allBlkPlaintexts[l][0][d]);
-				memcpy(vecCheckk.data() + d * sizeof(block), check, sizeof(block)); //merging all blocks
-			}
-
-			for (u64 l = 0; l < b.size(); l++)
-			{
-				Word r0Check = 0;
-				memcpy((u8*)&r0Check, vecCheckk.data() + mLenModinByte*l, mLenModinByte);
-				std::cout << r0Check << "  rrr0Check\n";
-			}
-
-		}
-#endif
 
 		for (u64 k = 0; k < b.size(); k++)
 		{
@@ -179,72 +79,66 @@ namespace osuCrypto
 	{
 		std::vector<u8> recvBuff;// (theirbsize*mLenModinByte*mLenMod * 2);
 		std::vector<Word> mi(theirbsize, 0); //sum OT m0 messages
-		u64 roundUpNumBlks = (theirbsize*mLenModinByte + 15) / 16;
-
-		std::vector<std::vector<u8>> allPlaintexts(mLenMod);
-		std::vector<std::array<std::vector<block>, 2>> allBlkCipherexts(mLenMod);
-		for (u64 l = 0; l < mLenMod; l++)
-		{
-			allPlaintexts[l].resize(theirbsize*mLenModinByte); //b.size x OT len x |x|
-			allBlkCipherexts[l][0].resize(roundUpNumBlks);
-			allBlkCipherexts[l][1].resize(roundUpNumBlks);
-		}
-
 
 		mChl.recv(recvBuff);
-		if (recvBuff.size() != (roundUpNumBlks *mLenMod * 2 * sizeof(block)))
+		if (recvBuff.size() != (mLenModinByte*theirbsize*mLenMod))
 		{
 			std::cout << "recvBuff.size() != (theirbsize*mLenModinByte + 15) / 16 *mLenMod * 2" <<
-				recvBuff.size() << " vs " << (roundUpNumBlks* mLenMod * 2 * sizeof(block)) << "\n";
+				recvBuff.size() << " vs " << (mLenModinByte*theirbsize*mLenMod) << "\n";
 			throw std::exception();
 		}
 
-		block test;
-		memcpy(&test, recvBuff.data(), sizeof(block));
-		std::cout << IoStream::lock;
-		std::cout << test << "  recvBuff.data() \n";
-		std::cout << IoStream::unlock;
+		//Word test;
+		//memcpy(&test, recvBuff.data(), mLenModinByte);
+		//std::cout << IoStream::lock;
+		//std::cout << test << "  recvBuff.data() \n";
+		//std::cout << IoStream::unlock;
+
+		std::vector<Word*> maskRecvOT(mLenMod); //[l][k]
+		for (u64 l = 0; l < mLenMod; l++)
+		{
+			maskRecvOT[l] = new Word[theirbsize];
+			mRecvPRNG[idxPoint][idxDim][l].get<Word>(maskRecvOT[l], theirbsize);
+
+			//std::cout << IoStream::lock;
+			//std::cout << maskRecvOT[l][0]  << " PRNG r \n";
+			//std::cout << maskRecvOT[l][theirbsize - 1] << " PRNG r \n";
+			//std::cout << mRecvPRNG[idxPoint][idxDim][l].getSeed() << " PRNG  getSeed r \n";;
+			//std::cout << IoStream::unlock;
+		}
 
 
 		u64 iter = 0;
-		for (u64 l = 0; l < mLenMod; l++)
+		Word mask = 0;
+		for (u64 k = 0; k <theirbsize; k++)
 		{
-
-			memcpy(allBlkCipherexts[l][0].data(), recvBuff.data() + iter, roundUpNumBlks * sizeof(block));
-			iter += roundUpNumBlks * sizeof(block);
-
-			memcpy(allBlkCipherexts[l][1].data(), recvBuff.data() + iter, roundUpNumBlks * sizeof(block));
-			iter += roundUpNumBlks * sizeof(block);
-
-
-			block* allBlkPlaintexts = new block[allBlkCipherexts[l][0].size()]; //mi0||mi1||mi_#cluster
-
-			if (l == mLenMod - 1)
-				std::cout << mSharePoint[idxPoint][idxDim].mBitShare[l];
-
-			u8 choice = mSharePoint[idxPoint][idxDim].mBitShare[l];
-			mSharePoint[idxPoint][idxDim].recvAES[l].ecbDecBlocks
-			(allBlkCipherexts[l][choice].data(), allBlkCipherexts[l][choice].size(), allBlkPlaintexts);
-
-			std::cout << IoStream::lock;
-			std::cout << "r: k= " << mSharePoint[idxPoint][idxDim].recvOtKeys[l] << "\t ";
-			std::cout << "cr01= " << allBlkCipherexts[l][0][0] << " vs " << allBlkCipherexts[l][1][0] << "\t";
-			std::cout << "rb=" << allBlkPlaintexts[0] << "  vs " << mSharePoint[idxPoint][idxDim].mBitShare[l] << "\n";
-			std::cout << IoStream::unlock;
-
-			for (u64 k = 0; k < theirbsize; k++)
+			for (u64 l = 0; l < mLenMod; l++)
 			{
-				Word r = 0;
-				memcpy((u8*)&r, (u8*)&allBlkPlaintexts[0] + k*mLenModinByte, mLenModinByte); //mik
+				u8 choice = mSharePoint[idxPoint][idxDim].mBitShare[l];
+				if (choice)
+				{
+					memcpy((u8 *)&mask, recvBuff.data() + iter, mLenModinByte);
+					mask = (mask - maskRecvOT[l][k]) % mMod;
+					mi[k] = (mi[k] + mask) % mMod;
 
-				std::cout << IoStream::lock;
-				std::cout << k << "-" << l << ":  " << r << " rb\n";
-				std::cout << IoStream::unlock;
+					std::cout << IoStream::lock;
+					std::cout << mask << " " << int(choice) << " mask r \n";
+					std::cout << IoStream::unlock;
 
-				mi[k] = (mi[k] + r) % mMod;
+				}
+				else
+				{
+					std::cout << IoStream::lock;
+					std::cout << (maskRecvOT[l][k]) % mMod << " " << int(choice) << " mask r \n";
+					std::cout << IoStream::unlock;
+					mi[k] = (mi[k] + maskRecvOT[l][k]) % mMod;
+				}
+
+				iter +=  mLenModinByte;
+
 			}
-
 		}
+
 
 		return mi;
 	}
@@ -475,6 +369,18 @@ namespace osuCrypto
 			rt.init(mChl, mPrng.get<block>(), ShGcRuntime::Evaluator, 1);
 
 
+		mRecvPRNG.resize(mTotalNumPoints);
+		mSendPRNG.resize(mTotalNumPoints);
+		for (u64 i = 0; i < mTotalNumPoints; i++)
+		{
+			mRecvPRNG[i].resize(mDimension);
+			mSendPRNG[i].resize(mDimension);
+			for (u64 d = 0; d < mDimension; d++)
+			{
+				mRecvPRNG[i][d].resize(mLenMod);
+				mSendPRNG[i][d].resize(mLenMod);
+			}
+		}
 
 	}
 
@@ -560,42 +466,48 @@ namespace osuCrypto
 				mChoiceAllBitSharePoints.append(mSharePoint[i][d].mBitShare);
 	};
 
-	void DataShare::setAESkeys() {
+	void DataShare::setPRNGseeds() {
 
 		u64 iterSend = 0;
 		u64 iterRecv = 0;
 		for (u64 i = 0; i < mTotalNumPoints; i++)
 		{
-			for (u64 j = 0; j < mDimension; j++)
+			for (u64 d = 0; d < mDimension; d++)
 			{
-				mSharePoint[i][j].sendOtKeys.resize(mLenMod);
-				memcpy((u8*)&mSharePoint[i][j].sendOtKeys[0][0], (u8*)&mSendAllOtKeys[0] + iterSend, mLenMod * sizeof(block) * 2); //get their share
+				mSharePoint[i][d].sendOtKeys.resize(mLenMod);
+				memcpy((u8*)&mSharePoint[i][d].sendOtKeys[0][0], (u8*)&mSendAllOtKeys[0] + iterSend, mLenMod * sizeof(block) * 2); //get their share
 				iterSend += mLenMod * sizeof(block) * 2;
 
 
-				mSharePoint[i][j].sendAES.resize(mLenMod);
+				//mSharePoint[i][d].sendAES.resize(mLenMod);
+				//mSharePoint[i][d].mSendPRNG.resize(mLenMod);
 				for (u64 l = 0; l < mLenMod; l++)
 				{
-					mSharePoint[i][j].sendAES[l][0].setKey(mSharePoint[i][j].sendOtKeys[l][0]);
-					mSharePoint[i][j].sendAES[l][1].setKey(mSharePoint[i][j].sendOtKeys[l][1]);
+					//mSharePoint[i][d].sendAES[l][0].setKey(mSharePoint[i][d].sendOtKeys[l][0]);
+					//mSharePoint[i][d].sendAES[l][1].setKey(mSharePoint[i][d].sendOtKeys[l][1]);
+
+					mSendPRNG[i][d][l][0].SetSeed(mSharePoint[i][d].sendOtKeys[l][0]);
+					mSendPRNG[i][d][l][1].SetSeed(mSharePoint[i][d].sendOtKeys[l][1]);
+
 					std::cout << IoStream::lock;
-					std::cout << mSharePoint[i][j].sendOtKeys[l][0]
-						<< " vs " << mSharePoint[i][j].sendOtKeys[l][1] << " \t s setAESkeys\n";
+					std::cout << mSharePoint[i][d].sendOtKeys[l][0]
+						<< " vs " << mSharePoint[i][d].sendOtKeys[l][1] << " \t s setPRNGseeds\n";
 					std::cout << IoStream::unlock;
 
 				}
 
-				mSharePoint[i][j].recvOtKeys.resize(mLenMod);
-				memcpy((u8*)&mSharePoint[i][j].recvOtKeys[0], (u8*)&mRecvAllOtKeys[0] + iterRecv, mLenMod * sizeof(block)); //get their share
+				mSharePoint[i][d].recvOtKeys.resize(mLenMod);
+				memcpy((u8*)&mSharePoint[i][d].recvOtKeys[0], (u8*)&mRecvAllOtKeys[0] + iterRecv, mLenMod * sizeof(block)); //get their share
 				iterRecv += mLenMod * sizeof(block);
 
-				mSharePoint[i][j].recvAES.resize(mLenMod);
-				for (u64 k = 0; k < mLenMod; k++)
+				//mSharePoint[i][d].recvAES.resize(mLenMod);
+				for (u64 l = 0; l < mLenMod; l++)
 				{
-					mSharePoint[i][j].recvAES[k].setKey(mSharePoint[i][j].recvOtKeys[k]);
+					//mSharePoint[i][d].recvAES[l].setKey(mSharePoint[i][d].recvOtKeys[l]);
+					mRecvPRNG[i][d][l].SetSeed(mSharePoint[i][d].recvOtKeys[l]);
 
 					std::cout << IoStream::lock;
-					std::cout << mSharePoint[i][j].recvOtKeys[k] << " \t r setAESkeys\n";
+					std::cout << mSharePoint[i][d].recvOtKeys[l] << " \t r setPRNGseeds\n";
 					std::cout << IoStream::unlock;
 				}
 
@@ -761,7 +673,7 @@ namespace osuCrypto
 				u64 stepIdxMinCurrent = std::min(stepIdxMin, mNumCluster - k*stepIdxMin);
 
 				/*std::cout << IoStream::lock;
-				std::cout << i << "-" << bitGcMinOutVecs[i].size() << " stepIdxMin: " << k << " " << stepIdxMin << " vs " << stepIdxMinCurrent << " s\n";
+				std::cout << i << "-" << bitGcMinOutVecs[i].size() << " stepIdxMin: " << l << " " << stepIdxMin << " vs " << stepIdxMinCurrent << " s\n";
 				std::cout << IoStream::unlock;*/
 
 				Word r0 = ((u64*)&mMinClusterOtSends[i*bitGcMinOutVecs[i].size() + k][0])[0] % mMod; //first 64 bit
@@ -787,9 +699,9 @@ namespace osuCrypto
 				if (bitGcMinOutVecs[i].size() == 2 && k == 1 && i == 1)
 				{
 					std::cout << IoStream::lock;
-					/*std::cout << i << "-" << k << ":  " << r0 << " vs " << r1
-						<< " \t " << (Word)((1 - 2 * bitGcMinOutVecs[i][k])*arithVecs[i][k] + r0) % mMod
-						<< " \t " << mShareBinArithMulSend[i][k]
+					/*std::cout << i << "-" << l << ":  " << r0 << " vs " << r1
+						<< " \t " << (Word)((1 - 2 * bitGcMinOutVecs[i][l])*arithVecs[i][l] + r0) % mMod
+						<< " \t " << mShareBinArithMulSend[i][l]
 						<< " c= " << correctionR << " rs\n";*/
 
 					std::cout << i << "-" << bitGcMinOutVecs[i].size() << " stepIdxMin: " << k << " " << stepIdxMin << " vs " << stepIdxMinCurrent << " s\n";
@@ -800,7 +712,7 @@ namespace osuCrypto
 						<< " b= " << int(bitGcMinOutVecs[i][k]) << " v= " << chunk
 						<< " correctionV s\n";
 
-					//std::cout << i << "-" << k << ":  " << bitGcMinOutVecs[i].size() << " bitGcMinOutVecs[i].size()\n";
+					//std::cout << i << "-" << l << ":  " << bitGcMinOutVecs[i].size() << " bitGcMinOutVecs[i].size()\n";
 					std::cout << IoStream::unlock;
 				}
 
@@ -816,7 +728,7 @@ namespace osuCrypto
 				memcpy(&test, sendBuff.data() + iter, chunk.sizeBytes());
 
 				/*std::cout << IoStream::lock;
-				std::cout << i << "-" << k << ":  "<< correctionV <<" vs " << bitTest<< " testV s\n";
+				std::cout << i << "-" << l << ":  "<< correctionV <<" vs " << bitTest<< " testV s\n";
 				std::cout << IoStream::unlock;*/
 
 				iter += chunk.sizeBytes();
@@ -870,7 +782,7 @@ namespace osuCrypto
 				u64 stepIdxMinCurrent = std::min(stepIdxMin, mNumCluster - k*stepIdxMin);
 
 				/*std::cout << IoStream::lock;
-				std::cout << i << "-" << bitGcMinOutVecs[i].size() << " stepIdxMin: " << k << " " <<stepIdxMin << " vs " << stepIdxMinCurrent << " r\n";
+				std::cout << i << "-" << bitGcMinOutVecs[i].size() << " stepIdxMin: " << l << " " <<stepIdxMin << " vs " << stepIdxMinCurrent << " r\n";
 				std::cout << IoStream::unlock;*/
 
 				outShareRecv[i][k] = *(u64*)&mMinClusterOtRecv[i*bitGcMinOutVecs[i].size() + k] % mMod;
@@ -886,7 +798,7 @@ namespace osuCrypto
 					correctionV = BitVector(recvBuff.data() + iter, stepIdxMinCurrent);
 
 					/*std::cout << IoStream::lock;
-					std::cout << i << "-" << k << ":  " << correctionV <<  " testV r\n";
+					std::cout << i << "-" << l << ":  " << correctionV <<  " testV r\n";
 					std::cout << IoStream::unlock;*/
 
 					iter += chunk.sizeBytes();
@@ -899,7 +811,7 @@ namespace osuCrypto
 				{
 					std::cout << IoStream::lock;
 					std::cout << i << "-" << bitGcMinOutVecs[i].size() << " stepIdxMin: " << k << " " << stepIdxMin << " vs " << stepIdxMinCurrent << " r\n";
-					//std::cout << i << "-" << k << ":  " << outShareRecv[i][k] << " vs " << bitGcMinOutVecs[i][k] << " c= " << correctionR << " r\n";
+					//std::cout << i << "-" << l << ":  " << outShareRecv[i][l] << " vs " << bitGcMinOutVecs[i][l] << " c= " << correctionR << " r\n";
 					std::cout << i << "-" << k << ":  s=" << outIdxShareRecv[i][k] << " b=" << bitGcMinOutVecs[i][k] << " c= " << correctionV << " cs " << chunk.sizeBytes() << " correctionV r\n";
 					std::cout << IoStream::unlock;
 				}
@@ -1001,7 +913,7 @@ namespace osuCrypto
 		outNomSend.resize(mNumCluster);
 		outDenSend.resize(mNumCluster);
 		//OT concate all bitvector
-		BitVector allBitVecs; //[k][i]
+		BitVector allBitVecs; //[l][i]
 		for (size_t i = 0; i < bitVecs.size(); i++)
 			allBitVecs.append(bitVecs[i]);
 

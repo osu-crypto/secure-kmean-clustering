@@ -31,10 +31,10 @@ namespace osuCrypto
 		Word mArithShare; 
 		BitVector mBitShare; 
 		std::vector<block> recvOtKeys;
-		std::vector<AESDec> recvAES;
+		//std::vector<AESDec> recvAES;
 
 		std::vector<std::array<block, 2>> sendOtKeys;//NOTE: for their shares
-		std::vector<std::array<AES, 2>> sendAES; 
+		//std::vector<std::array<AES, 2>> sendAES;
 
 		//Share& operator=(const Share& copy);
 		//Share operator+(const Share& rhs) const;
@@ -56,6 +56,8 @@ namespace osuCrypto
 
 		
 
+		std::vector<std::vector<std::vector<PRNG>>> mRecvPRNG; //[i][d][l]
+		std::vector<std::vector<std::vector<std::array<PRNG, 2>>>> mSendPRNG; //[i][d][l][0/1]
 
 		u64 mPartyIdx;
 		std::vector<std::vector<Word>> mPoint;
@@ -150,7 +152,7 @@ namespace osuCrypto
 		void appendAllChoice();
 
 		//using batch aes with fixed key is faster than ...
-		void setAESkeys();
+		void setPRNGseeds();
 
 		void computeDist();
 		
