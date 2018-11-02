@@ -19,6 +19,7 @@ namespace osuCrypto
 //#define stepSizeOT=10;
 
 	typedef u64 Word;
+	typedef i64 iWord;
 	
 
 	struct Share
