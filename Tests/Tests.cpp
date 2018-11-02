@@ -173,7 +173,287 @@ struct Zn
 namespace osuCrypto
 {
 
-	void programLessThan22(std::array<Party, 2> parties, i64 myInput1, i64 myInput2, u64 bitCount)
+
+
+
+	void programLessThan22(std::array<Party, 2> parties, i64 myInput1, i64 myInput2, u64 bitCount, int expLt)
+	{
+
+		auto input01 = parties[0].isLocalParty() ?  //x1
+			parties[0].input<sInt>(myInput1, bitCount) :
+			parties[0].input<sInt>(bitCount);
+
+		auto input11 = parties[1].isLocalParty() ? //x2
+			parties[1].input<sInt>(myInput1, bitCount) :
+			parties[1].input<sInt>(bitCount);
+
+		auto input02 = parties[0].isLocalParty() ? //y1
+			parties[0].input<sInt>(myInput2, bitCount) :
+			parties[0].input<sInt>(bitCount);
+
+		auto input12 = parties[1].isLocalParty() ? //y2
+			parties[1].input<sInt>(myInput2, bitCount) :
+			parties[1].input<sInt>(bitCount);
+
+		auto input0 = input01 + input11;
+		auto input1 = input02 + input12;
+
+
+		auto lt = input0 < input1;
+		auto minus = input0 - input1;
+
+		parties[0].reveal(input0);
+		parties[0].reveal(input1);
+		parties[0].reveal(lt);
+		parties[0].reveal(minus);
+		parties[1].getRuntime().processesQueue();
+
+#if 1
+		if (parties[0].isLocalParty())
+		{
+
+			auto ltVal = lt.getValue();
+
+			bool passed = expLt == ltVal;
+			std::cout << "eval:\n"
+				<< "    x  = " << input0.getValue() << "\n"
+				<< "    y  = " << input1.getValue() << "\n"
+				<< "    lt = " << ltVal << "\n"
+				<< " minus = " << minus.getValue() << "\n --------------" << std::endl;
+			if (passed)
+				std::cout << Color::Green << "    Passed " << ColorDefault << std::endl;
+			else
+				std::cout << Color::Red << "    Failed " << ColorDefault << std::endl;
+
+		}
+
+		if (parties[1].isLocalParty())
+		{
+			//std::cout << i << ": lt= " << lt.getValue() << " vs " << invert.getValue() << std::endl;
+			//ostreamLock(std::cout) << i << ": slt= " << int(myOutput[2 * i]) << int(myOutput[2 * i + 1]) << "    B\n";// << (*v1->mLabels)[0] << std::endl;
+		}
+#endif
+
+
+
+	}
+
+
+
+
+
+	void programLessThan223(std::array<Party, 2> parties, i64 myInput1, u64 bitCount, int expLt)
+	{
+
+		auto input01 = parties[0].isLocalParty() ?  //x1
+			parties[0].input<sInt>(myInput1, bitCount) :
+			parties[0].input<sInt>(bitCount);
+
+		auto input11 = parties[1].isLocalParty() ? //x2
+			parties[1].input<sInt>(myInput1, bitCount) :
+			parties[1].input<sInt>(bitCount);
+
+		auto lt = input01 < input11;
+		auto minus = input01 - input11;
+
+		parties[0].reveal(lt);
+		parties[0].reveal(minus);
+		parties[1].getRuntime().processesQueue();
+
+#if 1
+		if (parties[0].isLocalParty())
+		{
+
+			auto ltVal = lt.getValue();
+
+			bool passed = expLt == ltVal;
+			std::cout << "eval:\n"
+				<< "    lt = " << ltVal << "\n"
+				<< " minus = " << minus.getValue() << "\n --------------" << std::endl;
+			if (passed)
+				std::cout << Color::Green << "    Passed " << ColorDefault << std::endl;
+			else
+				std::cout << Color::Red << "    Failed " << ColorDefault << std::endl;
+
+		}
+
+		if (parties[1].isLocalParty())
+		{
+			//std::cout << i << ": lt= " << lt.getValue() << " vs " << invert.getValue() << std::endl;
+			//ostreamLock(std::cout) << i << ": slt= " << int(myOutput[2 * i]) << int(myOutput[2 * i + 1]) << "    B\n";// << (*v1->mLabels)[0] << std::endl;
+		}
+#endif
+
+
+
+	}
+
+
+
+	template<typename T>
+	T signExtend(T v, u64 b, bool print = false)
+	{
+		if (b > sizeof(T) * 8)
+			throw RTE_LOC;
+
+		if (b == sizeof(T) * 8)
+			return v;
+
+		T loc = (T(1) << (b - 1));
+		T sign = v & loc;
+
+		if (sign)
+		{
+			T mask = T(-1) << (b);
+			auto ret = v | mask;
+			if (print)
+			{
+
+				std::cout << "sign: " << BitVector((u8*)&sign, sizeof(T) * 8) << std::endl;;
+				std::cout << "mask: " << BitVector((u8*)&mask, sizeof(T) * 8) << std::endl;;
+				std::cout << "v   : " << BitVector((u8*)&v, sizeof(T) * 8) << std::endl;;
+				std::cout << "ret : " << BitVector((u8*)&ret, sizeof(T) * 8) << std::endl;;
+
+			}
+			return ret;
+		}
+		else
+		{
+			T mask = (T(1) << b) - 1;
+			auto ret = v & mask;
+			if (print)
+			{
+
+				std::cout << "sign: " << BitVector((u8*)&loc, sizeof(T) * 8) << std::endl;;
+				std::cout << "mask: " << BitVector((u8*)&mask, sizeof(T) * 8) << std::endl;;
+				std::cout << "v   : " << BitVector((u8*)&v, sizeof(T) * 8) << std::endl;;
+				std::cout << "ret : " << BitVector((u8*)&ret, sizeof(T) * 8) << std::endl;;
+
+			}
+			return ret;
+		}
+	}
+
+
+
+	void testCircuit()
+	{
+		Timer timer;
+		IOService ios;
+		Session ep01(ios, "127.0.0.1", SessionMode::Server);
+		Session ep10(ios, "127.0.0.1", SessionMode::Client);
+		Channel chl01 = ep01.addChannel();
+		Channel chl10 = ep10.addChannel();
+
+		int securityParams = 128;
+		int inDimension = 1;
+		int bitCount = 20;
+
+		using Word = i32;
+		PRNG prng(ZeroBlock);
+		u64 numberTest = 10;
+
+
+
+		ShGcRuntime rt0, rt1;
+		std::array<Party, 2> parties0{
+			Party(rt0, 0),
+			Party(rt0, 1)
+		};
+
+		std::array<Party, 2> parties1{
+			Party(rt1, 0),
+			Party(rt1, 1)
+		};
+
+		std::thread thrd = std::thread([&]() {
+			rt0.init(chl01, prng.get<block>(), ShGcRuntime::Evaluator, 1);;
+		});
+		rt1.init(chl10, prng.get<block>(), ShGcRuntime::Garbler, 0);
+
+		thrd.join();
+
+		std::vector<Word> xx(numberTest), x1(numberTest), x2(numberTest);
+		std::vector<Word> yy(numberTest), y1(numberTest), y2(numberTest);
+		for (i64 i = 0; i < numberTest; i++)
+		{
+			//xx[i] = 1000 + i;//p0.mPrng.get<Word>() % inMod;
+			xx[i] = signExtend(prng.get<Word>(), bitCount);
+			x1[i] = signExtend(prng.get<Word>(), bitCount);
+			x2[i] = signExtend(xx[i] - x1[i], bitCount);
+
+			yy[i] = signExtend(2000 + i, bitCount); // p0.mPrng.get<Word>() % inMod;
+			y1[i] = signExtend(prng.get<Word>(), bitCount);
+			y2[i] = signExtend(yy[i] - y1[i], bitCount);
+
+		}
+
+		for (i64 i = 0; i < numberTest; i++)
+		{
+
+			auto exp = int(xx[i] < yy[i]);
+
+			std::cout << "trial: " << i << "\n"
+				<< "  x   = " << xx[i] << " = ( " << x1[i] << ", " << x2[i] << ")  " << (x1[i] + x2[i]) << "\n"
+				<< "  y   = " << yy[i] << " = ( " << y1[i] << ", " << y2[i] << ")  " << (y1[i] + y2[i]) << "\n"
+				<< "  exp = " << exp << std::endl;
+
+			thrd = std::thread([&]() {
+				programLessThan22(parties0, x1[i], y1[i], bitCount, exp);
+			});
+
+			programLessThan22(parties1, x2[i], y2[i], bitCount, exp);
+
+			thrd.join();
+
+		}
+
+
+		std::cout << " ==================\n";
+
+		for (i64 i = 0; i < numberTest; i++)
+		{
+			Word diff1 = signExtend(x1[i] - y1[i], bitCount);
+			Word diff2= signExtend(y2[i] - x2[i], bitCount);
+			auto exp = int(xx[i] < yy[i]);
+
+			std::cout << "trial: " << i << "\n"
+				<< "  x   = " << xx[i] << " = ( " << x1[i] << ", " << x2[i] << ")  " << (x1[i] + x2[i]) << "\n"
+				<< "  y   = " << yy[i] << " = ( " << y1[i] << ", " << y2[i] << ")  " << (y1[i] + y2[i]) << "\n"
+				<< "  exp = " << exp << std::endl;
+
+			thrd = std::thread([&]() {
+				programLessThan223(parties0, diff1, bitCount, exp);
+			});
+
+			programLessThan223(parties1, diff2, bitCount, exp);
+
+			thrd.join();
+
+		}
+
+		//	std::cout << "================programDiv==================\n";
+		//
+		//	for (i64 i = 0; i < numberTest; i++)
+		//	{
+		//		std::cout << xx[i] << "/" << yy[i] << " = " << (xx[i] / yy[i]) << "  Expected\n";
+		//	}
+		//
+		//	thrd = std::thread([&]() {
+		//		for (i64 i = 0; i < numberTest; i++)
+		//			programDiv(parties0, x1[i], y1[i], inExMod);
+		//	});
+		//
+		//	for (i64 i = 0; i < numberTest; i++)
+		//		programDiv(parties1, x2[i], y2[i], inExMod);
+		//
+		//	thrd.join();
+	}
+
+
+
+
+	void programLessThan22_o(std::array<Party, 2> parties, i64 myInput1, i64 myInput2, u64 bitCount)
 	{
 
 			auto input01 = parties[0].isLocalParty() ?  //x1
@@ -224,7 +504,7 @@ namespace osuCrypto
 	}
 
 
-	void programDiv(std::array<Party, 2> parties, i64 myInput1, i64 myInput2, u64 bitCount)
+	void programDiv_o(std::array<Party, 2> parties, i64 myInput1, i64 myInput2, u64 bitCount)
 	{
 
 		auto input01 = parties[0].isLocalParty() ?  //x1
@@ -405,101 +685,91 @@ namespace osuCrypto
 	}
 
 
-	void testCircuit()
-	{
-		Timer timer;
-		IOService ios;
-		Session ep01(ios, "127.0.0.1", SessionMode::Server);
-		Session ep10(ios, "127.0.0.1", SessionMode::Client);
-		Channel chl01 = ep01.addChannel();
-		Channel chl10 = ep10.addChannel();
+	//void testCircuit_o()
+	//{
+	//	Timer timer;
+	//	IOService ios;
+	//	Session ep01(ios, "127.0.0.1", SessionMode::Server);
+	//	Session ep10(ios, "127.0.0.1", SessionMode::Client);
+	//	Channel chl01 = ep01.addChannel();
+	//	Channel chl10 = ep10.addChannel();
 
-		int securityParams = 128;
-		int inDimension = 1;
-		int inExMod = 20;
-		u64 inNumCluster = 3;
+	//	int securityParams = 128;
+	//	int inDimension = 1;
+	//	int inExMod = 20;
 
+	//	int inMod = pow(2, inExMod);
+	//	PRNG prng(ZeroBlock);
+	//	u64 numberTest = 10;
+	//
 
-		int inMod = pow(2, inExMod);
-		std::vector<std::vector<Word>> inputA, inputB;
-		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+	//	std::vector<Word> xx(numberTest), x1(numberTest), x2(numberTest);
+	//	std::vector<Word> yy(numberTest), y1(numberTest), y2(numberTest);
+	//	for (i64 i = 0; i < numberTest; i++)
+	//	{
+	//		//xx[i] = 1000 + i;//p0.mPrng.get<Word>() % inMod;
+	//		xx[i] = signExtend1(prng.get<Word>(), inExMod);
+	//		x1[i] = signExtend1(prng.get<Word>(), inExMod);
+	//		x2[i] = signExtend1((xx[i]-x1[i]), inExMod);
 
-		PRNG prng(ZeroBlock);
-		u64 numberTest = 10;
-		inputA.resize(numberTest);
-		inputB.resize(numberTest);
-		for (int i = 0; i < numberTest; i++)
-		{
-			inputA[i].resize(inDimension);
-			inputB[i].resize(inDimension);
-			for (size_t j = 0; j < inDimension; j++)
-			{
-				inputA[i][j] = prng.get<Word>() % inMod;
-				inputB[i][j] = prng.get<Word>() % inMod;
+	//		yy[i] = 2000 + i; // p0.mPrng.get<Word>() % inMod;
+	//		y1[i] = signExtend1(prng.get<Word>(), inExMod);
+	//		y2[i] = signExtend1((yy[i] - y1[i]), inExMod);
 
-				std::cout << inputA[i][j] << "\t" << inputB[i][j] << " p\n";
-			}
-		}
+	//		if(xx[i] < yy[i])
+	//			std::cout << xx[i] << "<" << yy[i]<< ": 1 Expected\n";
+	//		else
+	//			std::cout << xx[i] << "<" << yy[i] << ": 0 Expected\n";
 
-		u64 inTotalPoint = inputA.size() + inputB.size();
-		//=======================offline===============================
-		DataShare p0, p1;
+	//	}
 
-		timer.setTimePoint("starts");
-		std::thread thrd = std::thread([&]() {
-			p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
-				, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension);
-		});
+	//	ShGcRuntime rt0, rt1;
+	//	std::array<Party, 2> parties0{
+	//		Party(rt0, 0),
+	//		Party(rt0, 1)
+	//	};
 
+	//	std::array<Party, 2> parties1{
+	//		Party(rt1, 0),
+	//		Party(rt1, 1)
+	//	};
 
-		p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
-			, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
-		thrd.join();
+	//	std::thread thrd = std::thread([&]() {
+	//		rt0.init(chl01, prng.get<block>(), ShGcRuntime::Evaluator, 1);;
+	//	});
+	//	rt1.init(chl10, prng.get<block>(), ShGcRuntime::Garbler, 0);
 
-		std::vector<Word> xx(numberTest), x1(numberTest), x2(numberTest);
-		std::vector<Word> yy(numberTest), y1(numberTest), y2(numberTest);
-		for (i64 i = 0; i < numberTest; i++)
-		{
-			//xx[i] = 1000 + i;//p0.mPrng.get<Word>() % inMod;
-			xx[i] = p0.mPrng.get<Word>() % inMod;
-			x1[i] = p0.mPrng.get<Word>() % inMod;
-			x2[i] = (xx[i]-x1[i]) % inMod;
+	//	thrd.join();
 
-			yy[i] = 2000 + i; // p0.mPrng.get<Word>() % inMod;
-			y1[i] = p0.mPrng.get<Word>() % inMod;
-			y2[i] = (yy[i] - y1[i]) % inMod;
-
-			if(xx[i] < yy[i])
-				std::cout << xx[i] << "<" << yy[i]<< ": 1 ss\n";
-			else
-				std::cout << xx[i] << "<" << yy[i] << ": 0 ss\n";
+	//	thrd = std::thread([&]() {
+	//		for (i64 i = 0; i < numberTest; i++)
+	//			programLessThan22(parties0, x1[i], y1[i], inExMod);
+	//	});
 
 
+	//	for (i64 i = 0; i < numberTest; i++)
+	//		programLessThan22(parties1, x2[i], y2[i], inExMod);
 
-		}
-
-		thrd = std::thread([&]() {
-			for (i64 i = 0; i < numberTest; i++)
-				programLessThan22(p0.parties, x1[i], y1[i], p0.mLenMod);
-		});
-
-		for (i64 i = 0; i < numberTest; i++)
-			programLessThan22(p1.parties, x2[i], y2[i], p1.mLenMod);
-
-		thrd.join();
+	//	thrd.join();
 
 
-		std::cout <<"================programDiv==================\n";
-		thrd = std::thread([&]() {
-			for (i64 i = 0; i < numberTest; i++)
-				programDiv(p0.parties, x1[i], y1[i], p0.mLenMod);
-		});
+	//	std::cout <<"================programDiv==================\n";
 
-		for (i64 i = 0; i < numberTest; i++)
-			programDiv(p1.parties, x2[i], y2[i], p1.mLenMod);
+	//	for (i64 i = 0; i < numberTest; i++)
+	//	{
+	//			std::cout << xx[i] << "/" << yy[i] << " = " <<  (xx[i] / yy[i])<<"  Expected\n";
+	//	}
 
-		thrd.join();
-	}
+	///*	thrd = std::thread([&]() {
+	//		for (i64 i = 0; i < numberTest; i++)
+	//			programDiv(parties0, x1[i], y1[i], inExMod);
+	//	});
+
+	//	for (i64 i = 0; i < numberTest; i++)
+	//		programDiv(parties1, x2[i], y2[i], inExMod);*/
+
+	//	thrd.join();
+	//}
 
 	void simple_test() {
 
@@ -1479,8 +1749,8 @@ namespace osuCrypto
 					std::vector<i64> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
 					for (u64 k = 0; k < dist1.size(); k++)
 					{
-						memcpy((u8*)&dist1[k], (u8*)&p0.mDist[i][2 * k], sizeof(Word));
-						memcpy((u8*)&dist2[k], (u8*)&p0.mDist[i][2 * k + 1], sizeof(Word));
+						memcpy((u8*)&dist1[k], (u8*)&p0.mShareMin[i][2 * k], sizeof(Word));
+						memcpy((u8*)&dist2[k], (u8*)&p0.mShareMin[i][2 * k + 1], sizeof(Word));
 					}
 					programLessThan3(p0.parties, dist1, dist2, p0.mVecGcMinOutput[i], p0.mLenMod);
 				}
@@ -1570,8 +1840,8 @@ namespace osuCrypto
 				std::vector<i64> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
 				for (u64 k = 0; k < dist1.size(); k++)
 				{
-					memcpy((u8*)&dist1[k], (u8*)&p1.mDist[i][2 * k], sizeof(Word));
-					memcpy((u8*)&dist2[k], (u8*)&p1.mDist[i][2 * k + 1], sizeof(Word));
+					memcpy((u8*)&dist1[k], (u8*)&p1.mShareMin[i][2 * k], sizeof(Word));
+					memcpy((u8*)&dist2[k], (u8*)&p1.mShareMin[i][2 * k + 1], sizeof(Word));
 				}
 				programLessThan3(p1.parties, dist1, dist2, p1.mVecGcMinOutput[i], p1.mLenMod);
 
@@ -3331,8 +3601,8 @@ namespace osuCrypto
 							std::vector<i64> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
 							for (u64 k = 0; k < dist1.size(); k++)
 							{
-								memcpy((u8*)&dist1[k], (u8*)&p0.mDist[i][2 * k], sizeof(Word));
-								memcpy((u8*)&dist2[k], (u8*)&p0.mDist[i][2 * k + 1], sizeof(Word));
+								memcpy((u8*)&dist1[k], (u8*)&p0.mShareMin[i][2 * k], sizeof(Word));
+								memcpy((u8*)&dist2[k], (u8*)&p0.mShareMin[i][2 * k + 1], sizeof(Word));
 							}
 
 							/*std::vector<i64> diffDist;
@@ -3469,8 +3739,8 @@ namespace osuCrypto
 						std::vector<i64> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
 						for (u64 k = 0; k < dist1.size(); k++)
 						{
-							memcpy((u8*)&dist1[k], (u8*)&p1.mDist[i][2 * k], sizeof(Word));
-							memcpy((u8*)&dist2[k], (u8*)&p1.mDist[i][2 * k + 1], sizeof(Word));
+							memcpy((u8*)&dist1[k], (u8*)&p1.mShareMin[i][2 * k], sizeof(Word));
+							memcpy((u8*)&dist2[k], (u8*)&p1.mShareMin[i][2 * k + 1], sizeof(Word));
 						}
 
 						std::cout << IoStream::lock;
