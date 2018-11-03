@@ -22,6 +22,52 @@ namespace osuCrypto
 	typedef i64 iWord;
 	
 
+	template<typename T>
+	T signExtend(T v, u64 b, bool print = false)
+	{
+		if (b > sizeof(T) * 8)
+			throw RTE_LOC;
+
+		if (b == sizeof(T) * 8)
+			return v;
+
+		T loc = (T(1) << (b - 1));
+		T sign = v & loc;
+
+		if (sign)
+		{
+			T mask = T(-1) << (b);
+			auto ret = v | mask;
+			if (print)
+			{
+
+				std::cout << "sign: " << BitVector((u8*)&sign, sizeof(T) * 8) << std::endl;;
+				std::cout << "mask: " << BitVector((u8*)&mask, sizeof(T) * 8) << std::endl;;
+				std::cout << "v   : " << BitVector((u8*)&v, sizeof(T) * 8) << std::endl;;
+				std::cout << "ret : " << BitVector((u8*)&ret, sizeof(T) * 8) << std::endl;;
+
+			}
+			return ret;
+		}
+		else
+		{
+			T mask = (T(1) << b) - 1;
+			auto ret = v & mask;
+			if (print)
+			{
+
+				std::cout << "sign: " << BitVector((u8*)&loc, sizeof(T) * 8) << std::endl;;
+				std::cout << "mask: " << BitVector((u8*)&mask, sizeof(T) * 8) << std::endl;;
+				std::cout << "v   : " << BitVector((u8*)&v, sizeof(T) * 8) << std::endl;;
+				std::cout << "ret : " << BitVector((u8*)&ret, sizeof(T) * 8) << std::endl;;
+
+			}
+			return ret;
+		}
+	}
+
+
+
 	struct Share
 	{
 		//Share() = default;
@@ -65,18 +111,18 @@ namespace osuCrypto
 		std::vector<std::vector<Share>> mSharePoint; //mSharePoint[i][d] <= point i, dimention d
 		std::vector<std::vector<Word>> mSharePointsPerDim; //[d][i]
 
-		std::vector<std::vector<std::vector<Word>>> mProdPointPPC; //[i][d][k] share (p^A[i][d]*(p^B[i][d]-c^B[k][d])
-		std::vector<std::vector<std::vector<Word>>> prodTempPC; //save p^B[i][d]-c^B[k][d] for test
+		std::vector<std::vector<std::vector<iWord>>> mProdPointPPC; //[i][d][k] share (p^A[i][d]*(p^B[i][d]-c^B[k][d])
+		std::vector<std::vector<std::vector<iWord>>> prodTempPC; //save p^B[i][d]-c^B[k][d] for test
 
-		std::vector<std::vector<Word>> prodTempC; //save all c^B[d][k] for test
-		std::vector<std::vector<std::vector<Word>>> mProdPointPC; //[i][d][k] share (p^B[i][d]*c^A[k][d])
+		std::vector<std::vector<iWord>> prodTempC; //save all c^B[d][k] for test
+		std::vector<std::vector<std::vector<iWord>>> mProdPointPC; //[i][d][k] share (p^B[i][d]*c^A[k][d])
 
 		std::vector<std::vector<Word>> mCluster;
 		std::vector<std::vector<Word>> mShareCluster; //[k][d] share cluster
 		std::vector<std::vector<Word>> mProdCluster; // //[k][d]share of product C^A*C^B
 
 
-		std::vector<std::vector<Word>> mDist; //[i][k]
+		std::vector<std::vector<iWord>> mDist; //[i][k]
 
 
 
@@ -116,6 +162,12 @@ namespace osuCrypto
 			return BitVector((u8*)&value, bitLen);
 		}
 
+		BitVector getBinary(u32& value, u32 bitLen)
+		{
+			return BitVector((u8*)&value, bitLen);
+		}
+
+
 		ShGcRuntime rt;
 		std::array<Party, 2> parties{
 			Party(rt, 0),
@@ -128,10 +180,10 @@ namespace osuCrypto
 		// first concating all b-ri, ri. 
 		//then using the enc OT keys corressponding to share[i][j] to encrypt and send them to receiver		
 		//compute m0
-		std::vector<Word> amortAdaptMULsend(u64 theirIdxPoint, u64 theirIdxDim, std::vector<Word>& b);
+		std::vector<iWord> amortAdaptMULsend(u64 theirIdxPoint, u64 theirIdxDim, std::vector<iWord>& b);
 		
 		//compute mi wiht OT receiver
-		std::vector<Word> amortAdaptMULrecv(u64 idxPoint, u64 idxDim, u64 theirbsize);
+		std::vector<iWord> amortAdaptMULrecv(u64 idxPoint, u64 idxDim, u64 theirbsize);
 
 
 		
@@ -182,9 +234,9 @@ namespace osuCrypto
 		//OT sender m0 = r + b^A*P^A;  m1 = r + (1-b^A)*P^A 
 		//Co-OT: deltaOT= (1-2*b^A)*P^A 
 		//NOTE: sender output= r-b^AP^A, receiver output=r+b^B*(1-2*b^A)*P^A=r+(b^A \xor b^B)*P^A -b^AP^A
-		void amortBinArithMulsend(std::vector<std::vector<Word>>& outShareSend, std::vector<BitVector>& bitVecs, std::vector<std::vector<Word>>& arithVecs); //[i][k], upto [k/2] all points
+		void amortBinArithMulsend(std::vector<std::vector<iWord>>& outShareSend, std::vector<BitVector>& bitVecs, std::vector<std::vector<iWord>>& arithVecs); //[i][k], upto [k/2] all points
 		//compute mi wiht OT receiver
-		void amortBinArithMULrecv(std::vector<std::vector<Word>>& outShareRecv,std::vector<BitVector>& bitVecs);
+		void amortBinArithMULrecv(std::vector<std::vector<iWord>>& outShareRecv,std::vector<BitVector>& bitVecs);
 
 		//bitVecsIdxMin maintain index of min: input as 1010||1001, output=1010*b||1001*!b
 		//stepIdxMin=4 for above example

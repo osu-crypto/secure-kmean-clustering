@@ -38,17 +38,9 @@ namespace osuCrypto
 			readData_test();
 		}
 
-		TEST_METHOD(ClusteringTesttVS)
-		{
-			InitDebugPrinting();
-			ClusteringTest();
-		}
+		
 
-		TEST_METHOD(DecAESTesttVS)
-		{
-			InitDebugPrinting();
-			testDecAES();
-		}
+	
 
 		TEST_METHOD(MulTesttVS)
 		{
@@ -56,22 +48,37 @@ namespace osuCrypto
 			MulTest();
 		}
 
-		TEST_METHOD(MinDistTesttVS)
-		{
-			InitDebugPrinting();
-			testMinDist();
-		}
-		TEST_METHOD(MinDistFirstLevelTesttVS)
-		{
-			InitDebugPrinting();
-			testMinDistFirstLevel();
-		}
-
 		TEST_METHOD(CircuiTesttVS)
 		{
 			InitDebugPrinting();
 			testCircuit();
 		}
+
+		TEST_METHOD(DistTesttVS)
+		{
+			InitDebugPrinting();
+			DistTest();
+		}
+
+		TEST_METHOD(MinDistFirstLevelTesttVS)
+		{
+			InitDebugPrinting();
+			testMinDistFirstLevel();
+		}
+#if 0
+		TEST_METHOD(DecAESTesttVS)
+		{
+			InitDebugPrinting();
+			testDecAES();
+		}
+		TEST_METHOD(MinDistTesttVS)
+		{
+			InitDebugPrinting();
+			testMinDist();
+		}
+		
+
+		
 		
 		TEST_METHOD(UpdateCTesttVS)
 		{
@@ -79,11 +86,13 @@ namespace osuCrypto
 			testUpdateCluster();
 		}
 		
-		TEST_METHOD(DistTesttVS)
+		
+		TEST_METHOD(ClusteringTesttVS)
 		{
 			InitDebugPrinting();
-			DistTest();
+			ClusteringTest();
 		}
+#endif
 		
 	
     };

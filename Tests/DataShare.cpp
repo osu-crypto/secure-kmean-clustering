@@ -15,12 +15,12 @@ namespace osuCrypto
 
 
 
-	std::vector<Word> DataShare::amortAdaptMULsend(u64 theirIdxPoint, u64 theirIdxDim, std::vector<Word>& b) //b=di-ci
+	std::vector<iWord> DataShare::amortAdaptMULsend(u64 theirIdxPoint, u64 theirIdxDim, std::vector<iWord>& b) //b=di-ci
 	{
 
 		std::cout << b.size() << " b.size()\n";
-		std::vector<u8> sendBuff(mLenModinByte*b.size()*mLenMod);
-		std::vector<Word> m0(b.size(), 0); //sum OT m0 messages
+		std::vector<u8> sendBuff(sizeof(Word)*b.size()*mLenMod);
+		std::vector<iWord> m0(b.size(), 0); //sum OT m0 messages
 		std::vector<std::array<Word*,2>> maskSendOT(mLenMod); //[l][0/1][k]
 		
 		for (u64 l = 0; l < mLenMod; l++)
@@ -44,6 +44,27 @@ namespace osuCrypto
 		{
 			for (u64 l = 0; l < mLenMod; l++)
 			{
+				m0[k] = (m0[k] + maskSendOT[l][0][k] % mMod) ; //r0= maskSendOT[l][0][k]
+
+				std::cout << IoStream::lock;
+				Word r0 = maskSendOT[l][0][k] % mMod; //OT message
+				auto delta = (Word)(b[k] * pow(2, l));
+				std::cout << k << "-" << l << ":  " << r0 << " vs " << (r0 + delta) << " r1\n";
+				std::cout << IoStream::unlock;
+
+				//mask
+				Word mask = (maskSendOT[l][0][k] % mMod + maskSendOT[l][1][k] % mMod + (Word)(b[k] * pow(2, l)));
+				memcpy(sendBuff.data() + iter, (u8*)&mask, sizeof(Word));
+				iter += mLenModinByte;
+			}
+		}
+
+
+#if 0
+		for (u64 k = 0; k < b.size(); k++)
+		{
+			for (u64 l = 0; l < mLenMod; l++)
+			{
 				m0[k] = (m0[k] + maskSendOT[l][0][k]) % mMod; //r0= maskSendOT[l][0][k]
 
 				std::cout << IoStream::lock;
@@ -58,33 +79,29 @@ namespace osuCrypto
 				iter += mLenModinByte;
 			}
 		}
-
-		//Word test;
-		//memcpy(&test, sendBuff.data(), mLenModinByte);
-		//std::cout << IoStream::lock;
-		//std::cout << test << "  sendBuff.data() \n";
-		//std::cout << IoStream::unlock;
+#endif
+	
 
 		mChl.asyncSend(std::move(sendBuff));
 
 
 		for (u64 k = 0; k < b.size(); k++)
 		{
-			m0[k] = (0 - m0[k]) % mMod;
+			m0[k] = (0 - m0[k]);
 		}
 		return m0;
 	}
 
-	std::vector<Word> DataShare::amortAdaptMULrecv(u64 idxPoint, u64 idxDim, u64 theirbsize)
+	std::vector<iWord> DataShare::amortAdaptMULrecv(u64 idxPoint, u64 idxDim, u64 theirbsize)
 	{
 		std::vector<u8> recvBuff;// (theirbsize*mLenModinByte*mLenMod * 2);
-		std::vector<Word> mi(theirbsize, 0); //sum OT m0 messages
+		std::vector<iWord> mi(theirbsize, 0); //sum OT m0 messages
 
 		mChl.recv(recvBuff);
-		if (recvBuff.size() != (mLenModinByte*theirbsize*mLenMod))
+		if (recvBuff.size() != (mLenMod*theirbsize*sizeof(Word)))
 		{
 			std::cout << "recvBuff.size() != (theirbsize*mLenModinByte + 15) / 16 *mLenMod * 2" <<
-				recvBuff.size() << " vs " << (mLenModinByte*theirbsize*mLenMod) << "\n";
+				recvBuff.size() << " vs " << (sizeof(Word)*theirbsize*mLenMod) << "\n";
 			throw std::exception();
 		}
 
@@ -117,9 +134,9 @@ namespace osuCrypto
 				u8 choice = mSharePoint[idxPoint][idxDim].mBitShare[l];
 				if (choice)
 				{
-					memcpy((u8 *)&mask, recvBuff.data() + iter, mLenModinByte);
-					mask = (mask - maskRecvOT[l][k]) % mMod;
-					mi[k] = (mi[k] + mask) % mMod;
+					memcpy((u8 *)&mask, recvBuff.data() + iter, sizeof(Word));
+					mask = (mask - maskRecvOT[l][k] % mMod) ;
+					mi[k] = (mi[k] + mask);
 
 					std::cout << IoStream::lock;
 					std::cout << mask << " " << int(choice) << " mask r \n";
@@ -131,7 +148,7 @@ namespace osuCrypto
 					std::cout << IoStream::lock;
 					std::cout << (maskRecvOT[l][k]) % mMod << " " << int(choice) << " mask r \n";
 					std::cout << IoStream::unlock;
-					mi[k] = (mi[k] + maskRecvOT[l][k]) % mMod;
+					mi[k] = (mi[k] + maskRecvOT[l][k] % mMod);
 				}
 
 				iter +=  mLenModinByte;
@@ -399,7 +416,7 @@ namespace osuCrypto
 		{
 			for (u64 d = 0; d < mDimension; d++)
 			{
-				mSharePoint[i][d].mArithShare = mSharedPrng.get<Word>() % mMod; //randome share
+				mSharePoint[i][d].mArithShare = mSharedPrng.get<Word>() % mPoint[i - startPointIdx][d];//test... mMod; //randome share 
 				mSharePoint[i][d].mBitShare = mSharePoint[i][d].getBinary(mLenMod); //bit vector
 
 
@@ -415,9 +432,9 @@ namespace osuCrypto
 		{
 			for (u64 j = 0; j < mDimension; j++)
 			{
-				mShareCluster[i][j] = mSharedPrng.get<Word>() % mMod; //randome share
+				mShareCluster[i][j] = mSharedPrng.get<Word>() % mCluster[i][j];//mMod; //randome share
 
-				auto theirShare = (mCluster[i][j] - mShareCluster[i][j]) % mMod;
+				auto theirShare = (mCluster[i][j] - mShareCluster[i][j])  % mMod;
 				memcpy(sendBuff.data() + iter, (u8*)&theirShare, mLenModinByte);
 				iter += mLenModinByte;
 			}
@@ -521,19 +538,22 @@ namespace osuCrypto
 		//(pa+pb-ca-cb)^2=(pa-ca)^2+(pb-cb)^2-2(pa-ca)(pb-cb)
 		for (u64 i = 0; i < mTotalNumPoints; i++)
 			for (u64 k = 0; k < mNumCluster; k++)
+			{
+				mDist[i][k] = 0;
 				for (u64 d = 0; d < mDimension; d++)
 				{
-					Word diff2 = (mSharePoint[i][d].mArithShare - mShareCluster[k][d]) % mMod;
-					Word secondterm = (mProdPointPPC[i][d][k] - mProdPointPC[i][d][k] + mProdCluster[k][d]) % mMod;
-
-					mDist[i][k] = (Word)(mDist[i][k] + pow(diff2, 2) + 2 * secondterm) % mMod;
+					iWord diff2 = signExtend((mSharePoint[i][d].mArithShare - mShareCluster[k][d]), mLenMod);
+					//iWord secondterm = (mProdPointPPC[i][d][k] - mProdPointPC[i][d][k] + mProdCluster[k][d]);
+					//Word d2 = pow(diff2, 2);
+					iWord secondterm = signExtend(mProdPointPPC[i][d][k] - mProdPointPC[i][d][k] + mProdCluster[k][d], mLenMod);
+					mDist[i][k] = signExtend((mDist[i][k] + (Word)pow(diff2, 2) + 2 * secondterm),mLenMod);
 
 				}
-
+			}
 	}
 
 
-	void DataShare::amortBinArithMulsend(std::vector<std::vector<Word>>& outShareSend, std::vector<BitVector>& bitVecs, std::vector<std::vector<Word>>& arithVecs)
+	void DataShare::amortBinArithMulsend(std::vector<std::vector<iWord>>& outShareSend, std::vector<BitVector>& bitVecs, std::vector<std::vector<iWord>>& arithVecs)
 	{
 		outShareSend.resize(mTotalNumPoints);
 		//OT concate all bitvector
@@ -583,7 +603,7 @@ namespace osuCrypto
 
 	}
 
-	void DataShare::amortBinArithMULrecv(std::vector<std::vector<Word>>& outShareRecv, std::vector<BitVector>& bitVecs)
+	void DataShare::amortBinArithMULrecv(std::vector<std::vector<iWord>>& outShareRecv, std::vector<BitVector>& bitVecs)
 	{
 		outShareRecv.resize(mTotalNumPoints);
 		//OT concate all bitvector

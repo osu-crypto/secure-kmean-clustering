@@ -7,13 +7,16 @@ namespace osuCrypto
 	void AdaptiveMUL_Zn_test();
 	void AdaptiveMUL_test();
 	void readData_test();
-	void ClusteringTest();
-	void testDecAES();
-	void MulTest();
-	void testMinDist();
-	void testMinDistFirstLevel();
-	void testCircuit();
-	void testUpdateCluster();
+	
 
+	void MulTest();
 	void DistTest();
+
+	void testCircuit();
+	void testMinDistFirstLevel();
+	//void testDecAES();
+	//void ClusteringTest();
+	//void testMinDist();
+	
+	//void testUpdateCluster();
 }
