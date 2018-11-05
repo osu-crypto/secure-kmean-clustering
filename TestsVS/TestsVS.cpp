@@ -65,17 +65,25 @@ namespace osuCrypto
 			InitDebugPrinting();
 			testMinDistFirstLevel();
 		}
+
+		TEST_METHOD(MinDistTesttVS)
+		{
+			InitDebugPrinting();
+			testMinDist();
+		}
+		TEST_METHOD(ClusteringTesttVS)
+		{
+			InitDebugPrinting();
+			ClusteringTest();
+		}
+
 #if 0
 		TEST_METHOD(DecAESTesttVS)
 		{
 			InitDebugPrinting();
 			testDecAES();
 		}
-		TEST_METHOD(MinDistTesttVS)
-		{
-			InitDebugPrinting();
-			testMinDist();
-		}
+		
 		
 
 		
@@ -87,11 +95,7 @@ namespace osuCrypto
 		}
 		
 		
-		TEST_METHOD(ClusteringTesttVS)
-		{
-			InitDebugPrinting();
-			ClusteringTest();
-		}
+		
 #endif
 		
 	

@@ -216,15 +216,17 @@ namespace osuCrypto
 
 			bool passed = expLt == ltVal;
 			std::cout << "eval:\n"
-				<< "    x  = " << input0.getValue() << "\n"
-				<< "    y  = " << input1.getValue() << "\n"
+				<< "    x  = " << input0.getValue() << "\t"
+				<< "    y  = " << input1.getValue() << "\t"
 				<< "    lt = " << ltVal << "\n"
-				<< " minus = " << minus.getValue() << "\n --------------" << std::endl;
+				<< " minus = " << minus.getValue() << "\t --------------" << std::endl;
 			if (passed)
 				std::cout << Color::Green << "    Passed " << ColorDefault << std::endl;
 			else
+			{
 				std::cout << Color::Red << "    Failed " << ColorDefault << std::endl;
-
+				throw std::exception();
+			}
 		}
 
 		if (parties[1].isLocalParty())
@@ -306,7 +308,7 @@ namespace osuCrypto
 
 		using Word = i32;
 		PRNG prng(ZeroBlock);
-		u64 numberTest = 10;
+		u64 numberTest = 20;
 
 
 
@@ -333,11 +335,11 @@ namespace osuCrypto
 		for (i64 i = 0; i < numberTest; i++)
 		{
 			//xx[i] = 1000 + i;//p0.mPrng.get<Word>() % inMod;
-			xx[i] = signExtend(prng.get<Word>(), bitCount,true);
+			xx[i] = signExtend(prng.get<Word>(), bitCount, true);
 			x1[i] = signExtend(prng.get<Word>(), bitCount, true);
 			x2[i] = signExtend(xx[i] - x1[i], bitCount, true);
 
-			yy[i] = signExtend(2000 + i, bitCount); // p0.mPrng.get<Word>() % inMod;
+			yy[i] = signExtend(prng.get<Word>(), bitCount); // p0.mPrng.get<Word>() % inMod;
 			y1[i] = signExtend(prng.get<Word>(), bitCount);
 			y2[i] = signExtend(yy[i] - y1[i], bitCount);
 
@@ -366,10 +368,10 @@ namespace osuCrypto
 
 		std::cout << " ==================\n";
 
-		for (i64 i = 0; i < numberTest; i++)
+		/*for (i64 i = 0; i < numberTest; i++)
 		{
 			Word diff1 = signExtend(x1[i] - y1[i], bitCount);
-			Word diff2= signExtend(y2[i] - x2[i], bitCount);
+			Word diff2 = signExtend(y2[i] - x2[i], bitCount);
 			auto exp = int(xx[i] < yy[i]);
 
 			std::cout << "trial: " << i << "\n"
@@ -385,7 +387,7 @@ namespace osuCrypto
 
 			thrd.join();
 
-		}
+		}*/
 
 		//	std::cout << "================programDiv==================\n";
 		//
@@ -411,47 +413,47 @@ namespace osuCrypto
 	void programLessThan22_o(std::array<Party, 2> parties, i64 myInput1, i64 myInput2, u64 bitCount)
 	{
 
-			auto input01 = parties[0].isLocalParty() ?  //x1
-				parties[0].input<sInt>(myInput1, bitCount) :
-				parties[0].input<sInt>(bitCount);
+		auto input01 = parties[0].isLocalParty() ?  //x1
+			parties[0].input<sInt>(myInput1, bitCount) :
+			parties[0].input<sInt>(bitCount);
 
-			auto input11 = parties[1].isLocalParty() ? //x2
-				parties[1].input<sInt>(myInput1, bitCount) :
-				parties[1].input<sInt>(bitCount);
+		auto input11 = parties[1].isLocalParty() ? //x2
+			parties[1].input<sInt>(myInput1, bitCount) :
+			parties[1].input<sInt>(bitCount);
 
-			auto input02 = parties[0].isLocalParty() ? //y1
-				parties[0].input<sInt>(myInput2, bitCount) :
-				parties[0].input<sInt>(bitCount);
+		auto input02 = parties[0].isLocalParty() ? //y1
+			parties[0].input<sInt>(myInput2, bitCount) :
+			parties[0].input<sInt>(bitCount);
 
-			auto input12 = parties[1].isLocalParty() ? //y2
-				parties[1].input<sInt>(myInput2, bitCount) :
-				parties[1].input<sInt>(bitCount);
+		auto input12 = parties[1].isLocalParty() ? //y2
+			parties[1].input<sInt>(myInput2, bitCount) :
+			parties[1].input<sInt>(bitCount);
 
-			auto input0 = input01 + input11;
-			auto input1 = input02 + input12;
+		auto input0 = input01 + input11;
+		auto input1 = input02 + input12;
 
-			
 
-			auto lt = input0 < input1; 
-			parties[0].reveal(input0);
-			parties[0].reveal(input1);
-			parties[0].reveal(lt);
-			parties[1].getRuntime().processesQueue();
+
+		auto lt = input0 < input1;
+		parties[0].reveal(input0);
+		parties[0].reveal(input1);
+		parties[0].reveal(lt);
+		parties[1].getRuntime().processesQueue();
 
 #if 1
-			if (parties[0].isLocalParty())
-			{
-				std::cout << IoStream::lock;
-				std::cout << input0.getValue() << " < " << input1.getValue() << ": " << lt.getValue() << " --------------\n";
-				std::cout << IoStream::unlock;
+		if (parties[0].isLocalParty())
+		{
+			std::cout << IoStream::lock;
+			std::cout << input0.getValue() << " < " << input1.getValue() << ": " << lt.getValue() << " --------------\n";
+			std::cout << IoStream::unlock;
 
-			}
+		}
 
-			if (parties[1].isLocalParty())
-			{
-				//std::cout << i << ": lt= " << lt.getValue() << " vs " << invert.getValue() << std::endl;
-				//ostreamLock(std::cout) << i << ": slt= " << int(myOutput[2 * i]) << int(myOutput[2 * i + 1]) << "    B\n";// << (*v1->mLabels)[0] << std::endl;
-			}
+		if (parties[1].isLocalParty())
+		{
+			//std::cout << i << ": lt= " << lt.getValue() << " vs " << invert.getValue() << std::endl;
+			//ostreamLock(std::cout) << i << ": slt= " << int(myOutput[2 * i]) << int(myOutput[2 * i + 1]) << "    B\n";// << (*v1->mLabels)[0] << std::endl;
+		}
 #endif
 
 
@@ -553,7 +555,7 @@ namespace osuCrypto
 			myOutput[2 * i] = PermuteBit((*v->mLabels)[0]);//YES=10, NO=01
 			myOutput[2 * i + 1] = PermuteBit((*v1->mLabels)[0]); //YES=10, NO=01
 
-		
+
 
 #if 1
 			if (parties[0].isLocalParty())
@@ -564,23 +566,23 @@ namespace osuCrypto
 				std::cout << i << ": output= " << input0.getValue() << " vs " << input1.getValue() << " \n--------------\n";
 				std::cout << IoStream::unlock;
 
-			/*	if (input0.getValue() < input1.getValue())
-					myOutput[2 * i] = 1;
-				else
-					myOutput[2 * i] = 0;*/
+				/*	if (input0.getValue() < input1.getValue())
+						myOutput[2 * i] = 1;
+					else
+						myOutput[2 * i] = 0;*/
 
-				//myOutput[2 * i + 1] = !myOutput[2 * i];
+						//myOutput[2 * i + 1] = !myOutput[2 * i];
 			}
 
 			if (parties[1].isLocalParty())
 			{
 				//std::cout << i << ": lt= " << lt.getValue() << " vs " << invert.getValue() << std::endl;
 				ostreamLock(std::cout) << i << ": slt= " << int(myOutput[2 * i]) << int(myOutput[2 * i + 1]) << "    B\n";// << (*v1->mLabels)[0] << std::endl;
-			
-				
+
+
 
 			//	myOutput[2 * i + 1] = !myOutput[2 * i];
-			
+
 			}
 #endif
 
@@ -590,7 +592,8 @@ namespace osuCrypto
 	}
 
 
-	void programLessThan(std::array<Party, 2> parties, std::vector<iWord>& myInput1, std::vector<iWord> myInput2, BitVector& myOutput, u64 bitCount, std::vector<int> expLt)
+	void programLessThan(std::array<Party, 2> parties, std::vector<iWord>& myInput1
+		, std::vector<iWord> myInput2, BitVector& myOutput, u64 bitCount, std::vector<int> expLt )
 	{
 
 		myOutput.resize(2 * myInput1.size());
@@ -616,6 +619,7 @@ namespace osuCrypto
 			auto input0 = input01 + input11;
 			auto input1 = input02 + input12;
 
+		
 
 			auto lt = input0 < input1;
 			auto invert = ~lt;
@@ -642,14 +646,17 @@ namespace osuCrypto
 
 				bool passed = expLt[i] == ltVal;
 				std::cout << "eval:\n"
-					<< "    x  = " << input0.getValue() << "\n"
-					<< "    y  = " << input1.getValue() << "\n"
-					<< "    lt = " << ltVal << "\n"
-					<< " minus = " << minus.getValue() << "\n --------------" << std::endl;
+					<< "    x  = " << input0.getValue() << "\t"
+					<< "    y  = " << input1.getValue() << "\t"
+					<< "    lt = " << ltVal << "\t"
+					<< " minus = " << minus.getValue() << "\t --------------" << std::endl;
 				if (passed)
 					std::cout << Color::Green << "    Passed " << ColorDefault << std::endl;
 				else
+				{
 					std::cout << Color::Red << "    Failed " << ColorDefault << std::endl;
+					throw std::exception();
+				}
 
 			}
 
@@ -733,7 +740,7 @@ namespace osuCrypto
 		int inMod = pow(2, inExMod);
 		PRNG prng(ZeroBlock);
 		u64 numberTest = 10;
-	
+
 
 		std::vector<Word> xx(numberTest), x1(numberTest), x2(numberTest);
 		std::vector<Word> yy(numberTest), y1(numberTest), y2(numberTest);
@@ -742,14 +749,14 @@ namespace osuCrypto
 			//xx[i] = 1000 + i;//p0.mPrng.get<Word>() % inMod;
 			xx[i] = signExtend1(prng.get<Word>(), inExMod);
 			x1[i] = signExtend1(prng.get<Word>(), inExMod);
-			x2[i] = signExtend1((xx[i]-x1[i]), inExMod);
+			x2[i] = signExtend1((xx[i] - x1[i]), inExMod);
 
 			yy[i] = 2000 + i; // p0.mPrng.get<Word>() % inMod;
 			y1[i] = signExtend1(prng.get<Word>(), inExMod);
 			y2[i] = signExtend1((yy[i] - y1[i]), inExMod);
 
-			if(xx[i] < yy[i])
-				std::cout << xx[i] << "<" << yy[i]<< ": 1 Expected\n";
+			if (xx[i] < yy[i])
+				std::cout << xx[i] << "<" << yy[i] << ": 1 Expected\n";
 			else
 				std::cout << xx[i] << "<" << yy[i] << ": 0 Expected\n";
 
@@ -785,20 +792,20 @@ namespace osuCrypto
 		thrd.join();
 
 
-		std::cout <<"================programDiv==================\n";
+		std::cout << "================programDiv==================\n";
 
 		for (i64 i = 0; i < numberTest; i++)
 		{
-				std::cout << xx[i] << "/" << yy[i] << " = " <<  (xx[i] / yy[i])<<"  Expected\n";
+			std::cout << xx[i] << "/" << yy[i] << " = " << (xx[i] / yy[i]) << "  Expected\n";
 		}
 
-	/*	thrd = std::thread([&]() {
-			for (i64 i = 0; i < numberTest; i++)
-				programDiv(parties0, x1[i], y1[i], inExMod);
-		});
+		/*	thrd = std::thread([&]() {
+				for (i64 i = 0; i < numberTest; i++)
+					programDiv(parties0, x1[i], y1[i], inExMod);
+			});
 
-		for (i64 i = 0; i < numberTest; i++)
-			programDiv(parties1, x2[i], y2[i], inExMod);*/
+			for (i64 i = 0; i < numberTest; i++)
+				programDiv(parties1, x2[i], y2[i], inExMod);*/
 
 		thrd.join();
 	}
@@ -1558,7 +1565,7 @@ namespace osuCrypto
 		{
 			clusters[k].resize(p0.mDimension);
 			for (u64 d = 0; d < p0.mDimension; d++)
-				clusters[k][d] = (Word)(p0.mShareCluster[k][d] + p1.mShareCluster[k][d]) ;
+				clusters[k][d] = (Word)(p0.mShareCluster[k][d] + p1.mShareCluster[k][d]);
 		}
 
 		for (u64 i = 0; i < p0.mTotalNumPoints; i++) //original points
@@ -1583,15 +1590,15 @@ namespace osuCrypto
 					for (u64 d = 0; d < p0.mDimension; d++)
 					{
 
-						std::cout << points[i][d] << " vs " << (p0.mSharePoint[i][d].mArithShare + p1.mSharePoint[i][d].mArithShare)  << "= " << p0.mSharePoint[i][d].mArithShare << " + " << p1.mSharePoint[i][d].mArithShare << " p \n";
-						std::cout << clusters[k][d] << " vs " << p0.mShareCluster[k][d] + p1.mShareCluster[k][d]  << " = "<< p0.mShareCluster[k][d] << " + " << p1.mShareCluster[k][d] << " c \n";
-						iWord diff2p0 = (p0.mSharePoint[i][d].mArithShare - p0.mShareCluster[k][d]) ;
-						iWord diff2p1 = (p1.mSharePoint[i][d].mArithShare - p1.mShareCluster[k][d]) ;
+						std::cout << points[i][d] << " vs " << (p0.mSharePoint[i][d].mArithShare + p1.mSharePoint[i][d].mArithShare) << "= " << p0.mSharePoint[i][d].mArithShare << " + " << p1.mSharePoint[i][d].mArithShare << " p \n";
+						std::cout << clusters[k][d] << " vs " << p0.mShareCluster[k][d] + p1.mShareCluster[k][d] << " = " << p0.mShareCluster[k][d] << " + " << p1.mShareCluster[k][d] << " c \n";
+						iWord diff2p0 = (p0.mSharePoint[i][d].mArithShare - p0.mShareCluster[k][d]);
+						iWord diff2p1 = (p1.mSharePoint[i][d].mArithShare - p1.mShareCluster[k][d]);
 
 
 
-						iWord secondtermp0 = (p0.mProdPointPPC[i][d][k] - p0.mProdPointPC[i][d][k] + p0.mProdCluster[k][d]) ;
-						iWord secondtermp1 = (p1.mProdPointPPC[i][d][k] - p1.mProdPointPC[i][d][k] + p1.mProdCluster[k][d]) ;
+						iWord secondtermp0 = (p0.mProdPointPPC[i][d][k] - p0.mProdPointPC[i][d][k] + p0.mProdCluster[k][d]);
+						iWord secondtermp1 = (p1.mProdPointPPC[i][d][k] - p1.mProdPointPC[i][d][k] + p1.mProdCluster[k][d]);
 
 						//std::cout << diff2p0 << " * " << diff2p1 << " = " << (Word)(diff2p0*diff2p1) << " \n";
 						std::cout << diff2p0 << " * " << diff2p1 << " = " << (diff2p0*diff2p1) << " \n";
@@ -1600,7 +1607,7 @@ namespace osuCrypto
 						iWord d1 = signExtend(diff2p0, p0.mLenMod);
 						iWord d2 = signExtend(diff2p1, p0.mLenMod);
 						iWord s1 = signExtend(secondtermp0, p0.mLenMod);
-						iWord s2= signExtend(secondtermp1, p0.mLenMod);
+						iWord s2 = signExtend(secondtermp1, p0.mLenMod);
 						iWord r1 = signExtend(d1*d2, p0.mLenMod);
 						iWord r2 = signExtend(s1 + s2, p0.mLenMod);
 
@@ -1625,6 +1632,22 @@ namespace osuCrypto
 #pragma endregion
 
 
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++) //original points
+			for (u64 k = 0; k < p0.mNumCluster; k++) //original cluster
+			{
+				iWord expectedDist = 0;
+				for (u64 d = 0; d < p0.mDimension; d++)
+				{
+					iWord diff = signExtend((points[i][d] - clusters[k][d]), p0.mLenMod);
+					expectedDist = signExtend((expectedDist + (iWord)pow(diff, 2)), p0.mLenMod);
+				}
+				iWord ourDist = signExtend((p0.mDist[i][k] + p1.mDist[i][k]), p0.mLenMod);
+
+				std::cout << "dist("<<i <<"," << k<< ")= " << ourDist << " = " <<expectedDist<<" \n";
+
+
+			}
+	
 		timer.setTimePoint("OTkeysDone");
 
 		p0.Print();
@@ -1643,14 +1666,14 @@ namespace osuCrypto
 		Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
 		Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
 
-		u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 7;
+		u64 securityParams = 128, inDimension = 2, inExMod = 20, inNumCluster = 7;
 
 		u64 inMod = pow(2, inExMod);
 		std::vector<std::vector<Word>> inputA, inputB;
 		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
 
 		PRNG prng(ZeroBlock);
-		u64 numberTest = 4;
+		u64 numberTest = 10;
 		inputA.resize(numberTest);
 		inputB.resize(numberTest);
 		for (int i = 0; i < numberTest; i++)
@@ -1776,7 +1799,7 @@ namespace osuCrypto
 					throw std::exception();
 				}
 			}
-		}
+	}
 
 
 #endif
@@ -1832,7 +1855,7 @@ namespace osuCrypto
 			}
 		}
 
-		
+
 #if 1
 
 		std::vector<std::vector<int>> exp(p0.mTotalNumPoints);
@@ -1854,12 +1877,12 @@ namespace osuCrypto
 				std::vector<iWord> dist1(numLeaveGC), dist2(numLeaveGC);
 				for (u64 k = 0; k < numLeaveGC; k++)
 				{
-					/*memcpy((u8*)&dist1[k], (u8*)&p0.mDist[i][2 * k], sizeof(Word));
-					memcpy((u8*)&dist2[k], (u8*)&p0.mDist[i][2 * k+1], sizeof(Word));*/
+					memcpy((i8*)&dist1[k], (i8*)&p0.mDist[i][2 * k], sizeof(iWord));
+					memcpy((i8*)&dist2[k], (i8*)&p0.mDist[i][2 * k + 1], sizeof(iWord));
 
 
-					dist1[k] = signExtend(p0.mDist[i][2 * k], p0.mLenMod);
-					dist2[k] = signExtend(p0.mDist[i][2 * k + 1], p0.mLenMod);
+					//dist1[k] = signExtend(p0.mDist[i][2 * k], p0.mLenMod);
+					//dist2[k] = signExtend(p0.mDist[i][2 * k + 1], p0.mLenMod);
 
 					//std::cout << IoStream::lock;
 					////for (u64 j = 0; j < dist1.size(); j++)
@@ -1876,7 +1899,7 @@ namespace osuCrypto
 
 			p0.amortBinArithMulsend(outShareSend0, p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
 			p0.amortBinArithMULrecv(outShareRecv0, p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
-			//p0.computeShareMin(outShareSend0, outShareRecv0);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+			p0.computeShareMin(outShareSend0, outShareRecv0);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 
 		});
 		std::vector<std::vector<Word>> outShareSend, outShareRecv;
@@ -1887,11 +1910,11 @@ namespace osuCrypto
 			std::vector<iWord> dist1(numLeaveGC), dist2(numLeaveGC);
 			for (u64 k = 0; k < numLeaveGC; k++)
 			{
-				//memcpy((u8*)&dist1[k], (u8*)&p1.mDist[i][2 * k], sizeof(Word));
-				//memcpy((u8*)&dist2[k], (u8*)&p1.mDist[i][2 * k + 1], sizeof(Word));
+				memcpy((i8*)&dist1[k], (i8*)&p1.mDist[i][2 * k], sizeof(iWord));
+				memcpy((i8*)&dist2[k], (i8*)&p1.mDist[i][2 * k + 1], sizeof(iWord));
 
-				dist1[k] = signExtend(p1.mDist[i][2 * k], p0.mLenMod);
-				dist2[k] = signExtend(p1.mDist[i][2 * k + 1], p0.mLenMod);
+				/*dist1[k] = signExtend(p1.mDist[i][2 * k], p0.mLenMod);
+				dist2[k] = signExtend(p1.mDist[i][2 * k + 1], p0.mLenMod);*/
 
 			}
 
@@ -1907,9 +1930,9 @@ namespace osuCrypto
 		}
 		//party 2
 
-		p1.amortBinArithMULrecv(outShareSend1, p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
-		p1.amortBinArithMulsend(outShareRecv1, p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
-		//p1.computeShareMin(outShareSend1, outShareRecv1); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+		p1.amortBinArithMULrecv(outShareRecv1, p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
+		p1.amortBinArithMulsend(outShareSend1, p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B) 
+		p1.computeShareMin(outShareSend1, outShareRecv1); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 
 		thrd.join();
 #endif
@@ -1935,31 +1958,32 @@ namespace osuCrypto
 						std::cout << k << ": " << dist1 << " < " << dist2 << "\n";
 						std::cout << k << ": " << p0.mVecGcMinOutput[i][2 * k] << "^" << p0.mVecGcMinOutput[i][2 * k] << "=" << int(res1) << "\n";
 						std::cout << k << ": " << p0.mVecGcMinOutput[i][2 * k + 1] << "^" << p0.mVecGcMinOutput[i][2 * k + 1] << "=" << int(res2) << "\n";
-						//throw std::exception();
+						throw std::exception();
 					}
 				}
 			}
 #endif
 
-#if 0  //double check (b^A \xor b^B)*(P^A)
+#if 1  //double check (b^A \xor b^B)*(P^A)
 		for (u64 i = 0; i < p0.mVecGcMinOutput.size(); i++)
 			for (u64 k = 0; k < p0.mVecGcMinOutput[i].size(); k++)
 			{
 				u8 b = p0.mVecGcMinOutput[i][k] ^ p1.mVecGcMinOutput[i][k];
-				Word res1 = b*p0.mDist[i][k]; //(b^A \xor b^B)*(P^A)
-				Word res2 = (outShareSend0[i][k] + outShareRecv1[i][k]) % p0.mMod;
+				iWord res1 = b*p0.mDist[i][k]; //(b^A \xor b^B)*(P^A)
+				iWord res2 = signExtend(outShareSend0[i][k] + outShareRecv1[i][k], p0.mLenMod);
 
 				if (res1 != res2)
 				{
+					std::cout << "double check (b^A xor b^B)*(P^A) \n";
 					std::cout << i << " - " << k << ": ";
 					std::cout << p0.mVecGcMinOutput[i][k] << " ^ " << p1.mVecGcMinOutput[i][k] << " = " << int(b) << "\n";
 					std::cout << int(b) << " * " << p0.mDist[i][k] << " = " << res1 << "\n";
 					std::cout << outShareSend0[i][k] << " + " << outShareRecv1[i][k] << " = " << res2 << "\n";
-					//throw std::exception();
+					throw std::exception();
 				}
 
 				res1 = b*p1.mDist[i][k]; //(b^A \xor b^B)*(P^B)
-				res2 = (outShareRecv0[i][k] + outShareSend1[i][k]) % p0.mMod;
+				res2 = signExtend(outShareRecv0[i][k] + outShareSend1[i][k], p0.mLenMod);
 
 				if (res1 != res2)
 				{
@@ -1967,22 +1991,22 @@ namespace osuCrypto
 					std::cout << p0.mVecGcMinOutput[i][k] << " ^ " << p1.mVecGcMinOutput[i][k] << " = " << int(b) << "\n";
 					std::cout << int(b) << " * " << p1.mDist[i][k] << " = " << res1 << "\n";
 					std::cout << outShareRecv0[i][k] << " + " << outShareSend1[i][k] << " = " << res2 << "\n";
-					//throw std::exception();
+					throw std::exception();
 				}
 			}
 
 #endif
 
-#if 0 //double check (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+#if 1 //double check (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 		for (u64 i = 0; i < p0.mVecGcMinOutput.size(); i++)
 			for (u64 k = 0; k < p0.mVecGcMinOutput[i].size() / 2; k++)
 			{
 				u8 b1 = p0.mVecGcMinOutput[i][2 * k] ^ p1.mVecGcMinOutput[i][2 * k];
 				u8 b2 = p0.mVecGcMinOutput[i][2 * k + 1] ^ p1.mVecGcMinOutput[i][2 * k + 1];
-				Word point1 = (p0.mDist[i][2 * k] + p1.mDist[i][2 * k]) % p0.mMod;
-				Word point2 = (p0.mDist[i][2 * k + 1] + p1.mDist[i][2 * k + 1]) % p0.mMod;
-				Word res1 = (b1*point1 + b2*point2) % p0.mMod; //b1*p1+b2*p2
-				Word res2 = (p0.mShareMin[i][k] + p1.mShareMin[i][k]) % p0.mMod;
+				iWord point1 = signExtend(p0.mDist[i][2 * k] + p1.mDist[i][2 * k], p0.mLenMod);
+				iWord point2 = signExtend(p0.mDist[i][2 * k + 1] + p1.mDist[i][2 * k + 1], p0.mLenMod);
+				iWord res1 = signExtend((b1*point1 + b2*point2), p0.mLenMod); //b1*p1+b2*p2
+				iWord res2 = signExtend((p0.mShareMin[i][k] + p1.mShareMin[i][k]), p0.mLenMod);
 
 				if (res1 != res2)
 				{
@@ -1993,12 +2017,12 @@ namespace osuCrypto
 					throw std::exception();
 				}
 
-				//if(point1<point2) //min=poin1
-				//if (point1 != res1)
-				{
-					std::cout << i << " - " << k << ":  " << point1 << " vs " << point2 << ":  " << res1 << "\n";
-					//throw std::exception();
-				}
+				if (point1 < point2) //min=poin1
+					if (point1 != res1)
+					{
+						std::cout << i << " - " << k << ":  " << point1 << " vs " << point2 << ":  " << res1 << "\n";
+						throw std::exception();
+					}
 			}
 #endif
 
@@ -2016,8 +2040,1608 @@ namespace osuCrypto
 
 
 
+}
+
+
+	void testMinDist()
+	{
+		Timer timer; IOService ios;
+		Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
+		Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
+
+		u64 securityParams = 128, inDimension = 2, inExMod = 20, inNumCluster = 5;
+
+		int inMod = pow(2, inExMod);
+		std::vector<std::vector<Word>> inputA, inputB;
+		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+
+		PRNG prng(ZeroBlock);
+		u64 numberTest = 2;
+		inputA.resize(numberTest);
+		inputB.resize(numberTest);
+		for (int i = 0; i < numberTest; i++)
+		{
+			inputA[i].resize(inDimension);
+			inputB[i].resize(inDimension);
+			for (size_t j = 0; j < inDimension; j++)
+			{
+				inputA[i][j] = prng.get<Word>() % inMod;
+				inputB[i][j] = prng.get<Word>() % inMod;
+
+				//std::cout << inputA[i][j] << "\t" << inputB[i][j] << " p\n";
+			}
+		}
+
+		u64 inTotalPoint = inputA.size() + inputB.size();
+		//=======================offline===============================
+		DataShare p0, p1;
+
+		timer.setTimePoint("starts");
+		std::thread thrd = std::thread([&]() {
+			p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
+				, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension);
+
+			NaorPinkas baseOTs;
+			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
+			p0.recv.setBaseOts(p0.mSendBaseMsg);
+
+
+			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
+			p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
+
+
+		});
+
+
+		p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
+			, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
+
+		NaorPinkas baseOTs;
+		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
+		p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
+
+
+		baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
+		p1.recv.setBaseOts(p1.mSendBaseMsg);
+		thrd.join();
+
+
+
+		//fake dist
+		u64 num = 1;
+		u64 num2 = 1;
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				//if (i % 2)
+				{
+					p0.mDist[i][k] = signExtend(prng.get<Word>(), p0.mLenMod);
+					p1.mDist[i][k] = signExtend(prng.get<Word>(), p0.mLenMod);
+					//p1.mDist[i][k] = (num - p0.mDist[i][k]) % p0.mMod;;
+					std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << signExtend(p0.mDist[i][k] + p1.mDist[i][k], p0.mLenMod) << " dist\n";
+					std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (signExtend(p0.mDist[i][k] + p1.mDist[i][k], p0.mLenMod))%p0.mMod << " dist\n";
+					num++;
+				}
+				/*else
+				{
+					num2 = rand() % 1000;
+					p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
+					p1.mDist[i][k] = prng.get<Word>() % p0.mMod;;
+					std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
+					num2++;
+				}*/
+			}
+
+		std::vector<std::vector<int>> exp(p0.mTotalNumPoints);
+		for (i64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			exp[i].resize(p0.mNumCluster / 2);
+			for (u64 k = 0; k < exp[i].size(); k++) {
+
+				iWord xx = signExtend(p0.mDist[i][2 * k] + p1.mDist[i][2 * k], p0.mLenMod);
+				iWord yy = signExtend(p0.mDist[i][2 * k + 1] + p1.mDist[i][2 * k + 1], p0.mLenMod);
+
+				exp[i][k] = int(xx < yy);
+			}
+		}
+
+		std::vector<std::vector<iWord>> outShareSend0, outShareRecv0;
+		std::vector<std::vector<BitVector>> outIdxShareSend0, outIdxShareRecv0;
+		std::vector<std::vector<iWord>> outShareSend1, outShareRecv1;
+		std::vector<std::vector<BitVector>> outIdxShareSend1, outIdxShareRecv1;
+
+		thrd = std::thread([&]() { //party 1
+			u64 numNodeThisLevel = p0.mNumCluster;
+			BitVector oneBit("1");
+			
+			//=================1st level //TODO: remove dist
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			{
+				if (numNodeThisLevel % 2) //odd number
+					p0.lastNode[i] = p0.mDist[i][p0.mNumCluster - 1];
+
+
+				std::vector<iWord> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
+				for (u64 k = 0; k < dist1.size(); k++)
+				{
+					memcpy((i8*)&dist1[k], (i8*)&p0.mDist[i][2 * k], sizeof(iWord));
+					memcpy((i8*)&dist2[k], (i8*)&p0.mDist[i][2 * k + 1], sizeof(Word));
+				}
+
+				programLessThan(p0.parties, dist1, dist2, p0.mVecGcMinOutput[i], p0.mLenMod, exp[i]);
+				p0.mVecIdxMin[i].append(p0.mVecGcMinOutput[i]);
+
+				if (numNodeThisLevel % 2) //odd number
+					p0.mVecIdxMin[i].append(oneBit); //make sure last vecIdxMin[i]=1 
+
+			}
+
+			p0.amortBinArithMulsend(outShareSend0, p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
+			p0.amortBinArithMULrecv(outShareRecv0, p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
+			p0.computeShareMin(outShareSend0, outShareRecv0);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+
+			if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+					p0.mShareMin[i].push_back(p0.lastNode[i]);
+
+
+			std::cout << IoStream::lock;
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				std::cout << i << "-" << p0.stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    A\n";
+			std::cout << IoStream::unlock;
+		});
+
+		u64 numNodeThisLevel = p1.mNumCluster;
+		BitVector zeroBit("0");
+
+		//=================1st level //TODO: remove dist
+		
+
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+		{
+			if (numNodeThisLevel % 2) //odd number
+				p1.lastNode[i] = p1.mDist[i][p1.mNumCluster - 1];
+
+			//std::vector<i64> diffDist; //lastNode move to next level
+			//for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+			//	diffDist.push_back((p1.mDist[i][2 * k + 1] - p1.mDist[i][2 * k]) % p0.mMod);
+
+			std::vector<iWord> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
+			for (u64 k = 0; k < dist1.size(); k++)
+			{
+				memcpy((i8*)&dist1[k], (i8*)&p1.mDist[i][2 * k], sizeof(iWord));
+				memcpy((i8*)&dist2[k], (i8*)&p1.mDist[i][2 * k + 1], sizeof(iWord));
+			}
+
+
+			std::cout << IoStream::lock;
+			if (i == 0) //
+			{
+				//std::cout << p1.mDist[i][0] << " " << p1.mDist[i][1] << " d=" << diffDist[0] << " mShareMin r\n";
+
+				/*std::cout << i << "===================\n";
+				for (u64 j = 0; j < diffDist.size(); j++)
+				std::cout << diffDist[j] << "   diffDistA\n";*/
+			}
+			std::cout << IoStream::unlock;
+
+			programLessThan(p1.parties, dist1, dist2, p1.mVecGcMinOutput[i], p1.mLenMod, exp[i]);
+
+			p1.mVecIdxMin[i].append(p1.mVecGcMinOutput[i]);//first level 10||01||01||01|1
+			if (numNodeThisLevel % 2) //odd number
+				p1.mVecIdxMin[i].append(zeroBit); //make sure last vecIdxMin[i]=1 
+
+		}
+
+		p1.amortBinArithMULrecv(outShareRecv1, p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
+		p1.amortBinArithMulsend(outShareSend1, p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
+		p1.computeShareMin(outShareSend1, outShareRecv1); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+
+		if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+			for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+				p1.mShareMin[i].push_back(p1.lastNode[i]);
+
+
+		std::cout << IoStream::lock;
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			std::cout << i << "-" << p1.stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    B\n";
+		std::cout << IoStream::unlock;
+
+		thrd.join();
+
+
+
+
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			std::cout << i << ": min=";
+			for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
+			{
+				iWord minDist = signExtend(p0.mShareMin[i][k] + p1.mShareMin[i][k], p0.mLenMod);
+				std::cout << minDist%p0.mMod << " ";
+			}
+			BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+			std::cout << vecDist << " ";
+
+
+			std::cout << "  vs  ";
+
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				iWord point = signExtend((p0.mDist[i][k] + p1.mDist[i][k]), p0.mLenMod);
+				std::cout << point%p0.mMod << " ";
+			}
+			std::cout << "   ||   ";
+
+			std::cout << i << ": min=";
+			for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
+			{
+				iWord minDist = signExtend(p0.mShareMin[i][k] + p1.mShareMin[i][k], p0.mLenMod);
+				std::cout << minDist << " ";
+			}
+			vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+			std::cout << vecDist << " ";
+
+
+			std::cout << "  vs  ";
+
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				iWord point = signExtend((p0.mDist[i][k] + p1.mDist[i][k]), p0.mLenMod);
+				std::cout << point << " ";
+			}
+			std::cout << "\n";
+		}
+
+
+
+		//=============2nd level loop until root==================================
+
+		
+
+		while (p0.mShareMin[0].size()>1)
+		//while (0)
+		{
+			std::cout << "=======mShareMin============\n";
+
+			std::vector<std::vector<iWord>> testShareMin0(p0.mShareMin.size()), testShareMin1(p1.mShareMin.size());
+			for (u64 i = 0; i < p0.mShareMin.size(); i++)
+			{
+				testShareMin0[i].resize(p0.mShareMin[i].size());
+				testShareMin1[i].resize(p1.mShareMin[i].size());
+				testShareMin0[i] = p0.mShareMin[i];
+				testShareMin1[i] = p1.mShareMin[i];
+			}
+
+			for (i64 i = 0; i < p0.mTotalNumPoints; i++)
+			{
+				exp[i].resize(p0.mShareMin[0].size() / 2);
+				for (u64 k = 0; k < exp[i].size(); k++) {
+
+					iWord xx = signExtend(p0.mShareMin[i][2 * k] + p1.mShareMin[i][2 * k], p0.mLenMod);
+					iWord yy = signExtend(p0.mShareMin[i][2 * k + 1] + p1.mShareMin[i][2 * k + 1], p0.mLenMod);
+
+					exp[i][k] = int(xx < yy);
+					std::cout << exp[i][k] << ": " << xx << "  " << yy << "  ||  " << xx%p0.mMod << "  " << yy%p0.mMod << "\n";
+					//std::cout << int(xx%p0.mMod < yy%p0.mMod) << ": " << xx << "  " << yy << "  ||  " << xx%p0.mMod << "  " << yy%p0.mMod << "\n";
+
+				}
+			}
+			std::cout << "\n";
+
+			thrd = std::thread([&]() {
+				p0.stepIdxMin *= 2;
+
+				ostreamLock(std::cout) << "p0.mShareMin[0].size()=" << p0.mShareMin[0].size() << "\n";
+
+				u64 numNodeThisLevel = p0.mShareMin[0].size();
+
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				{
+					if (numNodeThisLevel % 2) //odd number, keep last for next level
+						p0.lastNode[i] = p0.mShareMin[i][p0.mShareMin[i].size() - 1];
+
+
+					std::vector<iWord> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
+					for (u64 k = 0; k < dist1.size(); k++)
+					{
+						memcpy((i8*)&dist1[k], (i8*)&p0.mShareMin[i][2 * k], sizeof(iWord));
+						memcpy((i8*)&dist2[k], (i8*)&p0.mShareMin[i][2 * k + 1], sizeof(iWord));
+					}
+
+					/*std::vector<i64> diffDist;
+					for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+					diffDist.push_back((p0.mShareMin[i][2 * k] - p0.mShareMin[i][2 * k + 1]) % p0.mMod);*/
+
+					std::cout << IoStream::lock;
+					if (p0.mShareMin[1].size() == 3 && i == 0) //
+					{
+						std::cout << p0.mShareMin[i][0] << " " << p0.mShareMin[i][1] << " mShareMin s\n";
+
+						std::cout << i << "===================\n";
+						//for (u64 j = 0; j < diffDist.size(); j++)
+						//	std::cout << diffDist[j] << "   diffDistA\n";
+					}
+					std::cout << IoStream::unlock;
+
+
+
+					programLessThan(p0.parties, dist1, dist2, p0.mVecGcMinOutput[i], p0.mLenMod, exp[i]);
+				}
+
+
+				if (p0.mShareMin[1].size() == 2) //near root
+				{
+					std::cout << IoStream::lock;
+					std::cout << p0.mVecGcMinOutput[1] << " =========mVecGcMinOutput[i]==========\n";
+					std::cout << IoStream::unlock;
+				}
+
+				p0.amortBinArithMulGCsend(outShareSend0, outIdxShareSend0, p0.mVecGcMinOutput, p0.mShareMin, p0.mVecIdxMin, p0.stepIdxMin); //(b^A \xor b^B)*(P^A)
+				p0.amortBinArithMulGCrecv(outShareRecv0, outIdxShareRecv0, p0.mVecGcMinOutput, p0.stepIdxMin); //(b^A \xor b^B)*(P^B)
+				p0.computeShareMin(outShareSend0, outShareRecv0);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+				p0.computeShareIdxMin(outIdxShareSend0, outIdxShareRecv0);
+
+				/*std::cout << IoStream::lock;
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    bp A\n";
+				std::cout << IoStream::unlock;*/
+
+				if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+						p0.mShareMin[i].push_back(p0.lastNode[i]);
+
+
+				std::cout << IoStream::lock;
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+					std::cout << i << "-" << p0.stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    A\n";
+				std::cout << IoStream::unlock;
+			});
+
+			p1.stepIdxMin *= 2;
+
+			ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << "\n";
+
+			numNodeThisLevel = p1.mShareMin[0].size();
+
+			for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+			{
+				if (numNodeThisLevel % 2) //odd number, keep last for next level
+					p1.lastNode[i] = p1.mShareMin[i][p1.mShareMin[i].size() - 1];
+
+				/*std::vector<i64> diffDist;
+				for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+				diffDist.push_back((p1.mShareMin[i][2 * k + 1] - p1.mShareMin[i][2 * k]) % p0.mMod);
+				*/
+				std::vector<iWord> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
+				for (u64 k = 0; k < dist1.size(); k++)
+				{
+					memcpy((i8*)&dist1[k], (i8*)&p1.mShareMin[i][2 * k], sizeof(iWord));
+					memcpy((i8*)&dist2[k], (i8*)&p1.mShareMin[i][2 * k + 1], sizeof(iWord));
+				}
+
+				std::cout << IoStream::lock;
+				if (p1.mShareMin[1].size() == 3 && i == 0) //
+				{
+					std::cout << p1.mShareMin[i][0] << " " << p1.mShareMin[i][1] << " mShareMin r\n";
+
+					std::cout << i << "===================\n";
+					//for (u64 j = 0; j < diffDist.size(); j++)
+					//	std::cout << diffDist[j] << "   diffDistB\n";
+				}
+				std::cout << IoStream::unlock;
+				programLessThan(p1.parties, dist1, dist2, p1.mVecGcMinOutput[i], p1.mLenMod, exp[i]);
+			}
+
+			if (p1.mShareMin[1].size() == 2) //near root
+			{
+				std::cout << IoStream::lock;
+				std::cout << p1.mVecGcMinOutput[1] << " ========= mVecGcMinOutput r==========\n";
+				std::cout << IoStream::unlock;
+			}
+
+			p1.amortBinArithMulGCrecv(outShareRecv1, outIdxShareRecv1, p1.mVecGcMinOutput, p1.stepIdxMin); //(b^A \xor b^B)*(P^A)
+			p1.amortBinArithMulGCsend(outShareSend1, outIdxShareSend1, p1.mVecGcMinOutput, p1.mShareMin, p1.mVecIdxMin, p1.stepIdxMin); //(b^A \xor b^B)*(P^B)
+			p1.computeShareMin(outShareSend1, outShareRecv1); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+			p1.computeShareIdxMin(outIdxShareSend1, outIdxShareRecv1);
+
+
+			/*std::cout << IoStream::lock;
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    bp B\n";
+			std::cout << IoStream::unlock;*/
+
+			if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+				for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+					p1.mShareMin[i].push_back(p1.lastNode[i]);
+
+
+
+			std::cout << IoStream::lock;
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				std::cout << i << "-" << p1.stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    B\n";
+			std::cout << IoStream::unlock;
+
+
+			ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << " end\n";
+
+			thrd.join();
+
+
+#if 1 //min GC
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				for (u64 k = 0; k < testShareMin0[0].size()/2; k++)
+				{
+					i64 dist1 = signExtend(testShareMin0[i][2 * k] + testShareMin1[i][2 * k], p0.mLenMod);
+					i64 dist2 = signExtend(testShareMin0[i][2 * k+1] + testShareMin1[i][2 * k+1], p0.mLenMod);
+					if (dist1 < dist2)
+					{
+						u8 res1 = p0.mVecGcMinOutput[i][2 * k] ^ p1.mVecGcMinOutput[i][2 * k];
+						u8 res2 = p0.mVecGcMinOutput[i][2 * k + 1] ^ p1.mVecGcMinOutput[i][2 * k + 1];
+						if (res1 != 1 || res2 != 0)
+						{
+							std::cout << "GC wrong\n";
+							std::cout << k << ": " << dist1 << " < " << dist2 << "\n";
+							std::cout << k << ": " << p0.mVecGcMinOutput[i][2 * k] << "^" << p0.mVecGcMinOutput[i][2 * k] << "=" << int(res1) << "\n";
+							std::cout << k << ": " << p0.mVecGcMinOutput[i][2 * k + 1] << "^" << p0.mVecGcMinOutput[i][2 * k + 1] << "=" << int(res2) << "\n";
+							throw std::exception();
+						}
+					}
+				}
+#endif
+
+#if 1  //double check (b^A \xor b^B)*(P^A)
+			for (u64 i = 0; i <p0.mTotalNumPoints; i++)
+				for (u64 k = 0; k < p0.mVecGcMinOutput[i].size(); k++)
+				{
+					u8 b = p0.mVecGcMinOutput[i][k] ^ p1.mVecGcMinOutput[i][k];
+					iWord res1 = b*testShareMin0[i][k]; //(b^A \xor b^B)*(P^A)
+					iWord res2 = signExtend(outShareSend0[i][k] + outShareRecv1[i][k], p0.mLenMod);
+
+					if (res1 != res2)
+					{
+						std::cout << "double check (b^A xor b^B)*(P^A) \n";
+						std::cout << i << " - " << k << ": ";
+						std::cout << p0.mVecGcMinOutput[i][k] << " ^ " << p1.mVecGcMinOutput[i][k] << " = " << int(b) << "\n";
+						std::cout << int(b) << " * " << testShareMin0[i][k] << " = " << res1 << "\n";
+						std::cout << outShareSend0[i][k] << " + " << outShareRecv1[i][k] << " = " << res2 << "\n";
+						throw std::exception();
+					}
+
+					res1 = b*testShareMin1[i][k]; //(b^A \xor b^B)*(P^B)
+					res2 = signExtend(outShareRecv0[i][k] + outShareSend1[i][k], p0.mLenMod);
+
+					if (res1 != res2)
+					{
+						std::cout << i << " - " << k << ": ";
+						std::cout << p0.mVecGcMinOutput[i][k] << " ^ " << p1.mVecGcMinOutput[i][k] << " = " << int(b) << "\n";
+						std::cout << int(b) << " * " << testShareMin1[i][k] << " = " << res1 << "\n";
+						std::cout << outShareRecv0[i][k] << " + " << outShareSend1[i][k] << " = " << res2 << "\n";
+						throw std::exception();
+					}
+				}
+
+#endif
+
+
+
+#if 1 //double check (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+			for (u64 i = 0; i < p0.mVecGcMinOutput.size(); i++)
+				for (u64 k = 0; k < p0.mVecGcMinOutput[i].size() / 2; k++)
+				{
+					u8 b1 = p0.mVecGcMinOutput[i][2 * k] ^ p1.mVecGcMinOutput[i][2 * k];
+					u8 b2 = p0.mVecGcMinOutput[i][2 * k + 1] ^ p1.mVecGcMinOutput[i][2 * k + 1];
+					i64 point1 = signExtend(testShareMin0[i][2 * k] + testShareMin1[i][2 * k], p0.mLenMod);
+					i64 point2 = signExtend(testShareMin0[i][2 * k + 1] + testShareMin1[i][2 * k + 1], p0.mLenMod);
+					Word res1 = signExtend((b1*point1 + b2*point2), p0.mLenMod); //b1*p1+b2*p2
+					Word res2 = signExtend(p0.mShareMin[i][k] + p1.mShareMin[i][k], p0.mLenMod);
+
+					if (res1 != res2)
+					{
+						std::cout << i << " - " << k << ":  ";
+						std::cout << int(b1) << " ^ " << int(b2) << " = " << int(b1^b2) << "\n";
+						std::cout << int(b1) << " * " << point1 << " + " << int(b2) << " * " << point2 << " = " << res1 << "\n";
+						std::cout << p0.mShareMin[i][k] << " + " << p1.mShareMin[i][k] << " = " << res2 << " \t mShareMin\n";
+						throw std::exception();
+					}
+
+					//if(point1<point2) //min=poin1
+					//if (point1 != res1)
+					{
+						std::cout << i << " - " << k << ":  " << point1 << " vs " << point2 << ":  " << res1 << "\n";
+						//throw std::exception();
+					}
+				}
+#endif
+
+
+
+#if 1
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			{
+				std::cout << i << ": min=";
+				for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
+				{
+					iWord minDist = signExtend(p0.mShareMin[i][k] + p1.mShareMin[i][k], p0.mLenMod);
+					std::cout << minDist%p0.mMod << " ";
+				}
+				BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+				std::cout << vecDist << " ";
+
+
+				std::cout << "  vs  ";
+
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					iWord point = signExtend((p0.mDist[i][k] + p1.mDist[i][k]), p0.mLenMod);
+					std::cout << point%p0.mMod << " ";
+				}
+				std::cout << "   ||   ";
+
+				std::cout << i << ": min=";
+				for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
+				{
+					iWord minDist = signExtend(p0.mShareMin[i][k] + p1.mShareMin[i][k], p0.mLenMod);
+					std::cout << minDist << " ";
+				}
+				vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+				std::cout << vecDist << " ";
+
+
+				std::cout << "  vs  ";
+
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					iWord point = signExtend((p0.mDist[i][k] + p1.mDist[i][k]), p0.mLenMod);
+					std::cout << point << " ";
+				}
+				std::cout << "\n";
+			}
+#endif
+
+		}
+
+
+
+#if 0
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			Word minDist = (p0.mShareMin[i][0] + p1.mShareMin[i][0]) % p0.mMod;
+			BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+
+			u64 minIdx;
+
+			for (u64 k = 0; k < vecDist.size(); k++)
+				if (vecDist[k] == 1)
+				{
+					minIdx = k;
+					break;
+				}
+
+			Word actualMin = (p0.mDist[i][0] + p1.mDist[i][0]) % p0.mMod;
+			Word actualMinIdx = 0;
+			for (u64 k = 1; k < p0.mNumCluster; k++)
+			{
+				Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+				if (actualMin > point)
+				{
+					actualMin = point;
+					actualMinIdx = k;
+				}
+				//std::cout << point << " ";
+			}
+
+			if (actualMin != minDist || actualMinIdx != minIdx)
+			{
+				std::cout << i << ": min= " << minDist << " "
+					<< vecDist << " idx= " << minIdx << "\n";
+
+				std::cout << actualMin << " " << actualMinIdx << "\t ";
+
+
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+					std::cout << point << " ";
+				}
+
+				throw std::exception();
+
+			}
+		}
+
+#endif
+		/*	for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			{
+				std::cout << i << ": min=";
+				for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
+				{
+					Word minDist = (p0.mShareMin[i][k] + p1.mShareMin[i][k]) % p0.mMod;
+					std::cout << minDist << " ";
+				}
+				BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+				std::cout << vecDist << " ";
+
+
+				std::cout << " \t vs \t ";
+
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+					std::cout << point << " ";
+				}
+				std::cout << "\n";
+			}
+	*/
+
+
+
+		timer.setTimePoint("OTkeysDone");
+
+		/*
+		block data = p0.mPrng.get<block>();
+		u64 aa1 = ((u64*)&data)[0];
+		u64 aa2 = ((u64*)&data)[1];
+		std::cout << data << "\n";
+		std::cout << toBlock(aa1) << "\n";
+		std::cout << toBlock(aa2) << "\n";*/
+
+
+
+		//p0.Print();
+		//p1.Print();
+
+
+
+
+
 	}
 
+
+	void ClusteringTest()
+	{
+		Timer timer;
+		IOService ios;
+		Session ep01(ios, "127.0.0.1", SessionMode::Server);
+		Session ep10(ios, "127.0.0.1", SessionMode::Client);
+		Channel chl01 = ep01.addChannel();
+		Channel chl10 = ep10.addChannel();
+
+		int securityParams = 128;
+		int inDimension = 2;
+		int inExMod = 20;
+		u64 inNumCluster = 4;
+
+
+		int inMod = pow(2, inExMod);
+		std::vector<std::vector<Word>> inputA, inputB;
+		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+
+		PRNG prng(ZeroBlock);
+		u64 numberTest = 5;
+		inputA.resize(numberTest);
+		inputB.resize(numberTest);
+		for (int i = 0; i < numberTest; i++)
+		{
+			inputA[i].resize(inDimension);
+			inputB[i].resize(inDimension);
+			for (size_t j = 0; j < inDimension; j++)
+			{
+				inputA[i][j] = prng.get<Word>() % inMod;
+				inputB[i][j] = prng.get<Word>() % inMod;
+
+				std::cout << inputA[i][j] << "\t" << inputB[i][j] << " p\n";
+			}
+		}
+
+		u64 inTotalPoint = inputA.size() + inputB.size();
+		//=======================offline===============================
+		DataShare p0, p1;
+
+		timer.setTimePoint("starts");
+		std::thread thrd = std::thread([&]() {
+			p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
+				, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension);
+
+			NaorPinkas baseOTs;
+			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
+			p0.recv.setBaseOts(p0.mSendBaseMsg);
+
+
+			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
+			p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
+
+
+		});
+
+
+		p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
+			, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
+
+		NaorPinkas baseOTs;
+		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
+		p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
+
+
+		baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
+		p1.recv.setBaseOts(p1.mSendBaseMsg);
+
+
+
+		thrd.join();
+
+		timer.setTimePoint("offlineDone");
+		//=======================online (sharing)===============================
+
+		thrd = std::thread([&]() {
+
+			p0.sendShareInput(0, 0, inNumCluster / 2);
+			p0.recvShareInput(p0.mPoint.size(), inNumCluster / 2, inNumCluster);
+
+		});
+
+		p1.recvShareInput(0, 0, inNumCluster / 2);
+		p1.sendShareInput(p1.mTheirNumPoints, inNumCluster / 2, inNumCluster);
+
+
+		thrd.join();
+		timer.setTimePoint("sharingInputsDone");
+
+#if 1
+		//check share
+		for (u64 i = 0; i < p0.mPoint.size(); i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != p0.mPoint[i][j])
+				{
+
+					std::cout << "(p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != 0\n";
+					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
+					throw std::exception();
+				}
+			}
+		}
+
+		for (u64 i = p0.mPoint.size(); i < inTotalPoint; i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != p1.mPoint[i - p0.mPoint.size()][j])
+				{
+
+					std::cout << "(p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != 0\n";
+					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
+					throw std::exception();
+				}
+			}
+		}
+
+		for (u64 i = 0; i < inNumCluster / 2; i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mShareCluster[i][j] + p1.mShareCluster[i][j]) % inMod != p0.mCluster[i][j])
+				{
+
+					std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
+					std::cout << i << "-" << j << ": " << p0.mShareCluster[i][j] << " vs " << p1.mShareCluster[i][j] << "\n";
+					throw std::exception();
+				}
+			}
+		}
+
+
+		for (u64 i = inNumCluster / 2; i < inNumCluster; i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mShareCluster[i][j] + p1.mShareCluster[i][j]) % inMod != p1.mCluster[i][j])
+				{
+
+					std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
+					std::cout << i << "-" << j << ": " << p0.mShareCluster[i][j] << " vs " << p1.mShareCluster[i][j] << "\n";
+					throw std::exception();
+				}
+			}
+		}
+
+
+#endif
+
+		//=======================online OT (setting up keys for adaptive ED)===============================
+
+		thrd = std::thread([&]() {
+
+			//1st OT
+			p0.appendAllChoice();
+			p0.recv.receive(p0.mChoiceAllBitSharePoints, p0.mRecvAllOtKeys, p0.mPrng, p0.mChl);
+
+			//other OT direction
+			p0.sender.send(p0.mSendAllOtKeys, p0.mPrng, p0.mChl);
+
+			p0.setPRNGseeds();
+
+		});
+		//1st OT
+		p1.sender.send(p1.mSendAllOtKeys, p1.mPrng, p1.mChl);
+
+		//other OT direction
+		p1.appendAllChoice();
+		p1.recv.receive(p1.mChoiceAllBitSharePoints, p1.mRecvAllOtKeys, p1.mPrng, p1.mChl);
+
+		p1.setPRNGseeds();
+
+		thrd.join();
+
+
+		//=======================online MUL===============================
+#pragma region MUL
+
+
+		thrd = std::thread([&]() {
+			//(c^A[k][d]*c^B[k][d])
+			p0.mProdCluster = p0.amortMULrecv(p0.mShareCluster); //compute C^Ak*C^Bk
+
+																 //(p^A[i][d]*(p^B[i][d]-c^B[k][d]) => A receiver
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				for (u64 d = 0; d < p0.mDimension; d++)
+					p0.mProdPointPPC[i][d] = p0.amortAdaptMULrecv(i, d, p0.mNumCluster); //for each point to all clusters
+
+																						 //(p^B[i][d]*c^A[k][d]) => A is sender
+			for (u64 d = 0; d < p0.mDimension; d++)
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+					memcpy((i8*)&p0.prodTempC[d][k], (u8*)&p0.mShareCluster[k][d], p0.mLenModinByte); //c^A[k][d]
+
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				for (u64 d = 0; d < p0.mDimension; d++)
+					p0.mProdPointPC[i][d] = p0.amortAdaptMULsend(i, d, p0.prodTempC[d]); //for each point to all clusters
+
+		});
+
+
+		p1.mProdCluster = p1.amortMULsend(p1.mShareCluster);//(c^A[k][d]*c^B[k][d])
+
+															//(p^A[i][d]*(p^B[i][d]-c^B[k][d])
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+			for (u64 d = 0; d < p1.mDimension; d++)
+			{
+				//prodTempPC=pid-ckl
+				for (u64 k = 0; k < p1.mNumCluster; k++)
+					p1.prodTempPC[i][d][k] = (p1.mSharePoint[i][d].mArithShare - p1.mShareCluster[k][d]);
+
+				p1.mProdPointPPC[i][d] = p1.amortAdaptMULsend(i, d, p1.prodTempPC[i][d]);
+
+			}
+
+		//(p^B[i][d]*c^A[k][d]) => B is recv
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+			for (u64 d = 0; d < p1.mDimension; d++)
+				p1.mProdPointPC[i][d] = p1.amortAdaptMULrecv(i, d, p1.mNumCluster); //for each point to all clusters
+
+		thrd.join();
+
+#if 1
+		std::cout << "--------c^A[k][d]*c^B[k][d]------\n";
+
+		for (u64 k = 0; k < p0.mNumCluster; k++)
+			for (u64 d = 0; d < p0.mDimension; d++)
+			{
+				Word sum1 = (p0.mProdCluster[k][d] + p1.mProdCluster[k][d]) % p1.mMod;
+				Word sum2 = (p0.mShareCluster[k][d] * p1.mShareCluster[k][d]) % p1.mMod;
+				if (sum1 != sum2)
+				{
+					std::cout << p0.mProdCluster[k][d] << " + " << p1.mProdCluster[k][d] << " = " << sum1 << "\n";
+					std::cout << p0.mShareCluster[k][d] << " * " << p1.mShareCluster[k][d] << " = " << sum2 << "\n";
+					throw std::exception();
+				}
+			}
+
+		std::cout << "--------(p^A[i][d]*(p^B[i][d]-c^B[k][d])------\n";
+
+
+
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+			for (u64 d = 0; d < p0.mDimension; d++)
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					Word sum1 = (p0.mProdPointPPC[i][d][k] + p1.mProdPointPPC[i][d][k]) % p1.mMod;
+					Word sum2 = (p0.mSharePoint[i][d].mArithShare * p1.prodTempPC[i][d][k]) % p1.mMod;
+					if (sum1 != sum2)
+					{
+						std::cout << i << " - " << d << "\t" << p1.mTotalNumPoints << " sss\n";
+						std::cout << p0.mProdPointPPC[i][d][k] << " + " << p1.mProdPointPPC[i][d][k] << " = " << sum1 << "\n";
+						std::cout << p1.prodTempPC[i][d][k] << " * " << p0.mSharePoint[i][d].mArithShare << " = " << sum2 << "\n";
+						throw std::exception();
+					}
+				}
+
+		std::cout << "--------(p^B[i][d]*c^A[k][d])------\n";
+
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+			for (u64 d = 0; d < p0.mDimension; d++)
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					Word sum1 = (p0.mProdPointPC[i][d][k] + p1.mProdPointPC[i][d][k]) % p1.mMod;
+					Word sum2 = (p1.mSharePoint[i][d].mArithShare * p0.prodTempC[d][k]) % p1.mMod;
+					if (sum1 != sum2)
+					{
+						std::cout << i << " - " << d << "\t" << p1.mTotalNumPoints << " sss\n";
+						std::cout << p0.mProdPointPC[i][d][k] << " + " << p1.mProdPointPC[i][d][k] << " = " << sum1 << "\n";
+						std::cout << p0.prodTempC[d][k] << " * " << p1.mSharePoint[i][d].mArithShare << " = " << sum2 << "\n";
+						throw std::exception();
+					}
+				}
+
+#endif
+		//=======================online locally compute ED===============================
+		thrd = std::thread([&]() {
+			p0.computeDist();
+		});
+		p1.computeDist();
+		thrd.join();
+#if 1
+		std::cout << " ------ED test-------\n";
+		std::vector<std::vector<Word>> points(p0.mTotalNumPoints);
+		std::vector<std::vector<Word>> clusters(p0.mNumCluster);
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++) //original points
+		{
+			points[i].resize(p0.mDimension);
+			for (u64 d = 0; d < p0.mDimension; d++)
+				points[i][d] = (Word)(p0.mSharePoint[i][d].mArithShare + p1.mSharePoint[i][d].mArithShare);
+		}
+
+
+		for (u64 k = 0; k < p0.mNumCluster; k++) //original cluster
+		{
+			clusters[k].resize(p0.mDimension);
+			for (u64 d = 0; d < p0.mDimension; d++)
+				clusters[k][d] = (Word)(p0.mShareCluster[k][d] + p1.mShareCluster[k][d]);
+		}
+
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++) //original points
+			for (u64 k = 0; k < p0.mNumCluster; k++) //original cluster
+			{
+				iWord expectedDist = 0;
+				for (u64 d = 0; d < p0.mDimension; d++)
+				{
+					iWord diff = signExtend((points[i][d] - clusters[k][d]), p0.mLenMod);
+					expectedDist = signExtend((expectedDist + (iWord)pow(diff, 2)), p0.mLenMod);
+				}
+				iWord ourDist = signExtend((p0.mDist[i][k] + p1.mDist[i][k]), p0.mLenMod);
+
+				if (expectedDist != ourDist)
+				{
+					std::cout << "---------ED: wrong-----------\n";
+
+					std::cout << i << "-" << k << ": ";
+					std::cout << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << ourDist << " vs ";
+					std::cout << expectedDist << "\n";
+
+					for (u64 d = 0; d < p0.mDimension; d++)
+					{
+
+						std::cout << points[i][d] << " vs " << (p0.mSharePoint[i][d].mArithShare + p1.mSharePoint[i][d].mArithShare) << "= " << p0.mSharePoint[i][d].mArithShare << " + " << p1.mSharePoint[i][d].mArithShare << " p \n";
+						std::cout << clusters[k][d] << " vs " << p0.mShareCluster[k][d] + p1.mShareCluster[k][d] << " = " << p0.mShareCluster[k][d] << " + " << p1.mShareCluster[k][d] << " c \n";
+						iWord diff2p0 = (p0.mSharePoint[i][d].mArithShare - p0.mShareCluster[k][d]);
+						iWord diff2p1 = (p1.mSharePoint[i][d].mArithShare - p1.mShareCluster[k][d]);
+
+
+
+						iWord secondtermp0 = (p0.mProdPointPPC[i][d][k] - p0.mProdPointPC[i][d][k] + p0.mProdCluster[k][d]);
+						iWord secondtermp1 = (p1.mProdPointPPC[i][d][k] - p1.mProdPointPC[i][d][k] + p1.mProdCluster[k][d]);
+
+						//std::cout << diff2p0 << " * " << diff2p1 << " = " << (Word)(diff2p0*diff2p1) << " \n";
+						std::cout << diff2p0 << " * " << diff2p1 << " = " << (diff2p0*diff2p1) << " \n";
+						std::cout << diff2p0 << " * " << diff2p1 << " = " << signExtend((diff2p0*diff2p1), p0.mLenMod) << " \n";
+
+						iWord d1 = signExtend(diff2p0, p0.mLenMod);
+						iWord d2 = signExtend(diff2p1, p0.mLenMod);
+						iWord s1 = signExtend(secondtermp0, p0.mLenMod);
+						iWord s2 = signExtend(secondtermp1, p0.mLenMod);
+						iWord r1 = signExtend(d1*d2, p0.mLenMod);
+						iWord r2 = signExtend(s1 + s2, p0.mLenMod);
+
+						std::cout << d1 << " * " << d2 << " = " << r1 << " \n";
+						std::cout << s1 << " + " << s2 << " = " << r2 << " \n";
+
+						/*	Word distP0 = (Word)(pow(diff2p0, 2) + 2 * secondtermp0) % (i64)pow(p0.mMod, 2);
+						Word distP1 = (Word)(pow(diff2p1, 2) + 2 * secondtermp1) % (i64)pow(p0.mMod, 2);
+
+						std::cout << diff2p0 << " vs " << secondtermp0 << ": " << distP0 << " p0\n";
+						std::cout << diff2p1 << " vs " << secondtermp1 << ": " << distP1 << " p1\n";*/
+
+
+					}
+
+
+
+					//throw std::exception();
+				}
+			}
+#endif
+#pragma endregion
+
+
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++) //original points
+			for (u64 k = 0; k < p0.mNumCluster; k++) //original cluster
+			{
+				iWord expectedDist = 0;
+				for (u64 d = 0; d < p0.mDimension; d++)
+				{
+					iWord diff = signExtend((points[i][d] - clusters[k][d]), p0.mLenMod);
+					expectedDist = signExtend((expectedDist + (iWord)pow(diff, 2)), p0.mLenMod);
+				}
+				iWord ourDist = signExtend((p0.mDist[i][k] + p1.mDist[i][k]), p0.mLenMod);
+
+				std::cout << "dist(" << i << "," << k << ")= " << ourDist << " \n";
+			}
+
+		//=======================online closet cluster===============================
+#pragma region Closet
+
+
+		std::vector<std::vector<int>> exp(p0.mTotalNumPoints);
+		for (i64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			exp[i].resize(p0.mNumCluster / 2);
+			for (u64 k = 0; k < exp[i].size(); k++) {
+
+				iWord xx = signExtend(p0.mDist[i][2 * k] + p1.mDist[i][2 * k], p0.mLenMod);
+				iWord yy = signExtend(p0.mDist[i][2 * k + 1] + p1.mDist[i][2 * k + 1], p0.mLenMod);
+
+				exp[i][k] = int(xx < yy);
+			}
+		}
+
+		std::vector<std::vector<iWord>> outShareSend0, outShareRecv0;
+		std::vector<std::vector<BitVector>> outIdxShareSend0, outIdxShareRecv0;
+		std::vector<std::vector<iWord>> outShareSend1, outShareRecv1;
+		std::vector<std::vector<BitVector>> outIdxShareSend1, outIdxShareRecv1;
+
+		thrd = std::thread([&]() { //party 1
+			u64 numNodeThisLevel = p0.mNumCluster;
+			BitVector oneBit("1");
+
+			//=================1st level //TODO: remove dist
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			{
+				if (numNodeThisLevel % 2) //odd number
+					p0.lastNode[i] = p0.mDist[i][p0.mNumCluster - 1];
+
+
+				std::vector<iWord> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
+				for (u64 k = 0; k < dist1.size(); k++)
+				{
+					memcpy((i8*)&dist1[k], (i8*)&p0.mDist[i][2 * k], sizeof(iWord));
+					memcpy((i8*)&dist2[k], (i8*)&p0.mDist[i][2 * k + 1], sizeof(Word));
+				}
+
+				programLessThan(p0.parties, dist1, dist2, p0.mVecGcMinOutput[i], p0.mLenMod, exp[i]);
+				p0.mVecIdxMin[i].append(p0.mVecGcMinOutput[i]);
+
+				if (numNodeThisLevel % 2) //odd number
+					p0.mVecIdxMin[i].append(oneBit); //make sure last vecIdxMin[i]=1 
+
+			}
+
+			p0.amortBinArithMulsend(outShareSend0, p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
+			p0.amortBinArithMULrecv(outShareRecv0, p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
+			p0.computeShareMin(outShareSend0, outShareRecv0);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+
+			if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+					p0.mShareMin[i].push_back(p0.lastNode[i]);
+
+
+			std::cout << IoStream::lock;
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				std::cout << i << "-" << p0.stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    A\n";
+			std::cout << IoStream::unlock;
+			});
+
+		u64 numNodeThisLevel = p1.mNumCluster;
+		BitVector zeroBit("0");
+
+		//=================1st level //TODO: remove dist
+
+
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+		{
+			if (numNodeThisLevel % 2) //odd number
+				p1.lastNode[i] = p1.mDist[i][p1.mNumCluster - 1];
+
+			//std::vector<i64> diffDist; //lastNode move to next level
+			//for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+			//	diffDist.push_back((p1.mDist[i][2 * k + 1] - p1.mDist[i][2 * k]) % p0.mMod);
+
+			std::vector<iWord> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
+			for (u64 k = 0; k < dist1.size(); k++)
+			{
+				memcpy((i8*)&dist1[k], (i8*)&p1.mDist[i][2 * k], sizeof(iWord));
+				memcpy((i8*)&dist2[k], (i8*)&p1.mDist[i][2 * k + 1], sizeof(iWord));
+			}
+
+
+			std::cout << IoStream::lock;
+			if (i == 0) //
+			{
+				//std::cout << p1.mDist[i][0] << " " << p1.mDist[i][1] << " d=" << diffDist[0] << " mShareMin r\n";
+
+				/*std::cout << i << "===================\n";
+				for (u64 j = 0; j < diffDist.size(); j++)
+				std::cout << diffDist[j] << "   diffDistA\n";*/
+			}
+			std::cout << IoStream::unlock;
+
+			programLessThan(p1.parties, dist1, dist2, p1.mVecGcMinOutput[i], p1.mLenMod, exp[i]);
+
+			p1.mVecIdxMin[i].append(p1.mVecGcMinOutput[i]);//first level 10||01||01||01|1
+			if (numNodeThisLevel % 2) //odd number
+				p1.mVecIdxMin[i].append(zeroBit); //make sure last vecIdxMin[i]=1 
+
+		}
+
+		p1.amortBinArithMULrecv(outShareRecv1, p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
+		p1.amortBinArithMulsend(outShareSend1, p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
+		p1.computeShareMin(outShareSend1, outShareRecv1); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+
+		if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+			for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+				p1.mShareMin[i].push_back(p1.lastNode[i]);
+
+
+		std::cout << IoStream::lock;
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			std::cout << i << "-" << p1.stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    B\n";
+		std::cout << IoStream::unlock;
+
+		thrd.join();
+
+
+
+
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			std::cout << i << ": min=";
+			for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
+			{
+				iWord minDist = signExtend(p0.mShareMin[i][k] + p1.mShareMin[i][k], p0.mLenMod);
+				std::cout << minDist%p0.mMod << " ";
+			}
+			BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+			std::cout << vecDist << " ";
+
+
+			std::cout << "  vs  ";
+
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				iWord point = signExtend((p0.mDist[i][k] + p1.mDist[i][k]), p0.mLenMod);
+				std::cout << point%p0.mMod << " ";
+			}
+			std::cout << "   ||   ";
+
+			std::cout << i << ": min=";
+			for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
+			{
+				iWord minDist = signExtend(p0.mShareMin[i][k] + p1.mShareMin[i][k], p0.mLenMod);
+				std::cout << minDist << " ";
+			}
+			vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+			std::cout << vecDist << " ";
+
+
+			std::cout << "  vs  ";
+
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				iWord point = signExtend((p0.mDist[i][k] + p1.mDist[i][k]), p0.mLenMod);
+				std::cout << point << " ";
+			}
+			std::cout << "\n";
+		}
+
+
+
+		//=============2nd level loop until root==================================
+
+
+
+		while (p0.mShareMin[0].size()>1)
+		//while (0)
+		{
+			std::cout << "=======mShareMin============\n";
+
+			std::vector<std::vector<iWord>> testShareMin0(p0.mShareMin.size()), testShareMin1(p1.mShareMin.size());
+			for (u64 i = 0; i < p0.mShareMin.size(); i++)
+			{
+				testShareMin0[i].resize(p0.mShareMin[i].size());
+				testShareMin1[i].resize(p1.mShareMin[i].size());
+				testShareMin0[i] = p0.mShareMin[i];
+				testShareMin1[i] = p1.mShareMin[i];
+			}
+
+			for (i64 i = 0; i < p0.mTotalNumPoints; i++)
+			{
+				exp[i].resize(p0.mShareMin[0].size() / 2);
+				for (u64 k = 0; k < exp[i].size(); k++) {
+
+					iWord xx = signExtend(p0.mShareMin[i][2 * k] + p1.mShareMin[i][2 * k], p0.mLenMod);
+					iWord yy = signExtend(p0.mShareMin[i][2 * k + 1] + p1.mShareMin[i][2 * k + 1], p0.mLenMod);
+
+					exp[i][k] = int(xx < yy);
+					std::cout << exp[i][k] << ": " << xx << "  " << yy << "  ||  " << xx%p0.mMod << "  " << yy%p0.mMod << "\n";
+					//std::cout << int(xx%p0.mMod < yy%p0.mMod) << ": " << xx << "  " << yy << "  ||  " << xx%p0.mMod << "  " << yy%p0.mMod << "\n";
+
+				}
+			}
+			std::cout << "\n";
+
+			thrd = std::thread([&]() {
+				p0.stepIdxMin *= 2;
+
+				ostreamLock(std::cout) << "p0.mShareMin[0].size()=" << p0.mShareMin[0].size() << "\n";
+
+				u64 numNodeThisLevel = p0.mShareMin[0].size();
+
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				{
+					if (numNodeThisLevel % 2) //odd number, keep last for next level
+						p0.lastNode[i] = p0.mShareMin[i][p0.mShareMin[i].size() - 1];
+
+
+					std::vector<iWord> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
+					for (u64 k = 0; k < dist1.size(); k++)
+					{
+						memcpy((i8*)&dist1[k], (i8*)&p0.mShareMin[i][2 * k], sizeof(iWord));
+						memcpy((i8*)&dist2[k], (i8*)&p0.mShareMin[i][2 * k + 1], sizeof(iWord));
+					}
+
+					/*std::vector<i64> diffDist;
+					for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+					diffDist.push_back((p0.mShareMin[i][2 * k] - p0.mShareMin[i][2 * k + 1]) % p0.mMod);*/
+
+					std::cout << IoStream::lock;
+					if (p0.mShareMin[1].size() == 3 && i == 0) //
+					{
+						std::cout << p0.mShareMin[i][0] << " " << p0.mShareMin[i][1] << " mShareMin s\n";
+
+						std::cout << i << "===================\n";
+						//for (u64 j = 0; j < diffDist.size(); j++)
+						//	std::cout << diffDist[j] << "   diffDistA\n";
+					}
+					std::cout << IoStream::unlock;
+
+
+
+					programLessThan(p0.parties, dist1, dist2, p0.mVecGcMinOutput[i], p0.mLenMod, exp[i]);
+				}
+
+
+				if (p0.mShareMin[1].size() == 2) //near root
+				{
+					std::cout << IoStream::lock;
+					std::cout << p0.mVecGcMinOutput[1] << " =========mVecGcMinOutput[i]==========\n";
+					std::cout << IoStream::unlock;
+				}
+
+				p0.amortBinArithMulGCsend(outShareSend0, outIdxShareSend0, p0.mVecGcMinOutput, p0.mShareMin, p0.mVecIdxMin, p0.stepIdxMin); //(b^A \xor b^B)*(P^A)
+				p0.amortBinArithMulGCrecv(outShareRecv0, outIdxShareRecv0, p0.mVecGcMinOutput, p0.stepIdxMin); //(b^A \xor b^B)*(P^B)
+				p0.computeShareMin(outShareSend0, outShareRecv0);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+				p0.computeShareIdxMin(outIdxShareSend0, outIdxShareRecv0);
+
+				/*std::cout << IoStream::lock;
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    bp A\n";
+				std::cout << IoStream::unlock;*/
+
+				if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+						p0.mShareMin[i].push_back(p0.lastNode[i]);
+
+
+				std::cout << IoStream::lock;
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+					std::cout << i << "-" << p0.stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    A\n";
+				std::cout << IoStream::unlock;
+			});
+
+			p1.stepIdxMin *= 2;
+
+			ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << "\n";
+
+			numNodeThisLevel = p1.mShareMin[0].size();
+
+			for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+			{
+				if (numNodeThisLevel % 2) //odd number, keep last for next level
+					p1.lastNode[i] = p1.mShareMin[i][p1.mShareMin[i].size() - 1];
+
+				/*std::vector<i64> diffDist;
+				for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+				diffDist.push_back((p1.mShareMin[i][2 * k + 1] - p1.mShareMin[i][2 * k]) % p0.mMod);
+				*/
+				std::vector<iWord> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
+				for (u64 k = 0; k < dist1.size(); k++)
+				{
+					memcpy((i8*)&dist1[k], (i8*)&p1.mShareMin[i][2 * k], sizeof(iWord));
+					memcpy((i8*)&dist2[k], (i8*)&p1.mShareMin[i][2 * k + 1], sizeof(iWord));
+				}
+
+				std::cout << IoStream::lock;
+				if (p1.mShareMin[1].size() == 3 && i == 0) //
+				{
+					std::cout << p1.mShareMin[i][0] << " " << p1.mShareMin[i][1] << " mShareMin r\n";
+
+					std::cout << i << "===================\n";
+					//for (u64 j = 0; j < diffDist.size(); j++)
+					//	std::cout << diffDist[j] << "   diffDistB\n";
+				}
+				std::cout << IoStream::unlock;
+				programLessThan(p1.parties, dist1, dist2, p1.mVecGcMinOutput[i], p1.mLenMod, exp[i]);
+			}
+
+			if (p1.mShareMin[1].size() == 2) //near root
+			{
+				std::cout << IoStream::lock;
+				std::cout << p1.mVecGcMinOutput[1] << " ========= mVecGcMinOutput r==========\n";
+				std::cout << IoStream::unlock;
+			}
+
+			p1.amortBinArithMulGCrecv(outShareRecv1, outIdxShareRecv1, p1.mVecGcMinOutput, p1.stepIdxMin); //(b^A \xor b^B)*(P^A)
+			p1.amortBinArithMulGCsend(outShareSend1, outIdxShareSend1, p1.mVecGcMinOutput, p1.mShareMin, p1.mVecIdxMin, p1.stepIdxMin); //(b^A \xor b^B)*(P^B)
+			p1.computeShareMin(outShareSend1, outShareRecv1); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+			p1.computeShareIdxMin(outIdxShareSend1, outIdxShareRecv1);
+
+
+			/*std::cout << IoStream::lock;
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    bp B\n";
+			std::cout << IoStream::unlock;*/
+
+			if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+				for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+					p1.mShareMin[i].push_back(p1.lastNode[i]);
+
+
+
+			std::cout << IoStream::lock;
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				std::cout << i << "-" << p1.stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    B\n";
+			std::cout << IoStream::unlock;
+
+
+			ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << " end\n";
+
+			thrd.join();
+
+
+#if 1 //min GC
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				for (u64 k = 0; k < testShareMin0[0].size() / 2; k++)
+				{
+					i64 dist1 = signExtend(testShareMin0[i][2 * k] + testShareMin1[i][2 * k], p0.mLenMod);
+					i64 dist2 = signExtend(testShareMin0[i][2 * k + 1] + testShareMin1[i][2 * k + 1], p0.mLenMod);
+					if (dist1 < dist2)
+					{
+						u8 res1 = p0.mVecGcMinOutput[i][2 * k] ^ p1.mVecGcMinOutput[i][2 * k];
+						u8 res2 = p0.mVecGcMinOutput[i][2 * k + 1] ^ p1.mVecGcMinOutput[i][2 * k + 1];
+						if (res1 != 1 || res2 != 0)
+						{
+							std::cout << "GC wrong\n";
+							std::cout << k << ": " << dist1 << " < " << dist2 << "\n";
+							std::cout << k << ": " << p0.mVecGcMinOutput[i][2 * k] << "^" << p0.mVecGcMinOutput[i][2 * k] << "=" << int(res1) << "\n";
+							std::cout << k << ": " << p0.mVecGcMinOutput[i][2 * k + 1] << "^" << p0.mVecGcMinOutput[i][2 * k + 1] << "=" << int(res2) << "\n";
+							throw std::exception();
+						}
+					}
+				}
+#endif
+
+#if 1  //double check (b^A \xor b^B)*(P^A)
+			for (u64 i = 0; i <p0.mTotalNumPoints; i++)
+				for (u64 k = 0; k < p0.mVecGcMinOutput[i].size(); k++)
+				{
+					u8 b = p0.mVecGcMinOutput[i][k] ^ p1.mVecGcMinOutput[i][k];
+					iWord res1 = b*testShareMin0[i][k]; //(b^A \xor b^B)*(P^A)
+					iWord res2 = signExtend(outShareSend0[i][k] + outShareRecv1[i][k], p0.mLenMod);
+
+					if (res1 != res2)
+					{
+						std::cout << "double check (b^A xor b^B)*(P^A) \n";
+						std::cout << i << " - " << k << ": ";
+						std::cout << p0.mVecGcMinOutput[i][k] << " ^ " << p1.mVecGcMinOutput[i][k] << " = " << int(b) << "\n";
+						std::cout << int(b) << " * " << testShareMin0[i][k] << " = " << res1 << "\n";
+						std::cout << outShareSend0[i][k] << " + " << outShareRecv1[i][k] << " = " << res2 << "\n";
+						throw std::exception();
+					}
+
+					res1 = b*testShareMin1[i][k]; //(b^A \xor b^B)*(P^B)
+					res2 = signExtend(outShareRecv0[i][k] + outShareSend1[i][k], p0.mLenMod);
+
+					if (res1 != res2)
+					{
+						std::cout << i << " - " << k << ": ";
+						std::cout << p0.mVecGcMinOutput[i][k] << " ^ " << p1.mVecGcMinOutput[i][k] << " = " << int(b) << "\n";
+						std::cout << int(b) << " * " << testShareMin1[i][k] << " = " << res1 << "\n";
+						std::cout << outShareRecv0[i][k] << " + " << outShareSend1[i][k] << " = " << res2 << "\n";
+						throw std::exception();
+					}
+				}
+
+#endif
+
+
+
+#if 1 //double check (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+			for (u64 i = 0; i < p0.mVecGcMinOutput.size(); i++)
+				for (u64 k = 0; k < p0.mVecGcMinOutput[i].size() / 2; k++)
+				{
+					u8 b1 = p0.mVecGcMinOutput[i][2 * k] ^ p1.mVecGcMinOutput[i][2 * k];
+					u8 b2 = p0.mVecGcMinOutput[i][2 * k + 1] ^ p1.mVecGcMinOutput[i][2 * k + 1];
+					i64 point1 = signExtend(testShareMin0[i][2 * k] + testShareMin1[i][2 * k], p0.mLenMod);
+					i64 point2 = signExtend(testShareMin0[i][2 * k + 1] + testShareMin1[i][2 * k + 1], p0.mLenMod);
+					Word res1 = signExtend((b1*point1 + b2*point2), p0.mLenMod); //b1*p1+b2*p2
+					Word res2 = signExtend(p0.mShareMin[i][k] + p1.mShareMin[i][k], p0.mLenMod);
+
+					if (res1 != res2)
+					{
+						std::cout << i << " - " << k << ":  ";
+						std::cout << int(b1) << " ^ " << int(b2) << " = " << int(b1^b2) << "\n";
+						std::cout << int(b1) << " * " << point1 << " + " << int(b2) << " * " << point2 << " = " << res1 << "\n";
+						std::cout << p0.mShareMin[i][k] << " + " << p1.mShareMin[i][k] << " = " << res2 << " \t mShareMin\n";
+						throw std::exception();
+					}
+
+					//if(point1<point2) //min=poin1
+					//if (point1 != res1)
+					{
+						std::cout << i << " - " << k << ":  " << point1 << " vs " << point2 << ":  " << res1 << "\n";
+						//throw std::exception();
+					}
+				}
+#endif
+
+
+
+#if 1
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			{
+				std::cout << i << ": min=";
+				for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
+				{
+					iWord minDist = signExtend(p0.mShareMin[i][k] + p1.mShareMin[i][k], p0.mLenMod);
+					std::cout << minDist%p0.mMod << " ";
+				}
+				BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+				std::cout << vecDist << " ";
+
+
+				std::cout << "  vs  ";
+
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					iWord point = signExtend((p0.mDist[i][k] + p1.mDist[i][k]), p0.mLenMod);
+					std::cout << point%p0.mMod << " ";
+				}
+				std::cout << "   ||   ";
+
+				std::cout << i << ": min=";
+				for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
+				{
+					iWord minDist = signExtend(p0.mShareMin[i][k] + p1.mShareMin[i][k], p0.mLenMod);
+					std::cout << minDist << " ";
+				}
+				vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+				std::cout << vecDist << " ";
+
+
+				std::cout << "  vs  ";
+
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					iWord point = signExtend((p0.mDist[i][k] + p1.mDist[i][k]), p0.mLenMod);
+					std::cout << point << " ";
+				}
+				std::cout << "\n";
+			}
+#endif
+
+		}
+
+
+#pragma endregion
+
+
+
+#if 1
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			iWord minDist = signExtend(p0.mShareMin[i][0] + p1.mShareMin[i][0],p0.mLenMod);
+			BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+
+			u64 minIdx;
+
+			for (u64 k = 0; k < vecDist.size(); k++)
+				if (vecDist[k] == 1)
+				{
+					minIdx = k;
+					break;
+				}
+
+			iWord actualMin = signExtend(p0.mDist[i][0] + p1.mDist[i][0], p0.mLenMod);
+			Word actualMinIdx = 0;
+			for (u64 k = 1; k < p0.mNumCluster; k++)
+			{
+				iWord point = signExtend(p0.mDist[i][k] + p1.mDist[i][k], p0.mLenMod);
+				if (actualMin > point)
+				{
+					actualMin = point;
+					actualMinIdx = k;
+				}
+				//std::cout << point << " ";
+			}
+
+			if (actualMin != minDist || actualMinIdx != minIdx)
+			{
+				std::cout << i << ": min= " << minDist << " "
+					<< vecDist << " idx= " << minIdx << "\n";
+
+				std::cout << actualMin << " " << actualMinIdx << "\t ";
+
+
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					iWord point = signExtend(p0.mDist[i][k] + p1.mDist[i][k], p0.mLenMod);
+					std::cout << point << " ";
+				}
+
+				throw std::exception();
+
+			}
+		}
+
+#endif
+
+		//for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		//{
+		//	std::cout << i << ": min=";
+		//	for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
+		//	{
+		//		Word minDist = (p0.mShareMin[i][k] + p1.mShareMin[i][k]) % p0.mMod;
+		//		std::cout << minDist << " ";
+		//	}
+		//	BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+		//	std::cout << vecDist << " ";
+
+
+		//	std::cout << " \t vs \t ";
+
+		//	for (u64 k = 0; k < p0.mNumCluster; k++)
+		//	{
+		//		Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+		//		std::cout << point << " ";
+		//	}
+		//	std::cout << "\n";
+		//}
+
+
+		timer.setTimePoint("OTkeysDone");
+
+		p0.Print();
+		p1.Print();
+
+
+
+
+
+	}
+
+
+
+
+#if 0
 
 	void testMinDistFirstLevel_old()
 	{
@@ -2344,7 +3968,7 @@ namespace osuCrypto
 	}
 
 
-#if 0
+
 	void ClusteringTest()
 	{
 		Timer timer;
@@ -2696,7 +4320,7 @@ namespace osuCrypto
 #pragma endregion
 
 		//=======================online closet cluster===============================
-		
+
 #if 1
 		thrd = std::thread([&]() { //party 1
 			int stepIdxMin = 1;
@@ -2716,9 +4340,9 @@ namespace osuCrypto
 				for (u64 k = 0; k < dist1.size(); k++)
 				{
 					memcpy((u8*)&dist1[k], (u8*)&p0.mDist[i][2 * k], sizeof(Word));
-					memcpy((u8*)&dist2[k], (u8*)&p0.mDist[i][2 * k + 1], sizeof(Word));					
+					memcpy((u8*)&dist2[k], (u8*)&p0.mDist[i][2 * k + 1], sizeof(Word));
 				}
-				
+
 				programLessThan3(p0.parties, dist1, dist2, p0.mVecGcMinOutput[i], p0.mLenMod);
 
 				p0.mVecIdxMin[i].append(p0.mVecGcMinOutput[i]);
@@ -2742,7 +4366,7 @@ namespace osuCrypto
 			std::cout << IoStream::unlock;
 
 			//=============2nd level loop until root==================================
-			while (p0.mShareMin[0].size()>1)
+			while (p0.mShareMin[0].size() > 1)
 			{
 				stepIdxMin *= 2;
 
@@ -2754,7 +4378,7 @@ namespace osuCrypto
 				{
 					if (numNodeThisLevel % 2) //odd number, keep last for next level
 						lastNode[i] = p0.mShareMin[i][p0.mShareMin[i].size() - 1];
-					
+
 					std::vector<i64> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
 					for (u64 k = 0; k < dist1.size(); k++)
 					{
@@ -2833,7 +4457,7 @@ namespace osuCrypto
 
 
 
-		while (p1.mShareMin[0].size()>1)
+		while (p1.mShareMin[0].size() > 1)
 		{
 			stepIdxMin *= 2;
 
@@ -2978,7 +4602,7 @@ namespace osuCrypto
 	}
 
 
-void testDecAES()
+	void testDecAES()
 	{
 		PRNG prng(ZeroBlock);
 		block* plaintexts = new block[10];
@@ -3007,1266 +4631,1268 @@ void testDecAES()
 	}
 
 	void testMinDist_o()
+	{
+		Timer timer; IOService ios;
+		Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
+		Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
+
+		u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 4;
+
+		int inMod = pow(2, inExMod);
+		std::vector<std::vector<Word>> inputA, inputB;
+		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+
+		PRNG prng(ZeroBlock);
+		u64 numberTest = 2;
+		inputA.resize(numberTest);
+		inputB.resize(numberTest);
+		for (int i = 0; i < numberTest; i++)
+		{
+			inputA[i].resize(inDimension);
+			inputB[i].resize(inDimension);
+			for (size_t j = 0; j < inDimension; j++)
 			{
-				Timer timer; IOService ios;
-				Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
-				Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
+				inputA[i][j] = prng.get<Word>() % inMod;
+				inputB[i][j] = prng.get<Word>() % inMod;
 
-				u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 4;
+				//std::cout << inputA[i][j] << "\t" << inputB[i][j] << " p\n";
+			}
+		}
 
-				int inMod = pow(2, inExMod);
-				std::vector<std::vector<Word>> inputA, inputB;
-				//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+		u64 inTotalPoint = inputA.size() + inputB.size();
+		//=======================offline===============================
+		DataShare p0, p1;
 
-				PRNG prng(ZeroBlock);
-				u64 numberTest = 2;
-				inputA.resize(numberTest);
-				inputB.resize(numberTest);
-				for (int i = 0; i < numberTest; i++)
-				{
-					inputA[i].resize(inDimension);
-					inputB[i].resize(inDimension);
-					for (size_t j = 0; j < inDimension; j++)
-					{
-						inputA[i][j] = prng.get<Word>() % inMod;
-						inputB[i][j] = prng.get<Word>() % inMod;
+		timer.setTimePoint("starts");
+		std::thread thrd = std::thread([&]() {
+			p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
+				, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension);
 
-						//std::cout << inputA[i][j] << "\t" << inputB[i][j] << " p\n";
-					}
-				}
-
-				u64 inTotalPoint = inputA.size() + inputB.size();
-				//=======================offline===============================
-				DataShare p0, p1;
-
-				timer.setTimePoint("starts");
-				std::thread thrd = std::thread([&]() {
-					p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
-						, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension);
-
-					NaorPinkas baseOTs;
-					baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
-					p0.recv.setBaseOts(p0.mSendBaseMsg);
+			NaorPinkas baseOTs;
+			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
+			p0.recv.setBaseOts(p0.mSendBaseMsg);
 
 
-					baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
-					p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
+			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
+			p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
 
 
-				});
+		});
 
 
-				p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
-					, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
+		p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
+			, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
 
-				NaorPinkas baseOTs;
-				baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
-				p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
+		NaorPinkas baseOTs;
+		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
+		p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
 
 
-				baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
-				p1.recv.setBaseOts(p1.mSendBaseMsg);
+		baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
+		p1.recv.setBaseOts(p1.mSendBaseMsg);
 
 
 
-				thrd.join();
+		thrd.join();
 
-				timer.setTimePoint("offlineDone");
-				//=======================online (sharing)===============================
+		timer.setTimePoint("offlineDone");
+		//=======================online (sharing)===============================
 
-				thrd = std::thread([&]() {
+		thrd = std::thread([&]() {
 
-					p0.sendShareInput(0, 0, inNumCluster / 2);
-					p0.recvShareInput(p0.mPoint.size(), inNumCluster / 2, inNumCluster);
+			p0.sendShareInput(0, 0, inNumCluster / 2);
+			p0.recvShareInput(p0.mPoint.size(), inNumCluster / 2, inNumCluster);
 
-				});
+		});
 
-				p1.recvShareInput(0, 0, inNumCluster / 2);
-				p1.sendShareInput(p1.mTheirNumPoints, inNumCluster / 2, inNumCluster);
+		p1.recvShareInput(0, 0, inNumCluster / 2);
+		p1.sendShareInput(p1.mTheirNumPoints, inNumCluster / 2, inNumCluster);
 
 
-				thrd.join();
-				timer.setTimePoint("sharingInputsDone");
+		thrd.join();
+		timer.setTimePoint("sharingInputsDone");
 
 #if 0
-				//check share
-				for (u64 i = 0; i < p0.mPoint.size(); i++)
+		//check share
+		for (u64 i = 0; i < p0.mPoint.size(); i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != p0.mPoint[i][j])
 				{
-					for (u64 j = 0; j < inDimension; j++)
-					{
-						if ((p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != p0.mPoint[i][j])
-						{
 
-							std::cout << "(p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != 0\n";
-							std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
-							throw std::exception();
-						}
-					}
+					std::cout << "(p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != 0\n";
+					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
+					throw std::exception();
 				}
+			}
+		}
 
-				for (u64 i = p0.mPoint.size(); i < inTotalPoint; i++)
+		for (u64 i = p0.mPoint.size(); i < inTotalPoint; i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != p1.mPoint[i - p0.mPoint.size()][j])
 				{
-					for (u64 j = 0; j < inDimension; j++)
-					{
-						if ((p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != p1.mPoint[i - p0.mPoint.size()][j])
-						{
 
-							std::cout << "(p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != 0\n";
-							std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
-							throw std::exception();
-						}
-					}
+					std::cout << "(p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != 0\n";
+					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
+					throw std::exception();
 				}
+			}
+		}
 
-				for (u64 i = 0; i < inNumCluster / 2; i++)
+		for (u64 i = 0; i < inNumCluster / 2; i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mShareCluster[i][j] + p1.mShareCluster[i][j]) % inMod != p0.mCluster[i][j])
 				{
-					for (u64 j = 0; j < inDimension; j++)
-					{
-						if ((p0.mShareCluster[i][j] + p1.mShareCluster[i][j]) % inMod != p0.mCluster[i][j])
-						{
 
-							std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
-							std::cout << i << "-" << j << ": " << p0.mShareCluster[i][j] << " vs " << p1.mShareCluster[i][j] << "\n";
-							throw std::exception();
-						}
-					}
+					std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
+					std::cout << i << "-" << j << ": " << p0.mShareCluster[i][j] << " vs " << p1.mShareCluster[i][j] << "\n";
+					throw std::exception();
 				}
+			}
+		}
 
 
-				for (u64 i = inNumCluster / 2; i < inNumCluster; i++)
+		for (u64 i = inNumCluster / 2; i < inNumCluster; i++)
+		{
+			for (u64 j = 0; j < inDimension; j++)
+			{
+				if ((p0.mShareCluster[i][j] + p1.mShareCluster[i][j]) % inMod != p1.mCluster[i][j])
 				{
-					for (u64 j = 0; j < inDimension; j++)
-					{
-						if ((p0.mShareCluster[i][j] + p1.mShareCluster[i][j]) % inMod != p1.mCluster[i][j])
-						{
 
-							std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
-							std::cout << i << "-" << j << ": " << p0.mShareCluster[i][j] << " vs " << p1.mShareCluster[i][j] << "\n";
-							throw std::exception();
-						}
-					}
+					std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
+					std::cout << i << "-" << j << ": " << p0.mShareCluster[i][j] << " vs " << p1.mShareCluster[i][j] << "\n";
+					throw std::exception();
 				}
+			}
+		}
 
 
 #endif
 
-				//fake dist
-				u64 num = 99;
-				u64 num2 = 1;
-				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-					for (u64 k = 0; k < p0.mNumCluster; k++)
-					{
-						if (i % 2)
-						{	num = rand() % 1000;
-							p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
-							p1.mDist[i][k] = (num - p0.mDist[i][k]) % p0.mMod;;
-							std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
-							num--;
-						}
-						else
-						{	num2 = rand() % 1000;
-							p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
-							p1.mDist[i][k] = prng.get<Word>() % p0.mMod;;
-							std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
-							num2++;
-						}
-					}
-
-				//41 467 334 500 169 724 478 358 962 464
-				thrd = std::thread([&]() { //party 1
-					int stepIdxMin = 1;
-					u64 numNodeThisLevel = p0.mNumCluster;
-					std::vector<Word> lastNode(p0.mTotalNumPoints); //[i][#cluster-1]
-					BitVector oneBit("1");
-					std::vector<std::vector<Word>> outShareSend, outShareRecv;
-					std::vector<std::vector<BitVector>> outIdxShareSend, outIdxShareRecv;
-
-
-
-					//=================1st level //TODO: remove dist
-					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-					{
-						if (numNodeThisLevel % 2) //odd number
-							lastNode[i] = p0.mDist[i][p0.mNumCluster - 1];
-
-						std::vector<i64> diffDist; //lastNode move to next level
-						for (u64 k = 0; k < numNodeThisLevel / 2; k++)
-							diffDist.push_back((p0.mDist[i][2 * k] - p0.mDist[i][2 * k + 1])%p0.mMod);
-
-						std::cout << IoStream::lock;
-						if (i == 0) //
-						{
-							std::cout << p0.mDist[i][0] << " " << p0.mDist[i][1] << " d="<<diffDist[0]<<  " mShareMin s\n";
-
-							/*std::cout << i << "===================\n";
-							for (u64 j = 0; j < diffDist.size(); j++)
-								std::cout << diffDist[j] << "   diffDistA\n";*/
-						}
-						std::cout << IoStream::unlock;
-
-
-
-						programLessThanDiff(p0.parties, diffDist, p0.mVecGcMinOutput[i], p0.mLenMod);
-						p0.mVecIdxMin[i].append(p0.mVecGcMinOutput[i]);
-
-						if (numNodeThisLevel % 2) //odd number
-							p0.mVecIdxMin[i].append(oneBit); //make sure last vecIdxMin[i]=1 
-
-					}
-
-					p0.amortBinArithMulsend(outShareSend,p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
-					p0.amortBinArithMULrecv(outShareRecv,p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
-					p0.computeShareMin(outShareSend, outShareRecv);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
-
-					if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
-						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-							p0.mShareMin[i].push_back(lastNode[i]);
-
-
-					std::cout << IoStream::lock;
-					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-						std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    A\n";
-					std::cout << IoStream::unlock;
-
-					//=============2nd level loop until root==================================
-					while (p0.mShareMin[0].size()>1)
-					{
-						stepIdxMin *= 2;
-
-						ostreamLock(std::cout) << "p0.mShareMin[0].size()=" << p0.mShareMin[0].size() << "\n";
-
-						numNodeThisLevel = p0.mShareMin[0].size();
-
-						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-						{
-							if (numNodeThisLevel % 2) //odd number, keep last for next level
-								lastNode[i] = p0.mShareMin[i][p0.mShareMin[i].size() - 1];
-							std::vector<i64> diffDist;
-							for (u64 k = 0; k < numNodeThisLevel / 2; k++)
-								diffDist.push_back((p0.mShareMin[i][2 * k] - p0.mShareMin[i][2 * k + 1]) % p0.mMod);
-
-							std::cout << IoStream::lock;
-							if (p0.mShareMin[1].size() == 3 && i==0) //
-							{
-								std::cout << p0.mShareMin[i][0] << " " << p0.mShareMin[i][1] << " mShareMin s\n";
-
-								std::cout << i << "===================\n";
-								for (u64 j = 0; j < diffDist.size(); j++)
-									std::cout << diffDist[j] << "   diffDistA\n";
-							}
-							std::cout << IoStream::unlock;
-
-
-
-							programLessThanDiff(p0.parties, diffDist, p0.mVecGcMinOutput[i], p0.mLenMod);
-						}
-
-
-						if (p0.mShareMin[1].size() == 2) //near root
-						{
-							std::cout << IoStream::lock;
-							std::cout << p0.mVecGcMinOutput[1] << " =========mVecGcMinOutput[i]==========\n";
-							std::cout << IoStream::unlock;
-						}
-
-						p0.amortBinArithMulGCsend(outShareSend, outIdxShareSend, p0.mVecGcMinOutput, p0.mShareMin, p0.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^A)
-						p0.amortBinArithMulGCrecv(outShareRecv, outIdxShareRecv, p0.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^B)
-						p0.computeShareMin(outShareSend, outShareRecv);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
-						p0.computeShareIdxMin(outIdxShareSend, outIdxShareRecv);
-
-						/*std::cout << IoStream::lock;
-						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-							std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    bp A\n";
-						std::cout << IoStream::unlock;*/
-
-						if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
-							for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-								p0.mShareMin[i].push_back(lastNode[i]);
-
-
-						std::cout << IoStream::lock;
-						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-							std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    A\n";
-						std::cout << IoStream::unlock;
-					}
-
-
-				});
-				//party 2 60512 1	 745463 60512 532159 1040128 
-				int stepIdxMin = 1;
-				u64 numNodeThisLevel = p1.mNumCluster;
-				BitVector zeroBit("0");
-				std::vector<Word> lastNode(p1.mTotalNumPoints); //[i][#cluster-1]
-																//=================1st level //TODO: remove dist
-				std::vector<std::vector<Word>> outShareSend, outShareRecv;
-				std::vector<std::vector<BitVector>> outIdxShareSend, outIdxShareRecv;
-
-				for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+		//fake dist
+		u64 num = 99;
+		u64 num2 = 1;
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				if (i % 2)
 				{
-					if (numNodeThisLevel % 2) //odd number
-						lastNode[i] = p1.mDist[i][p1.mNumCluster - 1];
+					num = rand() % 1000;
+					p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
+					p1.mDist[i][k] = (num - p0.mDist[i][k]) % p0.mMod;;
+					std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
+					num--;
+				}
+				else
+				{
+					num2 = rand() % 1000;
+					p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
+					p1.mDist[i][k] = prng.get<Word>() % p0.mMod;;
+					std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
+					num2++;
+				}
+			}
 
-					std::vector<i64> diffDist; //lastNode move to next level
+		//41 467 334 500 169 724 478 358 962 464
+		thrd = std::thread([&]() { //party 1
+			int stepIdxMin = 1;
+			u64 numNodeThisLevel = p0.mNumCluster;
+			std::vector<Word> lastNode(p0.mTotalNumPoints); //[i][#cluster-1]
+			BitVector oneBit("1");
+			std::vector<std::vector<Word>> outShareSend, outShareRecv;
+			std::vector<std::vector<BitVector>> outIdxShareSend, outIdxShareRecv;
+
+
+
+			//=================1st level //TODO: remove dist
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			{
+				if (numNodeThisLevel % 2) //odd number
+					lastNode[i] = p0.mDist[i][p0.mNumCluster - 1];
+
+				std::vector<i64> diffDist; //lastNode move to next level
+				for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+					diffDist.push_back((p0.mDist[i][2 * k] - p0.mDist[i][2 * k + 1]) % p0.mMod);
+
+				std::cout << IoStream::lock;
+				if (i == 0) //
+				{
+					std::cout << p0.mDist[i][0] << " " << p0.mDist[i][1] << " d=" << diffDist[0] << " mShareMin s\n";
+
+					/*std::cout << i << "===================\n";
+					for (u64 j = 0; j < diffDist.size(); j++)
+						std::cout << diffDist[j] << "   diffDistA\n";*/
+				}
+				std::cout << IoStream::unlock;
+
+
+
+				programLessThanDiff(p0.parties, diffDist, p0.mVecGcMinOutput[i], p0.mLenMod);
+				p0.mVecIdxMin[i].append(p0.mVecGcMinOutput[i]);
+
+				if (numNodeThisLevel % 2) //odd number
+					p0.mVecIdxMin[i].append(oneBit); //make sure last vecIdxMin[i]=1 
+
+			}
+
+			p0.amortBinArithMulsend(outShareSend, p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
+			p0.amortBinArithMULrecv(outShareRecv, p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
+			p0.computeShareMin(outShareSend, outShareRecv);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+
+			if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+					p0.mShareMin[i].push_back(lastNode[i]);
+
+
+			std::cout << IoStream::lock;
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    A\n";
+			std::cout << IoStream::unlock;
+
+			//=============2nd level loop until root==================================
+			while (p0.mShareMin[0].size() > 1)
+			{
+				stepIdxMin *= 2;
+
+				ostreamLock(std::cout) << "p0.mShareMin[0].size()=" << p0.mShareMin[0].size() << "\n";
+
+				numNodeThisLevel = p0.mShareMin[0].size();
+
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				{
+					if (numNodeThisLevel % 2) //odd number, keep last for next level
+						lastNode[i] = p0.mShareMin[i][p0.mShareMin[i].size() - 1];
+					std::vector<i64> diffDist;
 					for (u64 k = 0; k < numNodeThisLevel / 2; k++)
-						diffDist.push_back((p1.mDist[i][2 * k + 1] - p1.mDist[i][2 * k]) % p0.mMod);
+						diffDist.push_back((p0.mShareMin[i][2 * k] - p0.mShareMin[i][2 * k + 1]) % p0.mMod);
 
 					std::cout << IoStream::lock;
-					if (i == 0) //
+					if (p0.mShareMin[1].size() == 3 && i == 0) //
 					{
-						std::cout << p1.mDist[i][0] << " " << p1.mDist[i][1] << " d=" << diffDist[0] << " mShareMin r\n";
+						std::cout << p0.mShareMin[i][0] << " " << p0.mShareMin[i][1] << " mShareMin s\n";
 
-						/*std::cout << i << "===================\n";
+						std::cout << i << "===================\n";
 						for (u64 j = 0; j < diffDist.size(); j++)
-						std::cout << diffDist[j] << "   diffDistA\n";*/
+							std::cout << diffDist[j] << "   diffDistA\n";
 					}
 					std::cout << IoStream::unlock;
 
-					programLessThanDiff(p1.parties, diffDist, p1.mVecGcMinOutput[i], p1.mLenMod);
 
-					p1.mVecIdxMin[i].append(p1.mVecGcMinOutput[i]);//first level 10||01||01||01|1
-					if (numNodeThisLevel % 2) //odd number
-						p1.mVecIdxMin[i].append(zeroBit); //make sure last vecIdxMin[i]=1 
 
+					programLessThanDiff(p0.parties, diffDist, p0.mVecGcMinOutput[i], p0.mLenMod);
 				}
 
-				p1.amortBinArithMULrecv(outShareRecv,p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
-				p1.amortBinArithMulsend(outShareSend,p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
-				p1.computeShareMin(outShareSend,outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+
+				if (p0.mShareMin[1].size() == 2) //near root
+				{
+					std::cout << IoStream::lock;
+					std::cout << p0.mVecGcMinOutput[1] << " =========mVecGcMinOutput[i]==========\n";
+					std::cout << IoStream::unlock;
+				}
+
+				p0.amortBinArithMulGCsend(outShareSend, outIdxShareSend, p0.mVecGcMinOutput, p0.mShareMin, p0.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^A)
+				p0.amortBinArithMulGCrecv(outShareRecv, outIdxShareRecv, p0.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^B)
+				p0.computeShareMin(outShareSend, outShareRecv);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+				p0.computeShareIdxMin(outIdxShareSend, outIdxShareRecv);
+
+				/*std::cout << IoStream::lock;
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+					std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    bp A\n";
+				std::cout << IoStream::unlock;*/
 
 				if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
-					for (u64 i = 0; i < p1.mTotalNumPoints; i++)
-						p1.mShareMin[i].push_back(lastNode[i]);
+					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+						p0.mShareMin[i].push_back(lastNode[i]);
 
 
 				std::cout << IoStream::lock;
 				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-					std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    B\n";
+					std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    A\n";
 				std::cout << IoStream::unlock;
-				
-				//=============2nd level loop until root==================================
+			}
 
-				
-				
-				while(p1.mShareMin[0].size()>1)
+
+		});
+		//party 2 60512 1	 745463 60512 532159 1040128 
+		int stepIdxMin = 1;
+		u64 numNodeThisLevel = p1.mNumCluster;
+		BitVector zeroBit("0");
+		std::vector<Word> lastNode(p1.mTotalNumPoints); //[i][#cluster-1]
+														//=================1st level //TODO: remove dist
+		std::vector<std::vector<Word>> outShareSend, outShareRecv;
+		std::vector<std::vector<BitVector>> outIdxShareSend, outIdxShareRecv;
+
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+		{
+			if (numNodeThisLevel % 2) //odd number
+				lastNode[i] = p1.mDist[i][p1.mNumCluster - 1];
+
+			std::vector<i64> diffDist; //lastNode move to next level
+			for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+				diffDist.push_back((p1.mDist[i][2 * k + 1] - p1.mDist[i][2 * k]) % p0.mMod);
+
+			std::cout << IoStream::lock;
+			if (i == 0) //
+			{
+				std::cout << p1.mDist[i][0] << " " << p1.mDist[i][1] << " d=" << diffDist[0] << " mShareMin r\n";
+
+				/*std::cout << i << "===================\n";
+				for (u64 j = 0; j < diffDist.size(); j++)
+				std::cout << diffDist[j] << "   diffDistA\n";*/
+			}
+			std::cout << IoStream::unlock;
+
+			programLessThanDiff(p1.parties, diffDist, p1.mVecGcMinOutput[i], p1.mLenMod);
+
+			p1.mVecIdxMin[i].append(p1.mVecGcMinOutput[i]);//first level 10||01||01||01|1
+			if (numNodeThisLevel % 2) //odd number
+				p1.mVecIdxMin[i].append(zeroBit); //make sure last vecIdxMin[i]=1 
+
+		}
+
+		p1.amortBinArithMULrecv(outShareRecv, p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
+		p1.amortBinArithMulsend(outShareSend, p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
+		p1.computeShareMin(outShareSend, outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+
+		if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+			for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+				p1.mShareMin[i].push_back(lastNode[i]);
+
+
+		std::cout << IoStream::lock;
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    B\n";
+		std::cout << IoStream::unlock;
+
+		//=============2nd level loop until root==================================
+
+
+
+		while (p1.mShareMin[0].size() > 1)
+		{
+			stepIdxMin *= 2;
+
+			ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << "\n";
+
+			numNodeThisLevel = p1.mShareMin[0].size();
+
+			for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+			{
+				if (numNodeThisLevel % 2) //odd number, keep last for next level
+					lastNode[i] = p1.mShareMin[i][p1.mShareMin[i].size() - 1];
+
+				std::vector<i64> diffDist;
+				for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+					diffDist.push_back((p1.mShareMin[i][2 * k + 1] - p1.mShareMin[i][2 * k]) % p0.mMod);
+
+				std::cout << IoStream::lock;
+				if (p1.mShareMin[1].size() == 3 && i == 0) //
 				{
-					stepIdxMin *= 2;
+					std::cout << p1.mShareMin[i][0] << " " << p1.mShareMin[i][1] << " mShareMin r\n";
 
-					ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << "\n";
-
-					numNodeThisLevel = p1.mShareMin[0].size();
-
-					for (u64 i = 0; i < p1.mTotalNumPoints; i++)
-					{
-						if (numNodeThisLevel % 2) //odd number, keep last for next level
-							lastNode[i] = p1.mShareMin[i][p1.mShareMin[i].size() - 1];
-
-						std::vector<i64> diffDist;
-						for (u64 k = 0; k < numNodeThisLevel / 2; k++)
-							diffDist.push_back((p1.mShareMin[i][2 * k + 1] - p1.mShareMin[i][2 * k]) % p0.mMod);
-
-						std::cout << IoStream::lock;
-						if (p1.mShareMin[1].size() == 3 && i == 0) //
-						{
-							std::cout << p1.mShareMin[i][0] << " " << p1.mShareMin[i][1] << " mShareMin r\n";
-
-							std::cout << i << "===================\n";
-							for (u64 j = 0; j < diffDist.size(); j++)
-								std::cout << diffDist[j] << "   diffDistB\n";
-						}
-						std::cout << IoStream::unlock;
-						programLessThanDiff(p1.parties, diffDist, p1.mVecGcMinOutput[i], p1.mLenMod);
-					}
-
-					if (p1.mShareMin[1].size() == 2) //near root
-					{
-						std::cout << IoStream::lock;
-						std::cout << p1.mVecGcMinOutput[1] << " ========= mVecGcMinOutput r==========\n";
-						std::cout << IoStream::unlock;
-					}
-
-					p1.amortBinArithMulGCrecv(outShareRecv, outIdxShareRecv,p1.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^A)
-					p1.amortBinArithMulGCsend(outShareSend, outIdxShareSend,p1.mVecGcMinOutput, p1.mShareMin, p1.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^B)
-					p1.computeShareMin(outShareSend, outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
-					p1.computeShareIdxMin(outIdxShareSend, outIdxShareRecv);
-
-					
-					/*std::cout << IoStream::lock;
-					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-						std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    bp B\n";
-					std::cout << IoStream::unlock;*/
-
-					if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
-						for (u64 i = 0; i < p1.mTotalNumPoints; i++)
-							p1.mShareMin[i].push_back(lastNode[i]);
-
-
-
-					std::cout << IoStream::lock;
-					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-						std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    B\n";
-					std::cout << IoStream::unlock;
+					std::cout << i << "===================\n";
+					for (u64 j = 0; j < diffDist.size(); j++)
+						std::cout << diffDist[j] << "   diffDistB\n";
 				}
+				std::cout << IoStream::unlock;
+				programLessThanDiff(p1.parties, diffDist, p1.mVecGcMinOutput[i], p1.mLenMod);
+			}
 
-				ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << " end\n";
+			if (p1.mShareMin[1].size() == 2) //near root
+			{
+				std::cout << IoStream::lock;
+				std::cout << p1.mVecGcMinOutput[1] << " ========= mVecGcMinOutput r==========\n";
+				std::cout << IoStream::unlock;
+			}
 
-				thrd.join();
+			p1.amortBinArithMulGCrecv(outShareRecv, outIdxShareRecv, p1.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^A)
+			p1.amortBinArithMulGCsend(outShareSend, outIdxShareSend, p1.mVecGcMinOutput, p1.mShareMin, p1.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^B)
+			p1.computeShareMin(outShareSend, outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+			p1.computeShareIdxMin(outIdxShareSend, outIdxShareRecv);
+
+
+			/*std::cout << IoStream::lock;
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    bp B\n";
+			std::cout << IoStream::unlock;*/
+
+			if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+				for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+					p1.mShareMin[i].push_back(lastNode[i]);
+
+
+
+			std::cout << IoStream::lock;
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    B\n";
+			std::cout << IoStream::unlock;
+		}
+
+		ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << " end\n";
+
+		thrd.join();
 
 
 
 
 #if 0
-				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			Word minDist = (p0.mShareMin[i][0] + p1.mShareMin[i][0]) % p0.mMod;
+			BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+
+			u64 minIdx;
+
+			for (u64 k = 0; k < vecDist.size(); k++)
+				if (vecDist[k] == 1)
 				{
-					Word minDist= (p0.mShareMin[i][0] + p1.mShareMin[i][0]) % p0.mMod;
-					BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
-
-					u64 minIdx;
-
-					for (u64 k = 0; k < vecDist.size(); k++)
-						if (vecDist[k] == 1)
-						{
-							minIdx = k;
-							break;
-						}
-
-					Word actualMin = (p0.mDist[i][0] + p1.mDist[i][0]) % p0.mMod;
-					Word actualMinIdx = 0;
-					for (u64 k = 1; k < p0.mNumCluster; k++)
-					{
-						Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
-						if (actualMin > point)
-						{
-							actualMin = point;
-							actualMinIdx = k;
-						}
-						//std::cout << point << " ";
-					}
-
-					if (actualMin != minDist || actualMinIdx != minIdx)
-					{
-						std::cout << i << ": min= " << minDist << " "
-							<< vecDist << " idx= " << minIdx << "\n";
-
-						std::cout << actualMin << " " << actualMinIdx <<"\t ";
-
-
-						for (u64 k = 0; k < p0.mNumCluster; k++)
-						{
-							Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
-							std::cout << point << " ";
-						}
-
-						throw std::exception();
-
-					}
+					minIdx = k;
+					break;
 				}
+
+			Word actualMin = (p0.mDist[i][0] + p1.mDist[i][0]) % p0.mMod;
+			Word actualMinIdx = 0;
+			for (u64 k = 1; k < p0.mNumCluster; k++)
+			{
+				Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+				if (actualMin > point)
+				{
+					actualMin = point;
+					actualMinIdx = k;
+				}
+				//std::cout << point << " ";
+			}
+
+			if (actualMin != minDist || actualMinIdx != minIdx)
+			{
+				std::cout << i << ": min= " << minDist << " "
+					<< vecDist << " idx= " << minIdx << "\n";
+
+				std::cout << actualMin << " " << actualMinIdx << "\t ";
+
+
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+					std::cout << point << " ";
+				}
+
+				throw std::exception();
+
+			}
+		}
 
 #endif
-				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			std::cout << i << ": min=";
+			for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
+			{
+				Word minDist = (p0.mShareMin[i][k] + p1.mShareMin[i][k]) % p0.mMod;
+				std::cout << minDist << " ";
+			}
+			BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+			std::cout << vecDist << " ";
+
+
+			std::cout << " \t vs \t ";
+
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+				std::cout << point << " ";
+			}
+			std::cout << "\n";
+		}
+
+
+
+
+		timer.setTimePoint("OTkeysDone");
+
+		/*
+						block data = p0.mPrng.get<block>();
+						u64 aa1 = ((u64*)&data)[0];
+						u64 aa2 = ((u64*)&data)[1];
+						std::cout << data << "\n";
+						std::cout << toBlock(aa1) << "\n";
+						std::cout << toBlock(aa2) << "\n";*/
+
+
+
+						//p0.Print();
+						//p1.Print();
+
+
+
+
+
+	}
+
+	void testMinDist()
+	{
+		Timer timer; IOService ios;
+		Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
+		Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
+
+		u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 4;
+
+		int inMod = pow(2, inExMod);
+		std::vector<std::vector<Word>> inputA, inputB;
+		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+
+		PRNG prng(ZeroBlock);
+		u64 numberTest = 2;
+		inputA.resize(numberTest);
+		inputB.resize(numberTest);
+		for (int i = 0; i < numberTest; i++)
+		{
+			inputA[i].resize(inDimension);
+			inputB[i].resize(inDimension);
+			for (size_t j = 0; j < inDimension; j++)
+			{
+				inputA[i][j] = prng.get<Word>() % inMod;
+				inputB[i][j] = prng.get<Word>() % inMod;
+
+				//std::cout << inputA[i][j] << "\t" << inputB[i][j] << " p\n";
+			}
+		}
+
+		u64 inTotalPoint = inputA.size() + inputB.size();
+		//=======================offline===============================
+		DataShare p0, p1;
+
+		timer.setTimePoint("starts");
+		std::thread thrd = std::thread([&]() {
+			p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
+				, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension);
+
+			NaorPinkas baseOTs;
+			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
+			p0.recv.setBaseOts(p0.mSendBaseMsg);
+
+
+			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
+			p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
+
+
+		});
+
+
+		p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
+			, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
+
+		NaorPinkas baseOTs;
+		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
+		p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
+
+
+		baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
+		p1.recv.setBaseOts(p1.mSendBaseMsg);
+		thrd.join();
+
+
+
+		//fake dist
+		u64 num = 99;
+		u64 num2 = 1;
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				if (i % 2)
 				{
-					std::cout << i << ": min=";
-					for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
-					{
-						Word minDist = (p0.mShareMin[i][k] + p1.mShareMin[i][k]) % p0.mMod;
-						std::cout << minDist << " ";
-					}
-					BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
-					std::cout << vecDist << " ";
+					num = rand() % 1000;
+					p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
+					p1.mDist[i][k] = (num - p0.mDist[i][k]) % p0.mMod;;
+					std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
+					num--;
+				}
+				else
+				{
+					num2 = rand() % 1000;
+					p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
+					p1.mDist[i][k] = prng.get<Word>() % p0.mMod;;
+					std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
+					num2++;
+				}
+			}
+
+		//41 467 334 500 169 724 478 358 962 464
+		thrd = std::thread([&]() { //party 1
+			int stepIdxMin = 1;
+			u64 numNodeThisLevel = p0.mNumCluster;
+			std::vector<Word> lastNode(p0.mTotalNumPoints); //[i][#cluster-1]
+			BitVector oneBit("1");
+			std::vector<std::vector<Word>> outShareSend, outShareRecv;
+			std::vector<std::vector<BitVector>> outIdxShareSend, outIdxShareRecv;
 
 
-					std::cout << " \t vs \t ";
 
-					for (u64 k = 0; k < p0.mNumCluster; k++)
-					{
-						Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
-						std::cout << point << " ";
-					}
-					std::cout << "\n";
+			//=================1st level //TODO: remove dist
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			{
+				if (numNodeThisLevel % 2) //odd number
+					lastNode[i] = p0.mDist[i][p0.mNumCluster - 1];
+
+				//std::vector<i64> diffDist; //lastNode move to next level
+				//for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+				//	diffDist.push_back((p0.mDist[i][2 * k] - p0.mDist[i][2 * k + 1]) % p0.mMod);
+
+
+				std::vector<i64> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
+				for (u64 k = 0; k < dist1.size(); k++)
+				{
+					memcpy((u8*)&dist1[k], (u8*)&p0.mDist[i][2 * k], sizeof(Word));
+					memcpy((u8*)&dist2[k], (u8*)&p0.mDist[i][2 * k + 1], sizeof(Word));
 				}
 
+				std::cout << IoStream::lock;
+				if (i == 0) //
+				{
+					//std::cout << p0.mDist[i][0] << " " << p0.mDist[i][1] << " d=" << diffDist[0] << " mShareMin s\n";
+
+					/*std::cout << i << "===================\n";
+					for (u64 j = 0; j < diffDist.size(); j++)
+					std::cout << diffDist[j] << "   diffDistA\n";*/
+				}
+				std::cout << IoStream::unlock;
 
 
 
-				timer.setTimePoint("OTkeysDone");
+				programLessThan3(p0.parties, dist1, dist2, p0.mVecGcMinOutput[i], p0.mLenMod);
+				p0.mVecIdxMin[i].append(p0.mVecGcMinOutput[i]);
 
-/*
-				block data = p0.mPrng.get<block>();
-				u64 aa1 = ((u64*)&data)[0];
-				u64 aa2 = ((u64*)&data)[1];
-				std::cout << data << "\n";
-				std::cout << toBlock(aa1) << "\n";
-				std::cout << toBlock(aa2) << "\n";*/
-
-
-
-				//p0.Print();
-				//p1.Print();
-
-
-
-
+				if (numNodeThisLevel % 2) //odd number
+					p0.mVecIdxMin[i].append(oneBit); //make sure last vecIdxMin[i]=1 
 
 			}
 
-	void testMinDist()
-			{
-				Timer timer; IOService ios;
-				Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
-				Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
+			p0.amortBinArithMulsend(outShareSend, p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
+			p0.amortBinArithMULrecv(outShareRecv, p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
+			p0.computeShareMin(outShareSend, outShareRecv);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
 
-				u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 4;
-
-				int inMod = pow(2, inExMod);
-				std::vector<std::vector<Word>> inputA, inputB;
-				//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
-
-				PRNG prng(ZeroBlock);
-				u64 numberTest = 2;
-				inputA.resize(numberTest);
-				inputB.resize(numberTest);
-				for (int i = 0; i < numberTest; i++)
-				{
-					inputA[i].resize(inDimension);
-					inputB[i].resize(inDimension);
-					for (size_t j = 0; j < inDimension; j++)
-					{
-						inputA[i][j] = prng.get<Word>() % inMod;
-						inputB[i][j] = prng.get<Word>() % inMod;
-
-						//std::cout << inputA[i][j] << "\t" << inputB[i][j] << " p\n";
-					}
-				}
-
-				u64 inTotalPoint = inputA.size() + inputB.size();
-				//=======================offline===============================
-				DataShare p0, p1;
-
-				timer.setTimePoint("starts");
-				std::thread thrd = std::thread([&]() {
-					p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
-						, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension);
-
-					NaorPinkas baseOTs;
-					baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
-					p0.recv.setBaseOts(p0.mSendBaseMsg);
-
-
-					baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
-					p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
-
-
-				});
-
-
-				p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
-					, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
-
-				NaorPinkas baseOTs;
-				baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
-				p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
-
-
-				baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
-				p1.recv.setBaseOts(p1.mSendBaseMsg);
-				thrd.join();
-
-	
-
-				//fake dist
-				u64 num = 99;
-				u64 num2 = 1;
+			if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
 				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-					for (u64 k = 0; k < p0.mNumCluster; k++)
-					{
-						if (i % 2)
-						{
-							num = rand() % 1000;
-							p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
-							p1.mDist[i][k] = (num - p0.mDist[i][k]) % p0.mMod;;
-							std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
-							num--;
-						}
-						else
-						{
-							num2 = rand() % 1000;
-							p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
-							p1.mDist[i][k] = prng.get<Word>() % p0.mMod;;
-							std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
-							num2++;
-						}
-					}
-
-				//41 467 334 500 169 724 478 358 962 464
-				thrd = std::thread([&]() { //party 1
-					int stepIdxMin = 1;
-					u64 numNodeThisLevel = p0.mNumCluster;
-					std::vector<Word> lastNode(p0.mTotalNumPoints); //[i][#cluster-1]
-					BitVector oneBit("1");
-					std::vector<std::vector<Word>> outShareSend, outShareRecv;
-					std::vector<std::vector<BitVector>> outIdxShareSend, outIdxShareRecv;
+					p0.mShareMin[i].push_back(lastNode[i]);
 
 
+			std::cout << IoStream::lock;
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    A\n";
+			std::cout << IoStream::unlock;
 
-					//=================1st level //TODO: remove dist
-					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-					{
-						if (numNodeThisLevel % 2) //odd number
-							lastNode[i] = p0.mDist[i][p0.mNumCluster - 1];
+			//=============2nd level loop until root==================================
+			while (p0.mShareMin[0].size() > 1)
+			{
+				stepIdxMin *= 2;
 
-						//std::vector<i64> diffDist; //lastNode move to next level
-						//for (u64 k = 0; k < numNodeThisLevel / 2; k++)
-						//	diffDist.push_back((p0.mDist[i][2 * k] - p0.mDist[i][2 * k + 1]) % p0.mMod);
+				ostreamLock(std::cout) << "p0.mShareMin[0].size()=" << p0.mShareMin[0].size() << "\n";
 
-						
-						std::vector<i64> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
-						for (u64 k = 0; k < dist1.size(); k++)
-						{
-							memcpy((u8*)&dist1[k], (u8*)&p0.mDist[i][2 * k], sizeof(Word));
-							memcpy((u8*)&dist2[k], (u8*)&p0.mDist[i][2 * k + 1], sizeof(Word));
-						}
+				numNodeThisLevel = p0.mShareMin[0].size();
 
-						std::cout << IoStream::lock;
-						if (i == 0) //
-						{
-							//std::cout << p0.mDist[i][0] << " " << p0.mDist[i][1] << " d=" << diffDist[0] << " mShareMin s\n";
-
-							/*std::cout << i << "===================\n";
-							for (u64 j = 0; j < diffDist.size(); j++)
-							std::cout << diffDist[j] << "   diffDistA\n";*/
-						}
-						std::cout << IoStream::unlock;
-
-
-
-						programLessThan3(p0.parties, dist1, dist2, p0.mVecGcMinOutput[i], p0.mLenMod);
-						p0.mVecIdxMin[i].append(p0.mVecGcMinOutput[i]);
-
-						if (numNodeThisLevel % 2) //odd number
-							p0.mVecIdxMin[i].append(oneBit); //make sure last vecIdxMin[i]=1 
-
-					}
-
-					p0.amortBinArithMulsend(outShareSend, p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
-					p0.amortBinArithMULrecv(outShareRecv, p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
-					p0.computeShareMin(outShareSend, outShareRecv);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
-
-					if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
-						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-							p0.mShareMin[i].push_back(lastNode[i]);
-
-
-					std::cout << IoStream::lock;
-					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-						std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    A\n";
-					std::cout << IoStream::unlock;
-
-					//=============2nd level loop until root==================================
-					while (p0.mShareMin[0].size()>1)
-					{
-						stepIdxMin *= 2;
-
-						ostreamLock(std::cout) << "p0.mShareMin[0].size()=" << p0.mShareMin[0].size() << "\n";
-
-						numNodeThisLevel = p0.mShareMin[0].size();
-
-						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-						{
-							if (numNodeThisLevel % 2) //odd number, keep last for next level
-								lastNode[i] = p0.mShareMin[i][p0.mShareMin[i].size() - 1];
-							
-							
-							std::vector<i64> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
-							for (u64 k = 0; k < dist1.size(); k++)
-							{
-								memcpy((u8*)&dist1[k], (u8*)&p0.mShareMin[i][2 * k], sizeof(Word));
-								memcpy((u8*)&dist2[k], (u8*)&p0.mShareMin[i][2 * k + 1], sizeof(Word));
-							}
-
-							/*std::vector<i64> diffDist;
-							for (u64 k = 0; k < numNodeThisLevel / 2; k++)
-								diffDist.push_back((p0.mShareMin[i][2 * k] - p0.mShareMin[i][2 * k + 1]) % p0.mMod);*/
-
-							std::cout << IoStream::lock;
-							if (p0.mShareMin[1].size() == 3 && i == 0) //
-							{
-								std::cout << p0.mShareMin[i][0] << " " << p0.mShareMin[i][1] << " mShareMin s\n";
-
-								std::cout << i << "===================\n";
-								//for (u64 j = 0; j < diffDist.size(); j++)
-								//	std::cout << diffDist[j] << "   diffDistA\n";
-							}
-							std::cout << IoStream::unlock;
-
-
-
-							programLessThan3(p0.parties, dist1,dist2, p0.mVecGcMinOutput[i], p0.mLenMod);
-						}
-
-
-						if (p0.mShareMin[1].size() == 2) //near root
-						{
-							std::cout << IoStream::lock;
-							std::cout << p0.mVecGcMinOutput[1] << " =========mVecGcMinOutput[i]==========\n";
-							std::cout << IoStream::unlock;
-						}
-
-						p0.amortBinArithMulGCsend(outShareSend, outIdxShareSend, p0.mVecGcMinOutput, p0.mShareMin, p0.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^A)
-						p0.amortBinArithMulGCrecv(outShareRecv, outIdxShareRecv, p0.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^B)
-						p0.computeShareMin(outShareSend, outShareRecv);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
-						p0.computeShareIdxMin(outIdxShareSend, outIdxShareRecv);
-
-						/*std::cout << IoStream::lock;
-						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-						std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    bp A\n";
-						std::cout << IoStream::unlock;*/
-
-						if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
-							for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-								p0.mShareMin[i].push_back(lastNode[i]);
-
-
-						std::cout << IoStream::lock;
-						for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-							std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    A\n";
-						std::cout << IoStream::unlock;
-					}
-
-
-				});
-				//party 2 60512 1	 745463 60512 532159 1040128 
-				int stepIdxMin = 1;
-				u64 numNodeThisLevel = p1.mNumCluster;
-				BitVector zeroBit("0");
-				std::vector<Word> lastNode(p1.mTotalNumPoints); //[i][#cluster-1]
-																//=================1st level //TODO: remove dist
-				std::vector<std::vector<Word>> outShareSend, outShareRecv;
-				std::vector<std::vector<BitVector>> outIdxShareSend, outIdxShareRecv;
-
-				for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 				{
-					if (numNodeThisLevel % 2) //odd number
-						lastNode[i] = p1.mDist[i][p1.mNumCluster - 1];
+					if (numNodeThisLevel % 2) //odd number, keep last for next level
+						lastNode[i] = p0.mShareMin[i][p0.mShareMin[i].size() - 1];
 
-					//std::vector<i64> diffDist; //lastNode move to next level
-					//for (u64 k = 0; k < numNodeThisLevel / 2; k++)
-					//	diffDist.push_back((p1.mDist[i][2 * k + 1] - p1.mDist[i][2 * k]) % p0.mMod);
 
 					std::vector<i64> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
 					for (u64 k = 0; k < dist1.size(); k++)
 					{
-						memcpy((u8*)&dist1[k], (u8*)&p1.mDist[i][2 * k], sizeof(Word));
-						memcpy((u8*)&dist2[k], (u8*)&p1.mDist[i][2 * k + 1], sizeof(Word));
+						memcpy((u8*)&dist1[k], (u8*)&p0.mShareMin[i][2 * k], sizeof(Word));
+						memcpy((u8*)&dist2[k], (u8*)&p0.mShareMin[i][2 * k + 1], sizeof(Word));
 					}
 
+					/*std::vector<i64> diffDist;
+					for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+						diffDist.push_back((p0.mShareMin[i][2 * k] - p0.mShareMin[i][2 * k + 1]) % p0.mMod);*/
 
 					std::cout << IoStream::lock;
-					if (i == 0) //
+					if (p0.mShareMin[1].size() == 3 && i == 0) //
 					{
-						//std::cout << p1.mDist[i][0] << " " << p1.mDist[i][1] << " d=" << diffDist[0] << " mShareMin r\n";
+						std::cout << p0.mShareMin[i][0] << " " << p0.mShareMin[i][1] << " mShareMin s\n";
 
-						/*std::cout << i << "===================\n";
-						for (u64 j = 0; j < diffDist.size(); j++)
-						std::cout << diffDist[j] << "   diffDistA\n";*/
+						std::cout << i << "===================\n";
+						//for (u64 j = 0; j < diffDist.size(); j++)
+						//	std::cout << diffDist[j] << "   diffDistA\n";
 					}
 					std::cout << IoStream::unlock;
 
-					programLessThan3(p1.parties, dist1,dist2, p1.mVecGcMinOutput[i], p1.mLenMod);
 
-					p1.mVecIdxMin[i].append(p1.mVecGcMinOutput[i]);//first level 10||01||01||01|1
-					if (numNodeThisLevel % 2) //odd number
-						p1.mVecIdxMin[i].append(zeroBit); //make sure last vecIdxMin[i]=1 
 
+					programLessThan3(p0.parties, dist1, dist2, p0.mVecGcMinOutput[i], p0.mLenMod);
 				}
 
-				p1.amortBinArithMULrecv(outShareRecv, p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
-				p1.amortBinArithMulsend(outShareSend, p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
-				p1.computeShareMin(outShareSend, outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+
+				if (p0.mShareMin[1].size() == 2) //near root
+				{
+					std::cout << IoStream::lock;
+					std::cout << p0.mVecGcMinOutput[1] << " =========mVecGcMinOutput[i]==========\n";
+					std::cout << IoStream::unlock;
+				}
+
+				p0.amortBinArithMulGCsend(outShareSend, outIdxShareSend, p0.mVecGcMinOutput, p0.mShareMin, p0.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^A)
+				p0.amortBinArithMulGCrecv(outShareRecv, outIdxShareRecv, p0.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^B)
+				p0.computeShareMin(outShareSend, outShareRecv);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+				p0.computeShareIdxMin(outIdxShareSend, outIdxShareRecv);
+
+				/*std::cout << IoStream::lock;
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    bp A\n";
+				std::cout << IoStream::unlock;*/
 
 				if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
-					for (u64 i = 0; i < p1.mTotalNumPoints; i++)
-						p1.mShareMin[i].push_back(lastNode[i]);
+					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+						p0.mShareMin[i].push_back(lastNode[i]);
 
 
 				std::cout << IoStream::lock;
 				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-					std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    B\n";
+					std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p0.mVecIdxMin[i] << "    A\n";
 				std::cout << IoStream::unlock;
-
-				//=============2nd level loop until root==================================
-
+			}
 
 
-				while (p1.mShareMin[0].size()>1)
-				{
-					stepIdxMin *= 2;
+		});
+		//party 2 60512 1	 745463 60512 532159 1040128 
+		int stepIdxMin = 1;
+		u64 numNodeThisLevel = p1.mNumCluster;
+		BitVector zeroBit("0");
+		std::vector<Word> lastNode(p1.mTotalNumPoints); //[i][#cluster-1]
+														//=================1st level //TODO: remove dist
+		std::vector<std::vector<Word>> outShareSend, outShareRecv;
+		std::vector<std::vector<BitVector>> outIdxShareSend, outIdxShareRecv;
 
-					ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << "\n";
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+		{
+			if (numNodeThisLevel % 2) //odd number
+				lastNode[i] = p1.mDist[i][p1.mNumCluster - 1];
 
-					numNodeThisLevel = p1.mShareMin[0].size();
+			//std::vector<i64> diffDist; //lastNode move to next level
+			//for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+			//	diffDist.push_back((p1.mDist[i][2 * k + 1] - p1.mDist[i][2 * k]) % p0.mMod);
 
-					for (u64 i = 0; i < p1.mTotalNumPoints; i++)
-					{
-						if (numNodeThisLevel % 2) //odd number, keep last for next level
-							lastNode[i] = p1.mShareMin[i][p1.mShareMin[i].size() - 1];
+			std::vector<i64> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
+			for (u64 k = 0; k < dist1.size(); k++)
+			{
+				memcpy((u8*)&dist1[k], (u8*)&p1.mDist[i][2 * k], sizeof(Word));
+				memcpy((u8*)&dist2[k], (u8*)&p1.mDist[i][2 * k + 1], sizeof(Word));
+			}
 
-						/*std::vector<i64> diffDist;
-						for (u64 k = 0; k < numNodeThisLevel / 2; k++)
-							diffDist.push_back((p1.mShareMin[i][2 * k + 1] - p1.mShareMin[i][2 * k]) % p0.mMod);
+
+			std::cout << IoStream::lock;
+			if (i == 0) //
+			{
+				//std::cout << p1.mDist[i][0] << " " << p1.mDist[i][1] << " d=" << diffDist[0] << " mShareMin r\n";
+
+				/*std::cout << i << "===================\n";
+				for (u64 j = 0; j < diffDist.size(); j++)
+				std::cout << diffDist[j] << "   diffDistA\n";*/
+			}
+			std::cout << IoStream::unlock;
+
+			programLessThan3(p1.parties, dist1, dist2, p1.mVecGcMinOutput[i], p1.mLenMod);
+
+			p1.mVecIdxMin[i].append(p1.mVecGcMinOutput[i]);//first level 10||01||01||01|1
+			if (numNodeThisLevel % 2) //odd number
+				p1.mVecIdxMin[i].append(zeroBit); //make sure last vecIdxMin[i]=1 
+
+		}
+
+		p1.amortBinArithMULrecv(outShareRecv, p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
+		p1.amortBinArithMulsend(outShareSend, p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
+		p1.computeShareMin(outShareSend, outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+
+		if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+			for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+				p1.mShareMin[i].push_back(lastNode[i]);
+
+
+		std::cout << IoStream::lock;
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    B\n";
+		std::cout << IoStream::unlock;
+
+		//=============2nd level loop until root==================================
+
+
+
+		while (p1.mShareMin[0].size() > 1)
+		{
+			stepIdxMin *= 2;
+
+			ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << "\n";
+
+			numNodeThisLevel = p1.mShareMin[0].size();
+
+			for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+			{
+				if (numNodeThisLevel % 2) //odd number, keep last for next level
+					lastNode[i] = p1.mShareMin[i][p1.mShareMin[i].size() - 1];
+
+				/*std::vector<i64> diffDist;
+				for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+					diffDist.push_back((p1.mShareMin[i][2 * k + 1] - p1.mShareMin[i][2 * k]) % p0.mMod);
 */
-						std::vector<i64> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
-						for (u64 k = 0; k < dist1.size(); k++)
-						{
-							memcpy((u8*)&dist1[k], (u8*)&p1.mShareMin[i][2 * k], sizeof(Word));
-							memcpy((u8*)&dist2[k], (u8*)&p1.mShareMin[i][2 * k + 1], sizeof(Word));
-						}
-
-						std::cout << IoStream::lock;
-						if (p1.mShareMin[1].size() == 3 && i == 0) //
-						{
-							std::cout << p1.mShareMin[i][0] << " " << p1.mShareMin[i][1] << " mShareMin r\n";
-
-							std::cout << i << "===================\n";
-							//for (u64 j = 0; j < diffDist.size(); j++)
-							//	std::cout << diffDist[j] << "   diffDistB\n";
-						}
-						std::cout << IoStream::unlock;
-						programLessThan3(p1.parties, dist1,dist2, p1.mVecGcMinOutput[i], p1.mLenMod);
-					}
-
-					if (p1.mShareMin[1].size() == 2) //near root
-					{
-						std::cout << IoStream::lock;
-						std::cout << p1.mVecGcMinOutput[1] << " ========= mVecGcMinOutput r==========\n";
-						std::cout << IoStream::unlock;
-					}
-
-					p1.amortBinArithMulGCrecv(outShareRecv, outIdxShareRecv, p1.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^A)
-					p1.amortBinArithMulGCsend(outShareSend, outIdxShareSend, p1.mVecGcMinOutput, p1.mShareMin, p1.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^B)
-					p1.computeShareMin(outShareSend, outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
-					p1.computeShareIdxMin(outIdxShareSend, outIdxShareRecv);
-
-
-					/*std::cout << IoStream::lock;
-					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-					std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    bp B\n";
-					std::cout << IoStream::unlock;*/
-
-					if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
-						for (u64 i = 0; i < p1.mTotalNumPoints; i++)
-							p1.mShareMin[i].push_back(lastNode[i]);
-
-
-
-					std::cout << IoStream::lock;
-					for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-						std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    B\n";
-					std::cout << IoStream::unlock;
+				std::vector<i64> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
+				for (u64 k = 0; k < dist1.size(); k++)
+				{
+					memcpy((u8*)&dist1[k], (u8*)&p1.mShareMin[i][2 * k], sizeof(Word));
+					memcpy((u8*)&dist2[k], (u8*)&p1.mShareMin[i][2 * k + 1], sizeof(Word));
 				}
 
-				ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << " end\n";
+				std::cout << IoStream::lock;
+				if (p1.mShareMin[1].size() == 3 && i == 0) //
+				{
+					std::cout << p1.mShareMin[i][0] << " " << p1.mShareMin[i][1] << " mShareMin r\n";
 
-				thrd.join();
+					std::cout << i << "===================\n";
+					//for (u64 j = 0; j < diffDist.size(); j++)
+					//	std::cout << diffDist[j] << "   diffDistB\n";
+				}
+				std::cout << IoStream::unlock;
+				programLessThan3(p1.parties, dist1, dist2, p1.mVecGcMinOutput[i], p1.mLenMod);
+			}
+
+			if (p1.mShareMin[1].size() == 2) //near root
+			{
+				std::cout << IoStream::lock;
+				std::cout << p1.mVecGcMinOutput[1] << " ========= mVecGcMinOutput r==========\n";
+				std::cout << IoStream::unlock;
+			}
+
+			p1.amortBinArithMulGCrecv(outShareRecv, outIdxShareRecv, p1.mVecGcMinOutput, stepIdxMin); //(b^A \xor b^B)*(P^A)
+			p1.amortBinArithMulGCsend(outShareSend, outIdxShareSend, p1.mVecGcMinOutput, p1.mShareMin, p1.mVecIdxMin, stepIdxMin); //(b^A \xor b^B)*(P^B)
+			p1.computeShareMin(outShareSend, outShareRecv); //compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
+			p1.computeShareIdxMin(outIdxShareSend, outIdxShareRecv);
+
+
+			/*std::cout << IoStream::lock;
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    bp B\n";
+			std::cout << IoStream::unlock;*/
+
+			if (numNodeThisLevel % 2 == 1) //odd number => add last node to this level
+				for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+					p1.mShareMin[i].push_back(lastNode[i]);
+
+
+
+			std::cout << IoStream::lock;
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				std::cout << i << "-" << stepIdxMin << " mVecIdxMin: " << p1.mVecIdxMin[i] << "    B\n";
+			std::cout << IoStream::unlock;
+		}
+
+		ostreamLock(std::cout) << "p1.mShareMin[0].size()=" << p1.mShareMin[0].size() << " end\n";
+
+		thrd.join();
 
 
 
 
 #if 0
-				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			Word minDist = (p0.mShareMin[i][0] + p1.mShareMin[i][0]) % p0.mMod;
+			BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+
+			u64 minIdx;
+
+			for (u64 k = 0; k < vecDist.size(); k++)
+				if (vecDist[k] == 1)
 				{
-					Word minDist = (p0.mShareMin[i][0] + p1.mShareMin[i][0]) % p0.mMod;
-					BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
-
-					u64 minIdx;
-
-					for (u64 k = 0; k < vecDist.size(); k++)
-						if (vecDist[k] == 1)
-						{
-							minIdx = k;
-							break;
-						}
-
-					Word actualMin = (p0.mDist[i][0] + p1.mDist[i][0]) % p0.mMod;
-					Word actualMinIdx = 0;
-					for (u64 k = 1; k < p0.mNumCluster; k++)
-					{
-						Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
-						if (actualMin > point)
-						{
-							actualMin = point;
-							actualMinIdx = k;
-						}
-						//std::cout << point << " ";
-					}
-
-					if (actualMin != minDist || actualMinIdx != minIdx)
-					{
-						std::cout << i << ": min= " << minDist << " "
-							<< vecDist << " idx= " << minIdx << "\n";
-
-						std::cout << actualMin << " " << actualMinIdx << "\t ";
-
-
-						for (u64 k = 0; k < p0.mNumCluster; k++)
-						{
-							Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
-							std::cout << point << " ";
-						}
-
-						throw std::exception();
-
-					}
+					minIdx = k;
+					break;
 				}
 
-#endif
-				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			Word actualMin = (p0.mDist[i][0] + p1.mDist[i][0]) % p0.mMod;
+			Word actualMinIdx = 0;
+			for (u64 k = 1; k < p0.mNumCluster; k++)
+			{
+				Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+				if (actualMin > point)
 				{
-					std::cout << i << ": min=";
-					for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
-					{
-						Word minDist = (p0.mShareMin[i][k] + p1.mShareMin[i][k]) % p0.mMod;
-						std::cout << minDist << " ";
-					}
-					BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
-					std::cout << vecDist << " ";
-
-
-					std::cout << " \t vs \t ";
-
-					for (u64 k = 0; k < p0.mNumCluster; k++)
-					{
-						Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
-						std::cout << point << " ";
-					}
-					std::cout << "\n";
+					actualMin = point;
+					actualMinIdx = k;
 				}
-
-
-
-
-				timer.setTimePoint("OTkeysDone");
-
-				/*
-				block data = p0.mPrng.get<block>();
-				u64 aa1 = ((u64*)&data)[0];
-				u64 aa2 = ((u64*)&data)[1];
-				std::cout << data << "\n";
-				std::cout << toBlock(aa1) << "\n";
-				std::cout << toBlock(aa2) << "\n";*/
-
-
-
-				//p0.Print();
-				//p1.Print();
-
-
-
-
-
+				//std::cout << point << " ";
 			}
 
-	void testTranspose()
+			if (actualMin != minDist || actualMinIdx != minIdx)
 			{
-				Timer timer; IOService ios;
-				Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
-				Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
+				std::cout << i << ": min= " << minDist << " "
+					<< vecDist << " idx= " << minIdx << "\n";
 
-				u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 15;
-				u64 numberTest = 4;
+				std::cout << actualMin << " " << actualMinIdx << "\t ";
 
-				int inMod = pow(2, inExMod);
-				std::vector<std::vector<Word>> inputA, inputB;
-				//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
 
-#pragma region offline
-				PRNG prng(ZeroBlock);
-				
-				inputA.resize(numberTest);
-				inputB.resize(numberTest);
-				for (int i = 0; i < numberTest; i++)
+				for (u64 k = 0; k < p0.mNumCluster; k++)
 				{
-					inputA[i].resize(inDimension);
-					inputB[i].resize(inDimension);
-					for (size_t j = 0; j < inDimension; j++)
-					{
-						inputA[i][j] = prng.get<Word>() % inMod;
-						inputB[i][j] = prng.get<Word>() % inMod;
-
-						//std::cout << inputA[i][j] << "\t" << inputB[i][j] << " p\n";
-					}
+					Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+					std::cout << point << " ";
 				}
 
-				u64 inTotalPoint = inputA.size() + inputB.size();
-				//=======================offline===============================
+				throw std::exception();
+
+			}
+		}
+
+#endif
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			std::cout << i << ": min=";
+			for (u64 k = 0; k < p0.mShareMin[i].size(); k++)
+			{
+				Word minDist = (p0.mShareMin[i][k] + p1.mShareMin[i][k]) % p0.mMod;
+				std::cout << minDist << " ";
+			}
+			BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+			std::cout << vecDist << " ";
 
 
-				DataShare p0, p1;
+			std::cout << " \t vs \t ";
 
-				timer.setTimePoint("starts");
-				std::thread thrd = std::thread([&]() {
-					p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
-						, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension);
-
-					NaorPinkas baseOTs;
-					baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
-					p0.recv.setBaseOts(p0.mSendBaseMsg);
-
-
-					baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
-					p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+				std::cout << point << " ";
+			}
+			std::cout << "\n";
+		}
 
 
-				});
 
 
-				p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
-					, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
+		timer.setTimePoint("OTkeysDone");
 
-				NaorPinkas baseOTs;
-				baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
-				p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
+		/*
+		block data = p0.mPrng.get<block>();
+		u64 aa1 = ((u64*)&data)[0];
+		u64 aa2 = ((u64*)&data)[1];
+		std::cout << data << "\n";
+		std::cout << toBlock(aa1) << "\n";
+		std::cout << toBlock(aa2) << "\n";*/
 
 
-				baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
-				p1.recv.setBaseOts(p1.mSendBaseMsg);
-				thrd.join();
+
+		//p0.Print();
+		//p1.Print();
+
+
+
+
+
+	}
+
+	void testTranspose()
+	{
+		Timer timer; IOService ios;
+		Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
+		Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
+
+		u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 15;
+		u64 numberTest = 4;
+
+		int inMod = pow(2, inExMod);
+		std::vector<std::vector<Word>> inputA, inputB;
+		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+
+#pragma region offline
+		PRNG prng(ZeroBlock);
+
+		inputA.resize(numberTest);
+		inputB.resize(numberTest);
+		for (int i = 0; i < numberTest; i++)
+		{
+			inputA[i].resize(inDimension);
+			inputB[i].resize(inDimension);
+			for (size_t j = 0; j < inDimension; j++)
+			{
+				inputA[i][j] = prng.get<Word>() % inMod;
+				inputB[i][j] = prng.get<Word>() % inMod;
+
+				//std::cout << inputA[i][j] << "\t" << inputB[i][j] << " p\n";
+			}
+		}
+
+		u64 inTotalPoint = inputA.size() + inputB.size();
+		//=======================offline===============================
+
+
+		DataShare p0, p1;
+
+		timer.setTimePoint("starts");
+		std::thread thrd = std::thread([&]() {
+			p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
+				, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension);
+
+			NaorPinkas baseOTs;
+			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
+			p0.recv.setBaseOts(p0.mSendBaseMsg);
+
+
+			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
+			p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
+
+
+		});
+
+
+		p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
+			, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
+
+		NaorPinkas baseOTs;
+		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
+		p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
+
+
+		baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
+		p1.recv.setBaseOts(p1.mSendBaseMsg);
+		thrd.join();
 
 #pragma endregion
 
 
 
-				//fake dist
-				u64 num = 99;
-				u64 num2 = 1;
-				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-					for (u64 k = 0; k < p0.mNumCluster; k++)
-					{
-						if (i % 2)
-						{
-							num = rand() % 1000;
-							p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
-							p1.mDist[i][k] = (num - p0.mDist[i][k]) % p0.mMod;;
-							std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
-							num--;
-						}
-						else
-						{
-							num2 = rand() % 1000;
-							p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
-							p1.mDist[i][k] = prng.get<Word>() % p0.mMod;;
-							std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
-							num2++;
-						}
-					}
-
-				//fake compute mVecIdxMin
-				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		//fake dist
+		u64 num = 99;
+		u64 num2 = 1;
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				if (i % 2)
 				{
-					Word actualMin = (p0.mDist[i][0] + p1.mDist[i][0]) % p0.mMod;
-					Word actualMinIdx = 0;
-					for (u64 k = 1; k < p0.mNumCluster; k++)
-					{
-						Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
-						if (actualMin > point)
-						{
-							actualMin = point;
-							actualMinIdx = k;
-						}
-					}
-					p0.mVecIdxMin[i].resize(p0.mNumCluster);
-					p1.mVecIdxMin[i].resize(p1.mNumCluster);
-					p0.mVecIdxMin[i].randomize(p0.mPrng);
-					p1.mVecIdxMin[i] = p0.mVecIdxMin[i];
-					if(p0.mVecIdxMin[i][actualMinIdx])
-						p0.mVecIdxMin[i][actualMinIdx] = 0;
-					else
-						p0.mVecIdxMin[i][actualMinIdx] = 1;
-
+					num = rand() % 1000;
+					p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
+					p1.mDist[i][k] = (num - p0.mDist[i][k]) % p0.mMod;;
+					std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
+					num--;
 				}
-
-
-				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				else
 				{
-					
-					BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
-					std::cout << vecDist << " ";
-
-
-					std::cout << " \t vs \t ";
-
-					for (u64 k = 0; k < p0.mNumCluster; k++)
-					{
-						Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
-						std::cout << point << " ";
-					}
-					std::cout << "\n";
+					num2 = rand() % 1000;
+					p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
+					p1.mDist[i][k] = prng.get<Word>() % p0.mMod;;
+					std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
+					num2++;
 				}
-
-				p0.vecMinTranspose();
-
-						
-
-
 			}
+
+		//fake compute mVecIdxMin
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			Word actualMin = (p0.mDist[i][0] + p1.mDist[i][0]) % p0.mMod;
+			Word actualMinIdx = 0;
+			for (u64 k = 1; k < p0.mNumCluster; k++)
+			{
+				Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+				if (actualMin > point)
+				{
+					actualMin = point;
+					actualMinIdx = k;
+				}
+			}
+			p0.mVecIdxMin[i].resize(p0.mNumCluster);
+			p1.mVecIdxMin[i].resize(p1.mNumCluster);
+			p0.mVecIdxMin[i].randomize(p0.mPrng);
+			p1.mVecIdxMin[i] = p0.mVecIdxMin[i];
+			if (p0.mVecIdxMin[i][actualMinIdx])
+				p0.mVecIdxMin[i][actualMinIdx] = 0;
+			else
+				p0.mVecIdxMin[i][actualMinIdx] = 1;
+
+		}
+
+
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+
+			BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+			std::cout << vecDist << " ";
+
+
+			std::cout << " \t vs \t ";
+
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+				std::cout << point << " ";
+			}
+			std::cout << "\n";
+		}
+
+		p0.vecMinTranspose();
+
+
+
+
+	}
 
 
 	void testUpdateCluster()
-			{
-				Timer timer; IOService ios;
-				Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
-				Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
+	{
+		Timer timer; IOService ios;
+		Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
+		Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
 
-				u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 15;
-				u64 numberTest = 4;
+		u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 15;
+		u64 numberTest = 4;
 
-				int inMod = pow(2, inExMod);
-				std::vector<std::vector<Word>> inputA, inputB;
-				//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+		int inMod = pow(2, inExMod);
+		std::vector<std::vector<Word>> inputA, inputB;
+		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
 
 #pragma region offline
-				PRNG prng(ZeroBlock);
+		PRNG prng(ZeroBlock);
 
-				inputA.resize(numberTest);
-				inputB.resize(numberTest);
-				for (int i = 0; i < numberTest; i++)
-				{
-					inputA[i].resize(inDimension);
-					inputB[i].resize(inDimension);
-					for (size_t j = 0; j < inDimension; j++)
-					{
-						inputA[i][j] = prng.get<Word>() % inMod;
-						inputB[i][j] = prng.get<Word>() % inMod;
+		inputA.resize(numberTest);
+		inputB.resize(numberTest);
+		for (int i = 0; i < numberTest; i++)
+		{
+			inputA[i].resize(inDimension);
+			inputB[i].resize(inDimension);
+			for (size_t j = 0; j < inDimension; j++)
+			{
+				inputA[i][j] = prng.get<Word>() % inMod;
+				inputB[i][j] = prng.get<Word>() % inMod;
 
-						//std::cout << inputA[i][j] << "\t" << inputB[i][j] << " p\n";
-					}
-				}
+				//std::cout << inputA[i][j] << "\t" << inputB[i][j] << " p\n";
+			}
+		}
 
-				u64 inTotalPoint = inputA.size() + inputB.size();
-				//=======================offline===============================
-
-
-				DataShare p0, p1;
-
-				timer.setTimePoint("starts");
-				std::thread thrd = std::thread([&]() {
-					p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
-						, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension);
-
-					NaorPinkas baseOTs;
-					baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
-					p0.recv.setBaseOts(p0.mSendBaseMsg);
+		u64 inTotalPoint = inputA.size() + inputB.size();
+		//=======================offline===============================
 
 
-					baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
-					p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
+		DataShare p0, p1;
+
+		timer.setTimePoint("starts");
+		std::thread thrd = std::thread([&]() {
+			p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
+				, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension);
+
+			NaorPinkas baseOTs;
+			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
+			p0.recv.setBaseOts(p0.mSendBaseMsg);
 
 
-				});
+			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
+			p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
 
 
-				p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
-					, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
-
-				NaorPinkas baseOTs;
-				baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
-				p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
+		});
 
 
-				baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
-				p1.recv.setBaseOts(p1.mSendBaseMsg);
-				thrd.join();
+		p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
+			, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
+
+		NaorPinkas baseOTs;
+		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
+		p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
+
+
+		baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
+		p1.recv.setBaseOts(p1.mSendBaseMsg);
+		thrd.join();
 
 #pragma endregion
 
 
 
-				//fake dist
-				u64 num = 99;
-				u64 num2 = 1;
-				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-					for (u64 k = 0; k < p0.mNumCluster; k++)
-					{
-						if (i % 2)
-						{
-							num = rand() % 1000;
-							p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
-							p1.mDist[i][k] = (num - p0.mDist[i][k]) % p0.mMod;;
-							std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
-							num--;
-						}
-						else
-						{
-							num2 = rand() % 1000;
-							p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
-							p1.mDist[i][k] = prng.get<Word>() % p0.mMod;;
-							std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
-							num2++;
-						}
-					}
-
-				//fake compute mVecIdxMin
-				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		//fake dist
+		u64 num = 99;
+		u64 num2 = 1;
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				if (i % 2)
 				{
-					Word actualMin = (p0.mDist[i][0] + p1.mDist[i][0]) % p0.mMod;
-					Word actualMinIdx = 0;
-					for (u64 k = 1; k < p0.mNumCluster; k++)
-					{
-						Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
-						if (actualMin > point)
-						{
-							actualMin = point;
-							actualMinIdx = k;
-						}
-					}
-					p0.mVecIdxMin[i].resize(p0.mNumCluster);
-					p1.mVecIdxMin[i].resize(p1.mNumCluster);
-					p0.mVecIdxMin[i].randomize(p0.mPrng);
-					p1.mVecIdxMin[i] = p0.mVecIdxMin[i];
-					if (p0.mVecIdxMin[i][actualMinIdx])
-						p0.mVecIdxMin[i][actualMinIdx] = 0;
-					else
-						p0.mVecIdxMin[i][actualMinIdx] = 1;
+					num = rand() % 1000;
+					p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
+					p1.mDist[i][k] = (num - p0.mDist[i][k]) % p0.mMod;;
+					std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
+					num--;
+				}
+				else
+				{
+					num2 = rand() % 1000;
+					p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
+					p1.mDist[i][k] = prng.get<Word>() % p0.mMod;;
+					std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
+					num2++;
+				}
+			}
 
+		//fake compute mVecIdxMin
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			Word actualMin = (p0.mDist[i][0] + p1.mDist[i][0]) % p0.mMod;
+			Word actualMinIdx = 0;
+			for (u64 k = 1; k < p0.mNumCluster; k++)
+			{
+				Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+				if (actualMin > point)
+				{
+					actualMin = point;
+					actualMinIdx = k;
+				}
+			}
+			p0.mVecIdxMin[i].resize(p0.mNumCluster);
+			p1.mVecIdxMin[i].resize(p1.mNumCluster);
+			p0.mVecIdxMin[i].randomize(p0.mPrng);
+			p1.mVecIdxMin[i] = p0.mVecIdxMin[i];
+			if (p0.mVecIdxMin[i][actualMinIdx])
+				p0.mVecIdxMin[i][actualMinIdx] = 0;
+			else
+				p0.mVecIdxMin[i][actualMinIdx] = 1;
+
+		}
+
+
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+
+			BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+			std::cout << vecDist << " ";
+
+
+			std::cout << " \t vs \t ";
+
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+				std::cout << point << " ";
+	}
+			std::cout << "\n";
 				}
 
 
-				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-				{
-
-					BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
-					std::cout << vecDist << " ";
-
-
-					std::cout << " \t vs \t ";
-
-					for (u64 k = 0; k < p0.mNumCluster; k++)
-					{
-						Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
-						std::cout << point << " ";
-					}
-					std::cout << "\n";
-				}
 
 
 
 
+		std::vector<std::vector<Word>> shareNomSend0, shareNomRecv0, shareNomSend1, shareNomRecv1;
+		std::vector<Word> shareDenSend0, shareDenSend1, shareDenRecv0, shareDenRecv1;
+
+		thrd = std::thread([&]() {
+			p0.vecMinTranspose();
+
+			p0.amortBinArithClustsend(shareNomSend0, shareDenSend0, p0.mVecIdxMinTranspose);
+
+		});
+		p1.vecMinTranspose();
+
+		std::vector<std::vector<Word>> outShareSendNumeral, outShareRecvNumeral;
+		p1.amortBinArithClustrecv(shareNomRecv1, shareDenRecv1, p0.mVecIdxMinTranspose);
 
 
-				std::vector<std::vector<Word>> shareNomSend0, shareNomRecv0, shareNomSend1, shareNomRecv1;
-				std::vector<Word> shareDenSend0, shareDenSend1, shareDenRecv0, shareDenRecv1;
-
-				thrd = std::thread([&]() {
-					p0.vecMinTranspose();
-
-					p0.amortBinArithClustsend(shareNomSend0, shareDenSend0, p0.mVecIdxMinTranspose);
-
-				});
-				p1.vecMinTranspose();
-
-				std::vector<std::vector<Word>> outShareSendNumeral, outShareRecvNumeral;
-				p1.amortBinArithClustrecv(shareNomRecv1, shareDenRecv1, p0.mVecIdxMinTranspose);
-
-
-				thrd.join();
+		thrd.join();
 
 
 			}
