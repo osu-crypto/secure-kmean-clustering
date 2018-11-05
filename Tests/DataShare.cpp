@@ -399,6 +399,10 @@ namespace osuCrypto
 			}
 		}
 
+		mShareNomCluster.resize(mNumCluster);
+		mShareDecCluster.resize(mNumCluster);
+
+
 	}
 
 
@@ -925,7 +929,7 @@ namespace osuCrypto
 
 #if 1
 		std::cout << IoStream::lock;
-		std::cout << "-------------\vecMinTranspose-------------\n";
+		std::cout << "-------------vecMinTranspose-------------\n";
 
 		for (u64 i = 0; i < mTotalNumPoints; i++)
 		{
@@ -942,10 +946,10 @@ namespace osuCrypto
 #endif
 	}
 
-	void DataShare::amortBinArithClustsend(std::vector<std::vector<Word>>& outNomSend, std::vector<Word>& outDenSend, std::vector<BitVector>& bitVecs)
+	void DataShare::amortBinArithClustsend(std::vector<BitVector>& bitVecs, std::vector<std::vector<iWord>>& outNomSend, std::vector<iWord>& outDenSend, bool isDen)
 	{
 		outNomSend.resize(mNumCluster);
-		outDenSend.resize(mNumCluster);
+		outDenSend.resize(mNumCluster,0);
 		//OT concate all bitvector
 		BitVector allBitVecs; //[l][i]
 		for (size_t i = 0; i < bitVecs.size(); i++)
@@ -958,14 +962,16 @@ namespace osuCrypto
 		//OT sender m0 = r + b^A*P^A;  m1 = r + (1-b^A)*P^A 
 		//Co-OT: deltaOT= (1-2*b^A)*P^A 
 		//NOTE: sender output= r-b^AP^A
-		std::vector<u8> sendBuff(allBitVecs.size()*(mLenModinByte*mDimension + 1)); //b*((P1 || P2 || ... || Pd) || 1)
+
+		std::vector<u8> sendBuff(allBitVecs.size()*(sizeof(iWord)*mDimension + isDen * sizeof(i8))); //b*((P1 || P2 || ... || Pd) || 1)
+		
 		u64 iter = 0;
 		for (u64 k = 0; k < mNumCluster; k++) //all points
 		{
 			outNomSend[k].resize(mDimension, 0);
 			for (u64 i = 0; i < bitVecs[k].size(); i++)
 			{
-				std::vector<std::array<Word, 2>> r(mDimension);
+				std::vector<std::array<iWord, 2>> r(mDimension);
 				std::array<u8, 2> rQuo;
 
 				if (mDimension*mLenModinByte + 1 > sizeof(block)) //need more than 128bit OT to do b*((P1 || P2 || ... || Pd) || 1
@@ -975,67 +981,86 @@ namespace osuCrypto
 
 					for (u64 d = 0; d < mDimension; d++)
 					{
-						r[d][0] = prg0.get<Word>() % mMod;
-						r[d][1] = prg1.get<Word>() % mMod;
+						r[d][0] = signExtend(prg0.get<iWord>(),mLenMod);
+						r[d][1] = signExtend(prg1.get<Word>(), mLenMod);
 					}
-					rQuo[0] = prg0.get<Word>() % 2; //to compute \sum b = \sum b*1
-					rQuo[1] = prg0.get<Word>() % 2;
+					if (isDen)
+					{
+						rQuo[0] = prg0.get<Word>() % 2; //to compute \sum b = \sum b*1
+						rQuo[1] = prg1.get<Word>() % 2;
+					}
 				}
 				else
 				{
 					for (u64 d = 0; d < mDimension; d++)
 					{
 
-						r[d][0] = *(u64*)&(OtMsgSends[k*bitVecs[k].size() + i][0] >> d*mLenModinByte) % mMod;
-						r[d][1] = *(u64*)&(OtMsgSends[k*bitVecs[k].size() + i][1] >> d*mLenModinByte) % mMod;
+						r[d][0] = *(i64*)&(OtMsgSends[k*bitVecs[k].size() + i][0] >> d*mLenModinByte) % mMod;
+						r[d][1] = *(i64*)&(OtMsgSends[k*bitVecs[k].size() + i][1] >> d*mLenModinByte) % mMod;
 					}
 
-					rQuo[0] = *(u64*)&(OtMsgSends[k*bitVecs[k].size() + i][0] >> mDimension*mLenModinByte) % 2; //to compute \sum b = \sum b*1
-					rQuo[1] = *(u64*)&(OtMsgSends[k*bitVecs[k].size() + i][1] >> mDimension*mLenModinByte) % 2;
-
+					if (isDen)
+					{
+						rQuo[0] = *(i64*)&(OtMsgSends[k*bitVecs[k].size() + i][0] >> mDimension*mLenModinByte) % 2; //to compute \sum b = \sum b*1
+						rQuo[1] = *(i64*)&(OtMsgSends[k*bitVecs[k].size() + i][1] >> mDimension*mLenModinByte) % 2;
+					}
 				}
 
 				for (u64 d = 0; d < mDimension; d++)
 				{
-					Word correction = (Word)((1 - 2 * bitVecs[k][i])*mSharePoint[i][d].mArithShare + r[d][0] - r[d][1]) % mMod; //
-					Word temp = (bitVecs[k][i] * mSharePoint[i][d].mArithShare - r[d][0]) % mMod;
-					outNomSend[k][d] = (outNomSend[k][d] + temp) % mMod;
+					iWord correction = ((1 - 2 * bitVecs[k][i])*mSharePoint[i][d].mArithShare + r[d][0] - r[d][1]) ; //
+					iWord temp = signExtend((bitVecs[k][i] * mSharePoint[i][d].mArithShare - r[d][0]), mLenMod);
+					outNomSend[k][d] = signExtend((outNomSend[k][d] + temp), mLenMod);
 
-
+					iWord their= signExtend(((1 - 2 * bitVecs[k][i])*mSharePoint[i][d].mArithShare + r[d][0]), mLenMod);
 					std::cout << IoStream::lock;
 					std::cout << k << "-" << i << "-" << d << ":  " << r[d][0] << " vs " << r[d][1]
-						<< " \t " << (Word)((1 - 2 * bitVecs[k][i])*mSharePoint[i][d].mArithShare + r[d][0]) % mMod
+						<< " \t " << their
 						<< " \t " << temp
 						<< " \t " << outNomSend[k][d]
 						<< " c= " << correction << " s\n";
 					std::cout << IoStream::unlock;
 
 					//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
-					memcpy(sendBuff.data() + iter, (u8*)&correction, mLenModinByte);
-					iter += mLenModinByte;
+					memcpy(sendBuff.data() + iter, (i8*)&correction, sizeof(iWord));
+					iter += sizeof(iWord);
 				}
 
 
-				//for \sum b
-				u8 correction = (u8)((1 - 2 * bitVecs[k][i]) + rQuo[0] - rQuo[1]) % 2; // 1=1 \xor 0. sender input 1
-				u8 temp = (bitVecs[k][i] - rQuo[0]) % 2;
-				outDenSend[k] = (outDenSend[k] ^ temp);
+				if (isDen)
+				{
+					//delta OT with r0, r0+(b^A \xor 1) - (b^A \xor 0) => delt=(b^A \xor 1) - (b^A \xor 0)+r0-r1
+					//Receiver get r0 or (delta+r1)= r0+(b^A+b^B) - (b^A \xor 0)  <-- share
+					//Sender set (b^A \xor 0) - r0 as share
 
-				
+					i8 correction = (1 + rQuo[0] - rQuo[1]); // 1=1 \xor 0. sender input 1
+					if (bitVecs[k][i])
+						correction = (-1 + rQuo[0] - rQuo[1]); // 1=1 \xor 0. sender input 1
 
-				//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
-				memcpy(sendBuff.data() + iter, (u8*)&correction, 1);
-				iter += 1;
+					i8 myshare = bitVecs[k][i] - rQuo[0];
+					outDenSend[k] = outDenSend[k] + myshare;
+
+					std::cout << IoStream::lock;
+					std::cout << k << "-" << i << " bitshare s:  " << int(rQuo[0]) << " vs " << int(rQuo[1])
+						<< " \t " << int(correction + rQuo[1])
+						<< " \t " << int(myshare)
+						<< " c= " << int(correction) << " bitshare s\n";
+					std::cout << IoStream::unlock;
+
+					//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
+					memcpy(sendBuff.data() + iter, (i8*)&correction, sizeof(i8));
+					iter += sizeof(i8);
+				}
 
 			}
 		}
 		mChl.asyncSend(std::move(sendBuff));
 	}
 
-	void DataShare::amortBinArithClustrecv(std::vector<std::vector<Word>>& outNomRecv, std::vector<Word>& outDenRecv, std::vector<BitVector>& bitVecs)
+	void DataShare::amortBinArithClustrecv(std::vector<BitVector>& bitVecs, std::vector<std::vector<iWord>>& outNomRecv, std::vector<iWord>& outDenRecv, bool isDen)
 	{
 		outNomRecv.resize(mNumCluster);
-		outDenRecv.resize(mNumCluster);
+		outDenRecv.resize(mNumCluster,0);
 		//OT concate all bitvector
 		BitVector allBitVecs;
 		for (size_t i = 0; i < bitVecs.size(); i++)
@@ -1046,12 +1071,13 @@ namespace osuCrypto
 
 		std::vector<u8> recvBuff;
 		mChl.recv(recvBuff);
-		if (recvBuff.size() != allBitVecs.size()*(mLenModinByte*mDimension + 1))
+		if (recvBuff.size() != allBitVecs.size()*(sizeof(iWord)*mDimension + isDen*sizeof(i8)))
 		{
 			std::cout << "recvBuff.size() != allBitVecs.size()*mLenModinByte" <<
 				recvBuff.size() << " vs " << allBitVecs.size()*(mLenModinByte*mDimension + 1) << "\n";
 			throw std::exception();
 		}
+
 
 		std::vector<Word> correction(mDimension,0);
 		u64 iter = 0;
@@ -1061,29 +1087,31 @@ namespace osuCrypto
 			outNomRecv[k].resize(mDimension, 0);
 			for (u64 i = 0; i < bitVecs[k].size(); i++) //all points
 			{
-					std::vector<Word> r(mDimension);
-					u8 rQuo(mDimension);
+					std::vector<iWord> r(mDimension);
+					i8 rQuo=0;
 
 					if (mDimension*mLenModinByte + 1 > sizeof(block)) //need more than 128bit OT to do b*((P1 || P2 || ... || Pd) || 1
 					{
 						PRNG prgb(OtMsgRecv[k*bitVecs[k].size() + i]);
 
 						for (u64 d = 0; d < mDimension; d++)
-							r[d] = prgb.get<Word>() % mMod;
+							r[d] = signExtend(prgb.get<Word>(),mLenMod) ;
 						
-						rQuo = prgb.get<Word>() % 2; //to compute \sum b = \sum b*1
+						if (isDen)
+							rQuo = prgb.get<Word>() % 2; //to compute \sum b = \sum b*1
 					}
 					else
 					{
 						for (u64 d = 0; d < mDimension; d++)
-							r[d] = *(u64*)&(OtMsgRecv[k*bitVecs[k].size() + i] >> d*mLenModinByte) % mMod;
+							r[d] = *(i64*)&(OtMsgRecv[k*bitVecs[k].size() + i] >> d*mLenModinByte) % mMod;
 
-						rQuo = *(u64*)&(OtMsgRecv[k*bitVecs[k].size() + i] >> mDimension*mLenModinByte) % 2; //to compute \sum b = \sum b*1
+						if (isDen)
+							rQuo = *(u64*)&(OtMsgRecv[k*bitVecs[k].size() + i] >> mDimension*mLenModinByte) % 2; //to compute \sum b = \sum b*1
 
 					}
 
 
-
+				i8 correctbit=0;
 				if (bitVecs[k][i] == 1)
 				{
 
@@ -1091,37 +1119,56 @@ namespace osuCrypto
 
 					for (u64 d = 0; d < mDimension; d++)
 					{
-						memcpy((u8*)&correction[d], recvBuff.data() + iter, mLenModinByte);
-						r[d] = (correction[d] + r[d]) % mMod;
-						iter += mLenModinByte;
+						memcpy((i8*)&correction[d], recvBuff.data() + iter, sizeof(iWord));
+						r[d] = signExtend((correction[d] + r[d]), mLenMod);
+						iter += sizeof(iWord);
 					}
 
-					u8 correctbit;
-
-					memcpy((u8*)&correctbit, recvBuff.data() + iter, 1);
-					rQuo = (correctbit^ rQuo);
-					iter += 1;
-
+					
+					if (isDen) {
+						//delta OT with r0, r0+(b^A \xor 1) - (b^A \xor 0) => delt=(b^A \xor 1) - (b^A \xor 0)+r0-r1
+						//Receiver get r0 or (delta+r1)= r0+(b^A+b^B) - (b^A \xor 0)  <-- share
+						//Sender set (b^A \xor 0) - r0 as share
+						memcpy((i8*)&correctbit, recvBuff.data() + iter, sizeof(i8));
+						rQuo = correctbit + rQuo;
+						iter += sizeof(i8);
+					}
 				}
 				else
 				{ 
-					iter += mDimension*mLenModinByte+1;
+					iter += mDimension* sizeof(iWord) + isDen*sizeof(i8);
 				}
 
 				for (u64 d = 0; d < mDimension; d++)
-				{
-					outNomRecv[k][d] = (outNomRecv[k][d] + r[d]) % mMod;
-					outDenRecv[k]= (outDenRecv[k]^ rQuo) ;
+					outNomRecv[k][d] = signExtend((outNomRecv[k][d] + r[d]), mLenMod);;
 
-				}
+				if (isDen)
+				outDenRecv[k] = outDenRecv[k] + rQuo;
 
 				std::cout << IoStream::lock;
 				for (u64 d = 0; d < mDimension; d++)
 					std::cout << i << "-" << k << ":  " << r[d] << " vs " << bitVecs[k][i] << " c= " << correction[d] << " r\n";
+			
+				if (isDen)
+					std::cout << k << "-" << i << " bitshare r:  " << int(rQuo) << " vs " << bitVecs[k][i] << " c= " << int(correctbit) << " bitshare r \n";
+				
 				std::cout << IoStream::unlock;
 
 
 			}
+		}
+	}
+
+	void DataShare::computeShareCluster(std::vector<std::vector<iWord>>& shareNomSend, std::vector<std::vector<iWord>>& shareNomRecv, std::vector<iWord>&shareDenSend, std::vector<iWord>&shareDenSRecv)
+	{
+		for (u64 k = 0; k < mNumCluster; k++)
+		{
+			mShareNomCluster[k].resize(mDimension, 0);
+			for (u64 d = 0; d < mDimension; d++)
+			{
+				mShareNomCluster[k][d] = signExtend(mShareNomCluster[k][d] + shareNomSend[k][d] + shareNomRecv[k][d], mLenMod);
+			}
+			mShareDecCluster[k]= signExtend( shareDenSend[k], mLenMod); 
 		}
 	}
 

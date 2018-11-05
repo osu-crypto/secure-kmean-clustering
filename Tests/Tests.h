@@ -20,5 +20,5 @@ namespace osuCrypto
 	//void testDecAES();
 	
 	
-	//void testUpdateCluster();
+	void testUpdateCluster();
 }

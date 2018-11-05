@@ -257,13 +257,16 @@ namespace osuCrypto
 
 		//=================Update Cluster
 
+		std::vector<std::vector<iWord>> mShareNomCluster; //[k][d] share cluster
+		std::vector<iWord> mShareDecCluster; //[k] share cluster
 
 		void vecMinTranspose(); //TODO: matrix transpose
 
 		//outShareClustSend[k][d], bitVecs[i], compute b*((P1||P2||...||Pd)||1)
-		void amortBinArithClustsend(std::vector<std::vector<Word>>& outShareClustSend, std::vector<Word>& outDenSend, std::vector<BitVector>& bitVecs);
-																																							 //compute mi wiht OT receiver
-		void amortBinArithClustrecv(std::vector<std::vector<Word>>& outShareClustRecv, std::vector<Word>& outDenRecv, std::vector<BitVector>& bitVecs);
+		void amortBinArithClustsend(std::vector<BitVector>& bitVecs, std::vector<std::vector<iWord>>& outShareClustSend, std::vector<iWord>& outDenSend, bool isDen);
+		void amortBinArithClustrecv(std::vector<BitVector>& bitVecs, std::vector<std::vector<iWord>>& outShareClustRecv, std::vector<iWord>& outDenRecv, bool isDen);
+		void computeShareCluster(std::vector<std::vector<iWord>>& shareNomSend, std::vector<std::vector<iWord>>& shareNomRecv
+			, std::vector<iWord>&shareDenSend, std::vector<iWord>&shareDenSRecv);
 
 		//============print
 		void Print();

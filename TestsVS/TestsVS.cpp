@@ -77,6 +77,12 @@ namespace osuCrypto
 			ClusteringTest();
 		}
 
+
+		TEST_METHOD(UpdateCTesttVS)
+		{
+			InitDebugPrinting();
+			testUpdateCluster();
+		}
 #if 0
 		TEST_METHOD(DecAESTesttVS)
 		{
@@ -87,12 +93,7 @@ namespace osuCrypto
 		
 
 		
-		
-		TEST_METHOD(UpdateCTesttVS)
-		{
-			InitDebugPrinting();
-			testUpdateCluster();
-		}
+	
 		
 		
 		
