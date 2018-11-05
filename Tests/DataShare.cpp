@@ -1168,7 +1168,7 @@ namespace osuCrypto
 			{
 				mShareNomCluster[k][d] = signExtend(mShareNomCluster[k][d] + shareNomSend[k][d] + shareNomRecv[k][d], mLenMod);
 			}
-			mShareDecCluster[k]= signExtend( shareDenSend[k], mLenMod); 
+			mShareDecCluster[k]= signExtend( shareDenSend[k]+ shareDenSRecv[k], mLenMod);
 		}
 	}
 

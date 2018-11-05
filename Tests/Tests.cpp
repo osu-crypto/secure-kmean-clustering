@@ -461,6 +461,45 @@ namespace osuCrypto
 	}
 
 
+	void programEqualZero(std::array<Party, 2> parties, i64 myInput1,bool& output, u64 bitCount)
+	{
+
+		auto input01 = parties[0].isLocalParty() ?  //x1
+			parties[0].input<sInt>(myInput1, bitCount) :
+			parties[0].input<sInt>(bitCount);
+
+		auto input11 = parties[1].isLocalParty() ? //x2
+			parties[1].input<sInt>(myInput1, bitCount) :
+			parties[1].input<sInt>(bitCount);
+
+		auto input0 = input01 + input11;
+		auto eq = input0 > 0;
+		
+		parties[0].reveal(input0);
+		parties[0].reveal(eq);
+		parties[1].getRuntime().processesQueue();
+
+#if 1
+		if (parties[0].isLocalParty())
+		{
+			std::cout << IoStream::lock;
+			std::cout << input0.getValue()  << "?>0 =" << eq.getValue() << " --------------\n";
+			std::cout << IoStream::unlock;
+			output = eq.getValue();
+		}
+
+		if (parties[1].isLocalParty())
+		{
+			output = eq.getValue();
+			//std::cout << i << ": lt= " << lt.getValue() << " vs " << invert.getValue() << std::endl;
+			//ostreamLock(std::cout) << i << ": slt= " << int(myOutput[2 * i]) << int(myOutput[2 * i + 1]) << "    B\n";// << (*v1->mLabels)[0] << std::endl;
+		}
+#endif
+
+
+
+	}
+
 	void programDiv(std::array<Party, 2> parties, i64 myInput1, i64 myInput2, u64 bitCount)
 	{
 
@@ -482,7 +521,6 @@ namespace osuCrypto
 
 		auto input0 = input01 + input11;
 		auto input1 = input02 + input12;
-
 
 
 		auto div = input0 / input1;
@@ -3097,11 +3135,11 @@ namespace osuCrypto
 				iWord realDec =signExtend(p0.mShareDecCluster[k]+ p1.mShareDecCluster[k], p0.mLenMod);
 
 
-				if (expNom != realNom)
-					std::cout << expNom << " vs " << realNom << " = " << p0.mShareNomCluster[k][d] << " + " << p1.mShareNomCluster[k][d] << "  realNom\n";
+				//if (expNom != realNom)
+					std::cout << expNom << " \t vs \t " << realNom << " = " << p0.mShareNomCluster[k][d] << " + " << p1.mShareNomCluster[k][d] << "  realNom\n";
 
-				if (expDen != realDec)
-					std::cout << expDen << " vs " << realDec << " = " << p0.mShareDecCluster[k] << " + " << p1.mShareDecCluster[k] << "  realDec\n";
+				//if (expDen != realDec)
+					std::cout << expDen << " \t vs \t " << realDec << " = " << p0.mShareDecCluster[k] << " + " << p1.mShareDecCluster[k] << "  realDec\n";
 
 			}
 
@@ -3109,6 +3147,32 @@ namespace osuCrypto
 #endif
 		////=====================division===========================
 
+		for (u64 k = 0; k < p0.mNumCluster; k++)
+		{
+
+			bool isDenZero0, isDenZero1; //check den=0?
+			thrd = std::thread([&]() {
+				programEqualZero(p0.parties, p0.mShareDecCluster[k], isDenZero0, p1.mLenMod);
+			});
+			programEqualZero(p1.parties, p1.mShareDecCluster[k], isDenZero1, p1.mLenMod);
+			thrd.join();
+
+			/*if (isDenZero0 && isDenZero1)
+			{
+				for (u64 d = 0; d < p0.mDimension; d++)
+				{
+
+					thrd = std::thread([&]() {
+
+						programDiv(p0.parties, p0.mShareNomCluster[k][d], p0.mShareDecCluster[k], p0.mLenMod);
+					});
+					programDiv(p1.parties, p1.mShareNomCluster[k][d], p1.mShareDecCluster[k], p1.mLenMod);
+
+
+					thrd.join();
+				}
+			}*/
+		}
 
 	}
 
