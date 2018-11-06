@@ -380,7 +380,7 @@ namespace osuCrypto
 
 		//GC
 		rt.mDebugFlag = false;
-		if (partyIdx)
+		if (!partyIdx)
 			rt.init(mChl, mPrng.get<block>(), ShGcRuntime::Garbler, 0);
 		else
 			rt.init(mChl, mPrng.get<block>(), ShGcRuntime::Evaluator, 1);

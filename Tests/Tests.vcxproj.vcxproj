@@ -82,6 +82,7 @@
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="DataShare.h" />
+    <ClInclude Include="progCircuit.h" />
     <ClInclude Include="Tests.h" />
   </ItemGroup>
   <ItemGroup>
