@@ -1,5 +1,6 @@
 #include "DataShare.h"
 
+//#define PRINTALL
 
 namespace osuCrypto
 {
@@ -18,7 +19,7 @@ namespace osuCrypto
 	std::vector<iWord> DataShare::amortAdaptMULsend(u64 theirIdxPoint, u64 theirIdxDim, std::vector<iWord>& b) //b=di-ci
 	{
 
-		std::cout << b.size() << " b.size()\n";
+		//std::cout << b.size() << " b.size()\n";
 		std::vector<u8> sendBuff(sizeof(Word)*b.size()*mLenMod);
 		std::vector<iWord> m0(b.size(), 0); //sum OT m0 messages
 		std::vector<std::array<Word*,2>> maskSendOT(mLenMod); //[l][0/1][k]
@@ -30,12 +31,14 @@ namespace osuCrypto
 			mSendPRNG[theirIdxPoint][theirIdxDim][l][0].get<Word>(maskSendOT[l][0], b.size());
 			mSendPRNG[theirIdxPoint][theirIdxDim][l][1].get<Word>(maskSendOT[l][1], b.size());
 
+#ifdef PRINTALL	
 			std::cout << IoStream::lock;
 			std::cout << maskSendOT[l][0][0] << " " << maskSendOT[l][1][0] << " PRNG s \n";
 			std::cout << maskSendOT[l][0][b.size()-1] << " " << maskSendOT[l][1][b.size() - 1] << " PRNG s \n";
 			std::cout << mSendPRNG[theirIdxPoint][theirIdxDim][l][0].getSeed() << " PRNG  getSeed s \n";;
 			std::cout <<  mSendPRNG[theirIdxPoint][theirIdxDim][l][1].getSeed() << " PRNG  getSeed s \n";;
 			std::cout << IoStream::unlock;
+#endif // PRINTALL
 		}
 
 
@@ -45,42 +48,22 @@ namespace osuCrypto
 			for (u64 l = 0; l < mLenMod; l++)
 			{
 				m0[k] = (m0[k] + maskSendOT[l][0][k] % mMod) ; //r0= maskSendOT[l][0][k]
+				//mask
+				Word mask = (maskSendOT[l][0][k] % mMod + maskSendOT[l][1][k] % mMod + (Word)(b[k] * pow(2, l)));
+				memcpy(sendBuff.data() + iter, (u8*)&mask, sizeof(Word));
+				iter += mLenModinByte;
 
+#ifdef PRINTALL
 				std::cout << IoStream::lock;
 				Word r0 = maskSendOT[l][0][k] % mMod; //OT message
 				auto delta = (Word)(b[k] * pow(2, l));
 				std::cout << k << "-" << l << ":  " << r0 << " vs " << (r0 + delta) << " r1\n";
 				std::cout << IoStream::unlock;
+#endif // PRINTALL
 
-				//mask
-				Word mask = (maskSendOT[l][0][k] % mMod + maskSendOT[l][1][k] % mMod + (Word)(b[k] * pow(2, l)));
-				memcpy(sendBuff.data() + iter, (u8*)&mask, sizeof(Word));
-				iter += mLenModinByte;
+				
 			}
-		}
-
-
-#if 0
-		for (u64 k = 0; k < b.size(); k++)
-		{
-			for (u64 l = 0; l < mLenMod; l++)
-			{
-				m0[k] = (m0[k] + maskSendOT[l][0][k]) % mMod; //r0= maskSendOT[l][0][k]
-
-				std::cout << IoStream::lock;
-				Word r0 = maskSendOT[l][0][k] % mMod; //OT message
-				auto delta = (Word)(b[k] * pow(2, l)) % mMod;
-				std::cout << k << "-" << l << ":  " << r0 << " vs " << (r0 + delta) % mMod << " r1\n";
-				std::cout << IoStream::unlock;
-
-				//mask
-				Word mask = (maskSendOT[l][0][k] % mMod + maskSendOT[l][1][k] % mMod + (Word)(b[k] * pow(2, l)) % mMod) % mMod;;
-				memcpy(sendBuff.data() + iter, (u8*)&mask, mLenModinByte);
-				iter += mLenModinByte;
-			}
-		}
-#endif
-	
+		}			
 
 		mChl.asyncSend(std::move(sendBuff));
 
@@ -138,17 +121,20 @@ namespace osuCrypto
 					mask = (mask - maskRecvOT[l][k] % mMod) ;
 					mi[k] = (mi[k] + mask);
 
+#ifdef PRINTALL
 					std::cout << IoStream::lock;
 					std::cout << mask << " " << int(choice) << " mask r \n";
 					std::cout << IoStream::unlock;
-
+#endif // PRINTALL
 				}
 				else
 				{
+					mi[k] = (mi[k] + maskRecvOT[l][k] % mMod);
+#ifdef PRINTALL
 					std::cout << IoStream::lock;
 					std::cout << (maskRecvOT[l][k]) % mMod << " " << int(choice) << " mask r \n";
 					std::cout << IoStream::unlock;
-					mi[k] = (mi[k] + maskRecvOT[l][k] % mMod);
+#endif // PRINTALL				
 				}
 
 				iter +=  mLenModinByte;
@@ -181,16 +167,18 @@ namespace osuCrypto
 					Word r0 = *(u64*)&sendOTmsgs[idx][0] % mMod;
 					Word r1 = *(u64*)&sendOTmsgs[idx][1] % mMod;
 					Word correction = (Word)(b[i][d] * pow(2, l) + r0 - r1) % mMod; //
-
-
-					std::cout << IoStream::lock;
-					std::cout << i << "-" << d << ":  " << r0 << " vs " << r1 << " \t " << (Word)(b[i][d] * pow(2, l) + r0) % mMod << " c= " << correction << " s\n";
-					std::cout << IoStream::unlock;
-
-					//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
+					
+																					//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
 					memcpy(sendBuff.data() + idx*mLenModinByte, (u8*)&correction, mLenModinByte);
 					prodShare[i][d] = (prodShare[i][d] + r0) % mMod;
 					idx++;
+
+#ifdef PRINTALL
+					std::cout << IoStream::lock;
+					std::cout << i << "-" << d << ":  " << r0 << " vs " << r1 << " \t " << (Word)(b[i][d] * pow(2, l) + r0) % mMod << " c= " << correction << " s\n";
+					std::cout << IoStream::unlock;
+#endif // PRINTALL
+					
 				}
 				prodShare[i][d] = (0 - prodShare[i][d]) % mMod; //r0=-r0
 			}
@@ -251,14 +239,14 @@ namespace osuCrypto
 						rb = (correction + rb) % mMod;
 					}
 					prodShare[i][d] = (prodShare[i][d] + rb) % mMod;
+					idx++;
 
-
-
+#ifdef PRINTALL
 					std::cout << IoStream::lock;
 					std::cout << i << "-" << d << ":  " << rb << " vs " << aBitVectors[i][d][l] << " c= " << correction << " r\n";
 					std::cout << IoStream::unlock;
-
-					idx++;
+#endif // PRINTALL
+					
 				}
 			}
 		}
@@ -279,9 +267,9 @@ namespace osuCrypto
 			{
 				mCluster[i][d] = mSharedPrng.get<Word>() % mMod; //TODO:choose local cluster or using Locality sensitive hashing
 
-				std::cout << IoStream::lock;
-				std::cout << i << "-" << d << ":  " << mCluster[i][d] << " c\n";
-				std::cout << IoStream::unlock;
+				//std::cout << IoStream::lock;
+				//std::cout << i << "-" << d << ":  " << mCluster[i][d] << " c\n";
+				//std::cout << IoStream::unlock;
 			}
 		}
 
@@ -504,17 +492,15 @@ namespace osuCrypto
 				//mSharePoint[i][d].mSendPRNG.resize(mLenMod);
 				for (u64 l = 0; l < mLenMod; l++)
 				{
-					//mSharePoint[i][d].sendAES[l][0].setKey(mSharePoint[i][d].sendOtKeys[l][0]);
-					//mSharePoint[i][d].sendAES[l][1].setKey(mSharePoint[i][d].sendOtKeys[l][1]);
-
 					mSendPRNG[i][d][l][0].SetSeed(mSharePoint[i][d].sendOtKeys[l][0]);
 					mSendPRNG[i][d][l][1].SetSeed(mSharePoint[i][d].sendOtKeys[l][1]);
 
+#ifdef PRINTALL
 					std::cout << IoStream::lock;
 					std::cout << mSharePoint[i][d].sendOtKeys[l][0]
 						<< " vs " << mSharePoint[i][d].sendOtKeys[l][1] << " \t s setPRNGseeds\n";
 					std::cout << IoStream::unlock;
-
+#endif // PRINTALL
 				}
 
 				mSharePoint[i][d].recvOtKeys.resize(mLenMod);
@@ -524,12 +510,12 @@ namespace osuCrypto
 				//mSharePoint[i][d].recvAES.resize(mLenMod);
 				for (u64 l = 0; l < mLenMod; l++)
 				{
-					//mSharePoint[i][d].recvAES[l].setKey(mSharePoint[i][d].recvOtKeys[l]);
 					mRecvPRNG[i][d][l].SetSeed(mSharePoint[i][d].recvOtKeys[l]);
-
+#ifdef PRINTALL
 					std::cout << IoStream::lock;
 					std::cout << mSharePoint[i][d].recvOtKeys[l] << " \t r setPRNGseeds\n";
 					std::cout << IoStream::unlock;
+#endif // PRINTALL
 				}
 
 			}
