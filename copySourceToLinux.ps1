@@ -1,6 +1,6 @@
 $RemoteUserName='trieun'
 $RemoteHostName='eve.eecs.oregonstate.edu'
-$PrivateKey='D:\EvePrivatekey.ppk'
+$PrivateKey='C:\EvePrivatekey.ppk'
 $SolutionDir=$PWD
 $RemoteWorkingDir='/scratch/nini/kmean-impl'
 
