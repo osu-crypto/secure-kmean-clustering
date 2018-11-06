@@ -2693,6 +2693,7 @@ namespace osuCrypto
 					{
 						iWord myRandomShare = signExtend(p0.mPrng.get<iWord>(), p0.mLenMod);
 						programDiv(p0.parties, p0.mShareNomCluster[k][d], p0.mShareDecCluster[k], myRandomShare, p0.mLenMod);
+						p0.mShareNomCluster[k][d] = myRandomShare;
 					}
 				}
 			});
@@ -2702,28 +2703,15 @@ namespace osuCrypto
 			{
 				iWord myShare=0;
 				for (u64 d = 0; d < p0.mDimension; d++)
+				{
 					programDiv(p1.parties, p1.mShareNomCluster[k][d], p1.mShareDecCluster[k], myShare, p1.mLenMod);
+					p1.mShareNomCluster[k][d] = myShare;
+				}
 			}
-
-
 
 			thrd.join();
 
-			/*if (isDenZero0 && isDenZero1)
-			{
-				for (u64 d = 0; d < p0.mDimension; d++)
-				{
-
-					thrd = std::thread([&]() {
-
-						
-					});
-					programDiv(p1.parties, p1.mShareNomCluster[k][d], p1.mShareDecCluster[k], p1.mLenMod);
-
-
-					thrd.join();
-				}
-			}*/
+	
 		}
 
 	}
@@ -3636,6 +3624,92 @@ namespace osuCrypto
 
 #endif
 
+
+		////=====================compute nom/dec===========================
+		std::vector<std::vector<iWord>> shareNomSend0, shareNomRecv0, shareNomSend1, shareNomRecv1;
+		std::vector<iWord> shareDenSend0, shareDenSend1, shareDenRecv0, shareDenRecv1;
+
+		thrd = std::thread([&]() {
+			p0.vecMinTranspose();
+			p0.amortBinArithClustsend(p0.mVecIdxMinTranspose, shareNomSend0, shareDenSend0, true); //compute Den as (b^A \xor b^B)*1
+			p0.amortBinArithClustrecv(p0.mVecIdxMinTranspose, shareNomRecv0, shareDenRecv0, false); // no Den
+			p0.computeShareCluster(shareNomSend0, shareNomRecv0, shareDenSend0, shareDenRecv0);
+
+		});
+		p1.vecMinTranspose();
+		p1.amortBinArithClustrecv(p1.mVecIdxMinTranspose, shareNomRecv1, shareDenRecv1, true);
+		p1.amortBinArithClustsend(p1.mVecIdxMinTranspose, shareNomSend1, shareDenSend1, false);
+		p1.computeShareCluster(shareNomSend1, shareNomRecv1, shareDenSend1, shareDenRecv1);
+
+
+		thrd.join();
+
+#if 1
+		for (u64 k = 0; k < p0.mNumCluster; k++)
+		{
+			iWord expNom = 0;
+			iWord expDen = 0;
+			for (u64 d = 0; d < p0.mDimension; d++)
+			{
+				BitVector vecMinTran = p0.mVecIdxMinTranspose[k] ^ p1.mVecIdxMinTranspose[k];
+				std::cout << vecMinTran << "   vecMin \n";
+
+
+				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+				{
+					u8 bit = p0.mVecIdxMinTranspose[k][i] ^ p1.mVecIdxMinTranspose[k][i];
+					iWord point = signExtend(p0.mSharePoint[i][d].mArithShare + p1.mSharePoint[i][d].mArithShare, p0.mLenMod);
+					expNom = signExtend(expNom + bit*point, p0.mLenMod);
+					expDen = expDen + bit;
+				}
+
+				iWord realNom = signExtend(p0.mShareNomCluster[k][d] + p1.mShareNomCluster[k][d], p0.mLenMod);
+				iWord realDec = signExtend(p0.mShareDecCluster[k] + p1.mShareDecCluster[k], p0.mLenMod);
+
+
+				//if (expNom != realNom)
+				std::cout << expNom << " \t vs \t " << realNom << " = " << p0.mShareNomCluster[k][d] << " + " << p1.mShareNomCluster[k][d] << "  realNom\n";
+
+				//if (expDen != realDec)
+				std::cout << expDen << " \t vs \t " << realDec << " = " << p0.mShareDecCluster[k] << " + " << p1.mShareDecCluster[k] << "  realDec\n";
+
+			}
+
+		}
+#endif
+		////=====================division===========================
+
+		for (u64 k = 0; k < p0.mNumCluster; k++)
+		{
+
+			u8 isDenZero0, isDenZero1; //check den=0?
+			thrd = std::thread([&]() {
+				programEqualZero(p0.parties, p0.mShareDecCluster[k], isDenZero0, p1.mLenMod);
+				p0.mChl.send(isDenZero0);
+				if (isDenZero0)
+				{
+					for (u64 d = 0; d < p0.mDimension; d++)
+					{
+						iWord myRandomShare = signExtend(p0.mPrng.get<iWord>(), p0.mLenMod);
+						programDiv(p0.parties, p0.mShareNomCluster[k][d], p0.mShareDecCluster[k], myRandomShare, p0.mLenMod);
+						p0.mShareNomCluster[k][d] = myRandomShare;
+					}
+				}
+			});
+			programEqualZero(p1.parties, p1.mShareDecCluster[k], isDenZero1, p1.mLenMod);
+			p1.mChl.recv(isDenZero1);
+			if (isDenZero1)
+			{
+				iWord myShare = 0;
+				for (u64 d = 0; d < p0.mDimension; d++)
+				{
+					programDiv(p1.parties, p1.mShareNomCluster[k][d], p1.mShareDecCluster[k], myShare, p1.mLenMod);
+					p1.mShareNomCluster[k][d] = myShare;
+				}
+			}
+
+			thrd.join();
+		}
 
 
 
