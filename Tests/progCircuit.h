@@ -246,7 +246,7 @@ namespace osuCrypto
 
 		if (parties[1].isLocalParty())
 		{
-			
+
 			//output = eq.getValue();
 			//std::cout << i << ": lt= " << lt.getValue() << " vs " << invert.getValue() << std::endl;
 			//ostreamLock(std::cout) << i << ": slt= " << int(myOutput[2 * i]) << int(myOutput[2 * i + 1]) << "    B\n";// << (*v1->mLabels)[0] << std::endl;
@@ -287,15 +287,25 @@ namespace osuCrypto
 			parties[0].input<sInt>(myShare, bitCount) :
 			parties[0].input<sInt>(bitCount);
 		auto share = div - inputShare;
-		
+
+		parties[1].reveal(share);
+
+#ifdef PRINTALL
 		parties[0].reveal(input0);
 		parties[0].reveal(input1);
 		parties[0].reveal(div);
-		parties[1].reveal(share);
+		
+#endif // PRINTALL
 		parties[1].getRuntime().processesQueue();
 
-		
-#if 1
+
+		if (parties[1].isLocalParty())
+		{
+			myShare = share.getValue();
+		}
+
+
+#ifdef PRINTALL
 		if (parties[0].isLocalParty())
 		{
 			std::cout << IoStream::lock;
@@ -321,7 +331,7 @@ namespace osuCrypto
 
 
 	void programLessThan(std::array<Party, 2> parties, std::vector<iWord>& myInput1
-		, std::vector<iWord> myInput2, BitVector& myOutput, u64 bitCount, std::vector<int> expLt)
+		, std::vector<iWord> myInput2, BitVector& myOutput, u64 bitCount, std::vector<int> expLt = {})
 	{
 
 		myOutput.resize(2 * myInput1.size());
@@ -347,17 +357,17 @@ namespace osuCrypto
 			auto input0 = input01 + input11;
 			auto input1 = input02 + input12;
 
-
-
 			auto lt = input0 < input1;
 			auto invert = ~lt;
 
+#ifdef PRINTALL
 			auto minus = input0 - input1;
-
 			parties[0].reveal(input0);
 			parties[0].reveal(input1);
 			parties[0].reveal(lt);
 			parties[0].reveal(minus);
+#endif // PRINTALL		
+
 			parties[1].getRuntime().processesQueue();
 
 
@@ -366,7 +376,7 @@ namespace osuCrypto
 			myOutput[2 * i] = PermuteBit((*v->mLabels)[0]); //YES=10, NO=01
 			myOutput[2 * i + 1] = PermuteBit((*v1->mLabels)[0]);
 
-#if 1
+#ifdef PRINTALL
 			if (parties[0].isLocalParty())
 			{
 
