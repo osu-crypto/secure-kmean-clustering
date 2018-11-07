@@ -508,54 +508,80 @@ namespace osuCrypto
 
 	void DataShare::correctAllChoiceRecv()
 	{
-		
-		for (u64 i = 0; i < mTotalNumPoints; i++)
-			for (u64 d = 0; d < mDimension; d++)
-				mChoiceAllBitSharePoints.append(mSharePoint[i][d].mBitShare);
 
+		for (u64 i = 0; i < mTotalNumPoints; i += stepCorrectAllChoice)
+		{
+			u64 step = std::min(stepCorrectAllChoice, mTotalNumPoints - i);
 
-		//mChoiceAllBitSharePoints = mChoiceAllBitSharePoints^mChoiceAllBitSharePointsOffline;
+			BitVector diff;
+			for (u64 s = i; s < i+step; s++)
+			{
+				for (u64 d = 0; d < mDimension; d++)
+					diff.append(mSharePoint[s][d].mBitShare);
+			}
 
-		BitVector diff= mChoiceAllBitSharePoints^mChoiceAllBitSharePointsOffline;
-		
-		//std::cout << diff.sizeBytes() << "\n";
-		//std::cout << mChoiceAllBitSharePointsOffline.sizeBytes() << "\n";
-		//std::cout << diff.size() << "\n";
+#ifdef PRINTALL
+			mChoiceAllBitSharePoints.append(diff);
+#endif // PRINTALL
 
-		//for (u64 i = 0; i < mTotalNumPoints; i++)
-		//	std::cout << diff[i] <<"";
-		//std::cout << "\n";
+			BitVector chunkOff;
+			chunkOff.copy(mChoiceAllBitSharePointsOffline, i*mDimension*mLenMod, step*mDimension*mLenMod);
 
-		std::vector<u8> sendBuff(diff.sizeBytes());
-		memcpy(sendBuff.data(), diff.data(), diff.sizeBytes());
+				diff = diff^chunkOff;
 
-		mChl.asyncSend(std::move(sendBuff));
+				//std::cout << diff.sizeBytes() << "\n";
+				//std::cout << mChoiceAllBitSharePointsOffline.sizeBytes() << "\n";
+				//std::cout << diff.size() << "\n";
+
+				//for (u64 i = 0; i < mTotalNumPoints; i++)
+				//	std::cout << diff[i] <<"";
+				//std::cout << "\n";
+
+				std::vector<u8> sendBuff(diff.sizeBytes());
+				memcpy(sendBuff.data(), diff.data(), diff.sizeBytes());
+
+				mChl.asyncSend(std::move(sendBuff));
+			
+			
+		}
 	};
 
 
 	void DataShare::correctAllChoiceSender()
 	{
-		std::vector<u8> recvBuff;
-		mChl.recv(recvBuff);
+		for (u64 i = 0; i < mTotalNumPoints; i += stepCorrectAllChoice)
+		{
+			u64 step = std::min(stepCorrectAllChoice, mTotalNumPoints - i);
 
-		BitVector correctBitVector(recvBuff.data(), mChoiceAllBitSharePointsOffline.size());
-		//std::cout << correctBitVector.sizeBytes() << "\n";
+			std::vector<u8> recvBuff;
+			mChl.recv(recvBuff);
 
-		//for (u64 i = 0; i < mTotalNumPoints; i++)
-		//	std::cout << correctBitVector[i] << "";
+			BitVector correctBitVector(recvBuff.data(), step*mDimension*mLenMod);
+			//std::cout << correctBitVector.sizeBytes() << "\n";
 
-		//std::cout << "\n";
+			//for (u64 i = 0; i < mTotalNumPoints; i++)
+			//	std::cout << correctBitVector[i] << "";
 
+			//std::cout << "\n";
 
-		for (u64 i = 0; i < correctBitVector.size(); i++)
-				if (correctBitVector[i] == 1) //switch OT message
-				{
-					block temp;
-					memcpy((u8*)&temp, (u8*)&mSendAllOtKeys[i][1], sizeof(block));
-					memcpy((u8*)&mSendAllOtKeys[i][1], (u8*)&mSendAllOtKeys[i][0], sizeof(block));
-					memcpy((u8*)&mSendAllOtKeys[i][0], (u8*)&temp, sizeof(block));
-				}
-
+			u64 iter = 0;
+			u64 startIdx = i*mDimension*mLenMod;
+			for (u64 s = i; s < i + step; s++)
+			{
+				for (u64 d = 0; d < mDimension; d++)
+					for (u64 l = 0; l < mLenMod; l++)
+					{
+						if (correctBitVector[iter] == 1) //switch OT message
+						{
+							block temp;
+							memcpy((u8*)&temp, (u8*)&mSendAllOtKeys[startIdx+iter][1], sizeof(block));
+							memcpy((u8*)&mSendAllOtKeys[startIdx + iter][1], (u8*)&mSendAllOtKeys[startIdx + iter][0], sizeof(block));
+							memcpy((u8*)&mSendAllOtKeys[startIdx + iter][0], (u8*)&temp, sizeof(block));
+						}
+						iter++;
+					}
+			}
+		}
 	};
 
 
@@ -1265,6 +1291,7 @@ namespace osuCrypto
 
 		}
 
+#ifdef PRINTALL
 		std::cout << "-------------\nOT allkey base 1: send[0][0]=" << mSendAllOtKeys[0][0] << "\t send[0][1]=" << mSendAllOtKeys[0][1] << "\n";
 		std::cout << "OT allkey base 2: choice[0]=" << mChoiceAllBitSharePoints[0] << "\t recv[0]=" << mRecvAllOtKeys[0] << "\n";
 
@@ -1273,7 +1300,7 @@ namespace osuCrypto
 		std::cout << "-------------\nOT key base 1: send[0][0]=" << mSharePoint[0][0].sendOtKeys[0][0] << "\t send[0][1]=" << mSharePoint[0][0].sendOtKeys[0][1] << "\n";
 		std::cout << "OT key base 2: choice[0]=" << mSharePoint[0][0].mBitShare[0] << "\t recv[0]=" << mSharePoint[0][0].recvOtKeys[0] << "\n";
 
-
+#endif // PRINTALL
 		std::cout << IoStream::unlock;
 
 	}

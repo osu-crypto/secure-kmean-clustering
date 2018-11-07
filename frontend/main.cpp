@@ -49,12 +49,12 @@ using namespace osuCrypto;
 
 
 int securityParams = 128;
-int inDimension = 3;
+int inDimension = 2;
 int inExMod = 31;
-u64 inNumCluster = 4;
-u64 numberTestA = 5;
-u64 numberTestB = 5;
-u64 numInteration = 1000;
+u64 inNumCluster = 1 << 2;
+u64 numberTestA = 1 << 15;
+u64 numberTestB = 1 << 15;
+u64 numInteration = 10;
 
 void party0_Dist()
 {
@@ -68,7 +68,7 @@ void party0_Dist()
 	//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
 
 	PRNG prng(ZeroBlock);
-	
+
 	inputA.resize(numberTestA);
 	for (int i = 0; i < numberTestA; i++)
 	{
@@ -84,68 +84,76 @@ void party0_Dist()
 	//=======================offline===============================
 	DataShare p0;
 
-		p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
-			, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension, numInteration);
+	p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
+		, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension, numInteration);
 
-		NaorPinkas baseOTs;
-		baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
-		p0.recv.setBaseOts(p0.mSendBaseMsg);
-
-
-		baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
-		p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
+	NaorPinkas baseOTs;
+	baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
+	p0.recv.setBaseOts(p0.mSendBaseMsg);
 
 
-		timer.setTimePoint("baseOTDone");
-
-		//=======================OT extension===============================
-			//1st OT
-			p0.mChoiceAllBitSharePointsOffline.resize(p0.mTotalNumPoints*p0.mDimension*p0.mLenMod);
-			p0.mChoiceAllBitSharePointsOffline.randomize(p0.mPrng);
-
-			p0.recv.receive(p0.mChoiceAllBitSharePointsOffline, p0.mRecvAllOtKeys, p0.mPrng, p0.mChl);
-
-			//other OT direction
-			p0.sender.send(p0.mSendAllOtKeys, p0.mPrng, p0.mChl);
+	baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
+	p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
 
 
-			//===For cluster
-			p0.allChoicesClusterOffline.randomize(p0.mPrng);
-			p0.recv.receive(p0.allChoicesClusterOffline, p0.recvOTmsgClusterOffline, p0.mPrng, p0.mChl); //randome OT
+	timer.setTimePoint("baseOTDone");
+	std::cout << "baseOTDone\n";
+
+	//=======================OT extension===============================
+		//1st OT
+	p0.mChoiceAllBitSharePointsOffline.resize(p0.mTotalNumPoints*p0.mDimension*p0.mLenMod);
+	p0.mChoiceAllBitSharePointsOffline.randomize(p0.mPrng);
+
+	p0.recv.receive(p0.mChoiceAllBitSharePointsOffline, p0.mRecvAllOtKeys, p0.mPrng, p0.mChl);
+
+	//other OT direction
+	p0.sender.send(p0.mSendAllOtKeys, p0.mPrng, p0.mChl);
+
+
+	//===For cluster
+	p0.allChoicesClusterOffline.randomize(p0.mPrng);
+	p0.recv.receive(p0.allChoicesClusterOffline, p0.recvOTmsgClusterOffline, p0.mPrng, p0.mChl); //randome OT
 
 
 
 
-		timer.setTimePoint("offlineDone");
+	timer.setTimePoint("offlineDone");
+	std::cout << "offlineDone\n";
 
-		std::cout << "d=" << p0.mDimension << " | "
-			<< "K= " << p0.mNumCluster << " | "
-			<< "n= " << p0.mTotalNumPoints << " | "
-			<< "l= " << p0.mLenMod << " | "
-			<< "T= " << p0.mIteration << "\t party0\n";
+	std::cout << "d=" << p0.mDimension << " | "
+		<< "K= " << p0.mNumCluster << " | "
+		<< "n= " << p0.mTotalNumPoints << " | "
+		<< "l= " << p0.mLenMod << " | "
+		<< "T= " << p0.mIteration << "\t party0\n";
 
 
 	//=======================online (sharing)===============================
-		
-		p0.sendShareInput(0, 0, inNumCluster / 2);
-		p0.recvShareInput(p0.mPoint.size(), inNumCluster / 2, inNumCluster);
-	
-		timer.setTimePoint("sharingInputsDone");
+
+	p0.sendShareInput(0, 0, inNumCluster / 2);
+	p0.recvShareInput(p0.mPoint.size(), inNumCluster / 2, inNumCluster);
+
+	timer.setTimePoint("sharingInputsDone");
+	std::cout << "sharingInputsDone\n";
 
 
 	//=======================online OT (setting up keys for adaptive ED)===============================
 
-		p0.correctAllChoiceRecv();//1st OT
-		p0.correctAllChoiceSender();////other OT direction
-		p0.setPRNGseeds();
+	p0.correctAllChoiceRecv();//1st OT
+	p0.correctAllChoiceSender();////other OT direction
+	std::cout << "correctAllChoice\n";
+	timer.setTimePoint("correctAllChoice");
+	p0.setPRNGseeds();
 
-		timer.setTimePoint("OtKeysDone");
+	timer.setTimePoint("OtKeysDone");
+	std::cout << "OtKeysDone\n";
 
-		for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
-		{
-				//=======================online MUL===============================
-		
-		//(c^A[k][d]*c^B[k][d])
+
+	for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
+	{
+		std::cout << "-";
+		//=======================online MUL===============================
+
+//(c^A[k][d]*c^B[k][d])
 		p0.mProdCluster = p0.amortMULrecv(p0.mShareCluster, idxIter*p0.mNumCluster*p0.mDimension*p0.mLenMod); //compute C^Ak*C^Bk
 															 //(p^A[i][d]*(p^B[i][d]-c^B[k][d]) => A receiver
 		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
@@ -163,12 +171,15 @@ void party0_Dist()
 
 			//=======================online locally compute ED===============================
 		p0.computeDist();
-}
+	}
 
 	timer.setTimePoint("DistDone");
+	std::cout << "DistDone\n";
+
 	//p0.Print();
 
 
+	std::cout << timer << "\n";
 
 
 
@@ -197,9 +208,9 @@ void party1_Dist()
 	DataShare  p1;
 
 	timer.setTimePoint("starts");
-	
+
 	p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
-		, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension,numInteration);
+		, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension, numInteration);
 
 	NaorPinkas baseOTs;
 	baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
@@ -284,16 +295,16 @@ int main(int argc, char** argv)
 
 
 
-	std::thread thrd = std::thread([&]() {
+	/*std::thread thrd = std::thread([&]() {
 		party0_Dist();
 	});
 
 	party1_Dist();
 
-	thrd.join();
+	thrd.join();*/
 
 
-/*	if (argc == 2 && argv[1][0] == '-' && argv[1][1] == 't') {
+	if (argc == 2 && argv[1][0] == '-' && argv[1][1] == 't') {
 		std::thread thrd = std::thread([&]() {
 			party0_Dist();
 		});
@@ -308,6 +319,6 @@ int main(int argc, char** argv)
 	else if (argc == 3 && argv[1][0] == '-' && argv[1][1] == 'r' && atoi(argv[2]) == 1) {
 		party1_Dist();
 	}
-	*/	
-    return 0;
+
+	return 0;
 }

@@ -1,0 +1,9 @@
+
+-bash-4.2$ ./bin/frontend -r 0
+d=2 | K= 4 | n= 4096 | l= 31 | T= 50     party0
+Label                 Time (ms)  diff (ms)
+__________________________________
+offlineDone               111.5    111.466  ****
+sharingInputsDone         117.5      6.010  **
+OtKeysDone               2272.4   2154.893  *******
+DistDone                68889.1  66616.744  **********

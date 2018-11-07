@@ -858,7 +858,7 @@ namespace osuCrypto
 		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
 
 		PRNG prng(ZeroBlock);
-		u64 numberTest = 5;
+		u64 numberTest = 20;
 		inputA.resize(numberTest);
 		inputB.resize(numberTest);
 		for (int i = 0; i < numberTest; i++)
@@ -1040,13 +1040,13 @@ namespace osuCrypto
 			<< "l= " << p0.mLenMod << " | "
 			<< "T= " << p0.mIteration << "\t party0\n";
 
-		for (u64 i = 0; i < p1.sendOTmsgsClusterOffline.size(); i++)
+	/*	for (u64 i = 0; i < p1.sendOTmsgsClusterOffline.size(); i++)
 		{
 		std::cout << p1.sendOTmsgsClusterOffline[i][0] << " vs " << p1.sendOTmsgsClusterOffline[i][1] << "\n";
 		std::cout << p0.recvOTmsgClusterOffline[i] << " vs " << p0.allChoicesClusterOffline[i] <<"\n";
 
 		}
-
+*/
 		//thrd = std::thread([&]() {
 		//	//===For cluster
 		//	p0.allChoicesClusterOffline.resize(p0.mNumCluster*p0.mDimension*p0.mLenMod*p0.mIteration);
@@ -1080,14 +1080,26 @@ namespace osuCrypto
 
 		timer.setTimePoint("OtKeysDone");
 
-	/*	for (u64 i = 0; i < p1.mSendAllOtKeys.size(); i++)
+#ifdef PRINTALL
+		for (u64 i = 0; i < p1.mSendAllOtKeys.size(); i++)
 		{
-			std::cout << p1.mSendAllOtKeys[i][0] << " vs " << p1.mSendAllOtKeys[i][1] << "\n";
-			std::cout << p0.mRecvAllOtKeys[i] << " vs " << p0.mChoiceAllBitSharePoints[i] <<"\n";
 
-		}*/
+			//if (memcmp((u8*)&p0.mRecvAllOtKeys[i], (u8*)&p1.mSendAllOtKeys[i][p0.mChoiceAllBitSharePoints[i]], sizeof(block)))
+			{
+				std::cout << p1.mSendAllOtKeys[i][0] << " vs " << p1.mSendAllOtKeys[i][1] << "\n";
+				std::cout << p0.mRecvAllOtKeys[i] << " vs " << p0.mChoiceAllBitSharePoints[i] << "\n";
+			//	throw std::exception();
+			}
 
+			//if (memcmp((u8*)&p1.mRecvAllOtKeys[i], (u8*)&p0.mSendAllOtKeys[i][p1.mChoiceAllBitSharePoints[i]], sizeof(block)))
+			{
+				std::cout << p0.mSendAllOtKeys[i][0] << " vs " << p0.mSendAllOtKeys[i][1] << "\n";
+				std::cout << p1.mRecvAllOtKeys[i] << " vs " << p1.mChoiceAllBitSharePoints[i] << "\n";
+			//	throw std::exception();
+			}
+		}
 
+#endif // PRINTALL
 
 #if 1
 		//=======================online MUL===============================
