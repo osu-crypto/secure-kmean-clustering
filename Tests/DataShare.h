@@ -8,11 +8,11 @@
 #include <libOTe/TwoChooseOne/IknpOtExtSender.h>
 #include <libOTe/Base/naor-pinkas.h>
 #include <cryptoTools/Crypto/AES.h> 
-#include <ivory/Runtime/ShGc/ShGcRuntime.h>
-#include <ivory/Circuit/CircuitLibrary.h>
-#include <ivory/Runtime/sInt.h>
-#include <ivory/Runtime/Party.h>
-#include <ivory/Runtime/ShGc/ShGcInt.h>
+#include <Ivory-Runtime/ivory/Runtime/ShGc/ShGcRuntime.h>
+#include <Ivory-Runtime/ivory/Circuit/CircuitLibrary.h>
+#include <Ivory-Runtime/ivory/Runtime/sInt.h>
+#include <Ivory-Runtime/ivory/Runtime/Party.h>
+#include <Ivory-Runtime/ivory/Runtime/ShGc/ShGcInt.h>
 
 namespace osuCrypto
 {
@@ -125,6 +125,11 @@ namespace osuCrypto
 		std::vector<std::vector<iWord>> mDist; //[i][k]
 
 
+		std::vector<block> recvOTmsgClusterOffline;
+		std::vector<std::array<block, 2>> sendOTmsgsClusterOffline;
+		BitVector allChoicesClusterOffline;
+		u64 iterOTused;
+
 
 		i64 mTheirSharePointCheck;
 
@@ -142,6 +147,7 @@ namespace osuCrypto
 		u64 mLenModinByte;
 		u64 mLenModSquareinByte;
 		u64 mDimension;
+		u64 mIteration;
 		u64 stepIdxMin;
 
 		std::vector<iWord> lastNode; //[i][#cluster-1]
@@ -158,6 +164,7 @@ namespace osuCrypto
 		IknpOtExtSender sender;
 		IknpOtExtReceiver recv;
 		BitVector mChoiceAllBitSharePoints;
+		BitVector mChoiceAllBitSharePointsOffline;
 		std::vector<std::array<block, 2>> mSendAllOtKeys;
 		std::vector<block> mRecvAllOtKeys;
 
@@ -193,20 +200,23 @@ namespace osuCrypto
 		
 
 		//for C^A * C^B as OT sender
-		std::vector<std::vector<Word>> amortMULsend(std::vector<std::vector<Word>>& b);
+		std::vector<std::vector<Word>> amortMULsend(std::vector<std::vector<Word>>& b, u64 iterOTstart = 0);
 		
 		//for C^A * C^B as OT receiver
-		std::vector<std::vector<Word>> amortMULrecv(std::vector<std::vector<Word>>& a);
+		std::vector<std::vector<Word>> amortMULrecv(std::vector<std::vector<Word>>& a, u64 iterOTstart = 0);
 
 
 		void getInitClusters(u64 startIdx, u64 endIdx);
 
 		void init(u64 partyIdx, Channel& chl, block seed, u64 securityParam, u64 totalPoints
-			, u64 numCluster, u64 idxStartCluster, u64 idxEndCluster, std::vector<std::vector<Word>>& data, u64 modd, u64 dimension);
+			, u64 numCluster, u64 idxStartCluster, u64 idxEndCluster, std::vector<std::vector<Word>>& data
+			, u64 modd, u64 dimension, u64 iteration=1);
 
 		void sendShareInput(u64 startPointIdx, u64 startClusterIdx, u64 endClusterIdx);
 		void recvShareInput(u64 startPointIdx, u64 startClusterIdx, u64 endClusterIdx);
 		void appendAllChoice();
+		void correctAllChoiceSender();
+		void correctAllChoiceRecv();
 
 		//using batch aes with fixed key is faster than ...
 		void setPRNGseeds();

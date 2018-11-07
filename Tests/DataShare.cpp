@@ -146,15 +146,26 @@ namespace osuCrypto
 		return mi;
 	}
 
-	std::vector<std::vector<Word>> DataShare::amortMULsend(std::vector<std::vector<Word>>& b)
+	std::vector<std::vector<Word>> DataShare::amortMULsend(std::vector<std::vector<Word>>& b, u64 iterOTstart)
 	{
 
 		std::vector<std::vector<Word>> prodShare(b.size());
 		std::vector<u8> sendBuff(b.size()*mDimension*mLenMod*mLenModinByte);
 
 
-		std::vector<std::array<block, 2>> sendOTmsgs(b.size()*mDimension*mLenMod);
-		sender.send(sendOTmsgs, mPrng, mChl); //randome OT
+		std::vector<u8> recvBitDiffBuff;
+		mChl.recv(recvBitDiffBuff);
+		BitVector correctBitVector(recvBitDiffBuff.data(), mNumCluster*mDimension*mLenMod);
+		
+
+		for (u64 i = 0; i < correctBitVector.size(); i++)
+			if (correctBitVector[i] == 1) //switch OT message
+			{
+				block temp;
+				memcpy((u8*)&temp, (u8*)&sendOTmsgsClusterOffline[iterOTstart+i][1], sizeof(block));
+				memcpy((u8*)&sendOTmsgsClusterOffline[iterOTstart+i][1], (u8*)&sendOTmsgsClusterOffline[iterOTstart + i][0], sizeof(block));
+				memcpy((u8*)&sendOTmsgsClusterOffline[iterOTstart +i][0], (u8*)&temp, sizeof(block));
+			}
 
 		u64 idx = 0;
 		for (u64 i = 0; i < b.size(); i++)
@@ -164,8 +175,8 @@ namespace osuCrypto
 			{
 				for (u64 l = 0; l < mLenMod; l++)
 				{
-					Word r0 = *(u64*)&sendOTmsgs[idx][0] % mMod;
-					Word r1 = *(u64*)&sendOTmsgs[idx][1] % mMod;
+					Word r0 = *(u64*)&sendOTmsgsClusterOffline[iterOTstart + idx][0] % mMod;
+					Word r1 = *(u64*)&sendOTmsgsClusterOffline[iterOTstart + idx][1] % mMod;
 					Word correction = (Word)(b[i][d] * pow(2, l) + r0 - r1) % mMod; //
 					
 																					//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
@@ -189,7 +200,7 @@ namespace osuCrypto
 		return prodShare;
 	}
 
-	std::vector<std::vector<Word>> DataShare::amortMULrecv(std::vector<std::vector<Word>>& a)
+	std::vector<std::vector<Word>> DataShare::amortMULrecv(std::vector<std::vector<Word>>& a, u64 iterOTstart)
 	{
 		std::vector<u8> recvBuff;
 		std::vector<std::vector<Word>> prodShare(a.size());
@@ -209,7 +220,19 @@ namespace osuCrypto
 				allChoices.append(aBitVectors[i][d]);
 			}
 		}
-		recv.receive(allChoices, recvOTmsg, mPrng, mChl); //randome OT
+
+
+		//correction 
+		//std::cout << allChoicesClusterOffline << "\n";
+
+		BitVector choiceOTused(allChoices.size());
+		choiceOTused.copy(allChoicesClusterOffline, iterOTstart, allChoices.size());
+		BitVector diff = allChoices^choiceOTused;
+		std::vector<u8> sendBitDiffBuff(diff.sizeBytes());
+		memcpy(sendBitDiffBuff.data(), diff.data(), diff.sizeBytes());
+		mChl.asyncSend(std::move(sendBitDiffBuff));
+
+
 
 
 		mChl.recv(recvBuff);
@@ -230,7 +253,7 @@ namespace osuCrypto
 			{
 				for (u64 l = 0; l < mLenMod; l++)
 				{
-					Word rb = *(u64*)&recvOTmsg[idx] % mMod;
+					Word rb = *(u64*)&recvOTmsgClusterOffline[iterOTstart+idx] % mMod;
 
 					if (aBitVectors[i][d][l] == 1)
 					{
@@ -267,9 +290,9 @@ namespace osuCrypto
 			{
 				mCluster[i][d] = mSharedPrng.get<Word>() % mMod; //TODO:choose local cluster or using Locality sensitive hashing
 
-				//std::cout << IoStream::lock;
-				//std::cout << i << "-" << d << ":  " << mCluster[i][d] << " c\n";
-				//std::cout << IoStream::unlock;
+				/*std::cout << IoStream::lock;
+				std::cout << i << "-" << d << ":  " << mCluster[i][d] << "  "<<mMod << " c\n";
+				std::cout << IoStream::unlock;*/
 			}
 		}
 
@@ -277,8 +300,13 @@ namespace osuCrypto
 
 	void DataShare::init(u64 partyIdx, Channel & chl, block seed, u64 securityParam, u64 totalPoints
 		, u64 numCluster, u64 idxStartCluster, u64 idxEndCluster
-		, std::vector<std::vector<Word>>& data, u64 len, u64 dimension)
+		, std::vector<std::vector<Word>>& data, u64 len, u64 dimension, u64 iteration)
 	{
+
+		
+		iterOTused = 0;
+
+		mIteration = iteration;
 		mPartyIdx = partyIdx;
 		mChl = chl;
 		mPrng.SetSeed(seed ^ toBlock(64823974291 * partyIdx));
@@ -390,7 +418,9 @@ namespace osuCrypto
 		mShareNomCluster.resize(mNumCluster);
 		mShareDecCluster.resize(mNumCluster);
 
-
+		recvOTmsgClusterOffline.resize(mNumCluster*mDimension*mLenMod*mIteration);
+		sendOTmsgsClusterOffline.resize(mNumCluster*mDimension*mLenMod*mIteration);
+		allChoicesClusterOffline.resize(mNumCluster*mDimension*mLenMod*mIteration);
 	}
 
 
@@ -412,7 +442,7 @@ namespace osuCrypto
 				mSharePoint[i][d].mBitShare = mSharePoint[i][d].getBinary(mLenMod); //bit vector
 
 
-				auto theirShare = (mPoint[i - startPointIdx][d] - mSharePoint[i][d].mArithShare) % mMod;
+				auto theirShare = (mPoint[i - startPointIdx][d] - mSharePoint[i][d].mArithShare);// % mMod;
 				memcpy(sendBuff.data() + iter, (u8*)&theirShare, mLenModinByte);
 				iter += mLenModinByte;
 			}
@@ -474,6 +504,60 @@ namespace osuCrypto
 			for (u64 d = 0; d < mDimension; d++)
 				mChoiceAllBitSharePoints.append(mSharePoint[i][d].mBitShare);
 	};
+
+
+	void DataShare::correctAllChoiceRecv()
+	{
+		
+		for (u64 i = 0; i < mTotalNumPoints; i++)
+			for (u64 d = 0; d < mDimension; d++)
+				mChoiceAllBitSharePoints.append(mSharePoint[i][d].mBitShare);
+
+
+		//mChoiceAllBitSharePoints = mChoiceAllBitSharePoints^mChoiceAllBitSharePointsOffline;
+
+		BitVector diff= mChoiceAllBitSharePoints^mChoiceAllBitSharePointsOffline;
+		
+		//std::cout << diff.sizeBytes() << "\n";
+		//std::cout << mChoiceAllBitSharePointsOffline.sizeBytes() << "\n";
+		//std::cout << diff.size() << "\n";
+
+		//for (u64 i = 0; i < mTotalNumPoints; i++)
+		//	std::cout << diff[i] <<"";
+		//std::cout << "\n";
+
+		std::vector<u8> sendBuff(diff.sizeBytes());
+		memcpy(sendBuff.data(), diff.data(), diff.sizeBytes());
+
+		mChl.asyncSend(std::move(sendBuff));
+	};
+
+
+	void DataShare::correctAllChoiceSender()
+	{
+		std::vector<u8> recvBuff;
+		mChl.recv(recvBuff);
+
+		BitVector correctBitVector(recvBuff.data(), mChoiceAllBitSharePointsOffline.size());
+		//std::cout << correctBitVector.sizeBytes() << "\n";
+
+		//for (u64 i = 0; i < mTotalNumPoints; i++)
+		//	std::cout << correctBitVector[i] << "";
+
+		//std::cout << "\n";
+
+
+		for (u64 i = 0; i < correctBitVector.size(); i++)
+				if (correctBitVector[i] == 1) //switch OT message
+				{
+					block temp;
+					memcpy((u8*)&temp, (u8*)&mSendAllOtKeys[i][1], sizeof(block));
+					memcpy((u8*)&mSendAllOtKeys[i][1], (u8*)&mSendAllOtKeys[i][0], sizeof(block));
+					memcpy((u8*)&mSendAllOtKeys[i][0], (u8*)&temp, sizeof(block));
+				}
+
+	};
+
 
 	void DataShare::setPRNGseeds() {
 
@@ -981,14 +1065,14 @@ namespace osuCrypto
 					for (u64 d = 0; d < mDimension; d++)
 					{
 
-						r[d][0] = *(i64*)&(OtMsgSends[k*bitVecs[k].size() + i][0] >> d*mLenModinByte) % mMod;
-						r[d][1] = *(i64*)&(OtMsgSends[k*bitVecs[k].size() + i][1] >> d*mLenModinByte) % mMod;
+						r[d][0] = (*(u64*)&OtMsgSends[k*bitVecs[k].size() + i][0] >> d*mLenModinByte) % mMod;
+						r[d][1] = (*(u64*)&OtMsgSends[k*bitVecs[k].size() + i][1] >> d*mLenModinByte) % mMod;
 					}
 
 					if (isDen)
 					{
-						rQuo[0] = *(i64*)&(OtMsgSends[k*bitVecs[k].size() + i][0] >> mDimension*mLenModinByte) % 2; //to compute \sum b = \sum b*1
-						rQuo[1] = *(i64*)&(OtMsgSends[k*bitVecs[k].size() + i][1] >> mDimension*mLenModinByte) % 2;
+						rQuo[0] = (*(u64*)&OtMsgSends[k*bitVecs[k].size() + i][0] >> mDimension*mLenModinByte) % 2; //to compute \sum b = \sum b*1
+						rQuo[1] = (*(u64*)&OtMsgSends[k*bitVecs[k].size() + i][1] >> mDimension*mLenModinByte) % 2;
 					}
 				}
 
@@ -1089,10 +1173,10 @@ namespace osuCrypto
 					else
 					{
 						for (u64 d = 0; d < mDimension; d++)
-							r[d] = *(i64*)&(OtMsgRecv[k*bitVecs[k].size() + i] >> d*mLenModinByte) % mMod;
+							r[d] = (*(i64*)&OtMsgRecv[k*bitVecs[k].size() + i] >> d*mLenModinByte) % mMod;
 
 						if (isDen)
-							rQuo = *(u64*)&(OtMsgRecv[k*bitVecs[k].size() + i] >> mDimension*mLenModinByte) % 2; //to compute \sum b = \sum b*1
+							rQuo = (*(u64*)&OtMsgRecv[k*bitVecs[k].size() + i] >> mDimension*mLenModinByte) % 2; //to compute \sum b = \sum b*1
 
 					}
 

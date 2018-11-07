@@ -76,22 +76,22 @@ include_directories(libOTe)
 add_subdirectory(libOTe/libOTe)
 
 #############################################
+#               Build ivory                #
+#############################################
+include_directories(Ivory-Runtime)
+add_subdirectory(Ivory-Runtime/ivory)
+
+#############################################
 #               Build Tests                #
 #############################################
 include_directories(Tests)
 add_subdirectory(Tests)
 
 #############################################
-#               Build ivory                #
-#############################################
-include_directories(Ivory-Runtime/ivory)
-add_subdirectory(Ivory-Runtime/ivory)
-
-#############################################
 #               Build ivoryTests                #
 #############################################
-include_directories(Ivory-Runtime/ivoryTests)
-add_subdirectory(Ivory-Runtime/ivoryTests)
+#include_directories(Ivory-Runtime/ivoryTests)
+#add_subdirectory(Ivory-Runtime/ivoryTests)
 
 
 

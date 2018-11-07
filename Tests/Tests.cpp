@@ -26,10 +26,10 @@
 #include <boost/tokenizer.hpp>
 #include "DataShare.h"
 #include <libOTe/Base/naor-pinkas.h>
-#include <ivory/Circuit/CircuitLibrary.h>
-#include <ivory/Runtime/sInt.h>
-#include <ivory/Runtime/Party.h>
-#include <ivory/Runtime/ShGc/ShGcInt.h>
+#include <Ivory-Runtime/ivory/Circuit/CircuitLibrary.h>
+#include <Ivory-Runtime/ivory/Runtime/sInt.h>
+#include <Ivory-Runtime/ivory/Runtime/Party.h>
+#include <Ivory-Runtime/ivory/Runtime/ShGc/ShGcInt.h>
 #ifdef GetMessage
 #undef GetMessage
 #endif
@@ -41,7 +41,7 @@
 
 using namespace std;
 using namespace osuCrypto;
-#include <ivory/Runtime/ShGc/ShGcRuntime.h>
+#include <Ivory-Runtime/ivory/Runtime/ShGc/ShGcRuntime.h>
 #include "progCircuit.h"
 
 i64 signExtend1(i64 v, u64 b, bool print = false)
@@ -850,7 +850,7 @@ namespace osuCrypto
 		int securityParams = 128;
 		int inDimension = 3;
 		int inExMod = 20;
-		u64 inNumCluster = 3;
+		u64 inNumCluster = 4;
 
 
 		u64 inMod = pow(2, inExMod);
@@ -910,18 +910,21 @@ namespace osuCrypto
 
 		thrd.join();
 
-		timer.setTimePoint("offlineDone");
+		timer.setTimePoint("baseOTDone");
+
+	
+
 		//=======================online (sharing)===============================
 
 		thrd = std::thread([&]() {
 
-			p0.sendShareInput(0, 0, inNumCluster / 2);
-			p0.recvShareInput(p0.mPoint.size(), inNumCluster / 2, inNumCluster);
+			p0.sendShareInput(0, 0, p0.mNumCluster / 2);
+			p0.recvShareInput(p0.mPoint.size(), p0.mNumCluster / 2, p0.mNumCluster);
 
 		});
 
-		p1.recvShareInput(0, 0, inNumCluster / 2);
-		p1.sendShareInput(p1.mTheirNumPoints, inNumCluster / 2, inNumCluster);
+		p1.recvShareInput(0, 0, p0.mNumCluster / 2);
+		p1.sendShareInput(p1.mTheirNumPoints, p0.mNumCluster / 2, p0.mNumCluster);
 
 
 		thrd.join();
@@ -937,7 +940,9 @@ namespace osuCrypto
 				{
 
 					std::cout << "(p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != 0\n";
-					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
+					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " + " << p1.mSharePoint[i][j].mArithShare
+						<< " = " << (p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod
+						<< " vs " << p0.mPoint[i][j]						<<  "\n";
 					throw std::exception();
 				}
 			}
@@ -988,33 +993,103 @@ namespace osuCrypto
 
 
 #endif
+		std::cout << "Share done\n";
 
-		//=======================online OT (setting up keys for adaptive ED)===============================
+
+		//=======================OT extension===============================
+#if 1
 
 		thrd = std::thread([&]() {
 
 			//1st OT
-			p0.appendAllChoice();
-			p0.recv.receive(p0.mChoiceAllBitSharePoints, p0.mRecvAllOtKeys, p0.mPrng, p0.mChl);
+			p0.mChoiceAllBitSharePointsOffline.resize(p0.mTotalNumPoints*p0.mDimension*p0.mLenMod);
+			p0.mChoiceAllBitSharePointsOffline.randomize(p0.mPrng);
+			p0.recv.receive(p0.mChoiceAllBitSharePointsOffline, p0.mRecvAllOtKeys, p0.mPrng, p0.mChl);
 
 			//other OT direction
 			p0.sender.send(p0.mSendAllOtKeys, p0.mPrng, p0.mChl);
 
-			p0.setPRNGseeds();
 
+
+			//===For cluster
+			p0.allChoicesClusterOffline.randomize(p0.mPrng);
+			p0.recv.receive(p0.allChoicesClusterOffline, p0.recvOTmsgClusterOffline, p0.mPrng, p0.mChl); //randome OT
 		});
 		//1st OT
 		p1.sender.send(p1.mSendAllOtKeys, p1.mPrng, p1.mChl);
 
 		//other OT direction
-		p1.appendAllChoice();
-		p1.recv.receive(p1.mChoiceAllBitSharePoints, p1.mRecvAllOtKeys, p1.mPrng, p1.mChl);
+		p1.mChoiceAllBitSharePointsOffline.resize(p1.mTotalNumPoints*p1.mDimension*p1.mLenMod);
+		p1.mChoiceAllBitSharePointsOffline.randomize(p1.mPrng);
+		p1.recv.receive(p1.mChoiceAllBitSharePointsOffline, p1.mRecvAllOtKeys, p1.mPrng, p1.mChl);
 
-		p1.setPRNGseeds();
+
+		//===For cluster
+		p1.sender.send(p1.sendOTmsgsClusterOffline, p1.mPrng, p1.mChl); //randome OT
 
 		thrd.join();
 
 
+		std::cout << p1.sendOTmsgsClusterOffline.size() << "      ddd\n";
+		std::cout << p0.mNumCluster*p0.mDimension*p0.mLenMod*p0.mIteration << "      ddd\n";
+		std::cout << p0.allChoicesClusterOffline << " c\n";
+
+		std::cout << "d=" << p0.mDimension << " | "
+			<< "K= " << p0.mNumCluster << " | "
+			<< "n= " << p0.mTotalNumPoints << " | "
+			<< "l= " << p0.mLenMod << " | "
+			<< "T= " << p0.mIteration << "\t party0\n";
+
+		for (u64 i = 0; i < p1.sendOTmsgsClusterOffline.size(); i++)
+		{
+		std::cout << p1.sendOTmsgsClusterOffline[i][0] << " vs " << p1.sendOTmsgsClusterOffline[i][1] << "\n";
+		std::cout << p0.recvOTmsgClusterOffline[i] << " vs " << p0.allChoicesClusterOffline[i] <<"\n";
+
+		}
+
+		//thrd = std::thread([&]() {
+		//	//===For cluster
+		//	p0.allChoicesClusterOffline.resize(p0.mNumCluster*p0.mDimension*p0.mLenMod*p0.mIteration);
+		//	p0.allChoicesClusterOffline.randomize(p0.mPrng);
+		//	p0.recv.receive(p0.allChoicesClusterOffline, p0.recvOTmsgClusterOffline, p0.mPrng, p0.mChl); //randome OT
+
+
+		//});
+		//	//===For cluster
+		//p1.sender.send(p1.sendOTmsgsClusterOffline, p1.mPrng, p1.mChl); //randome OT
+		//thrd.join();
+
+#endif
+		timer.setTimePoint("offlineDone");
+
+		//=======================online OT (setting up keys for adaptive ED)===============================
+
+		thrd = std::thread([&]() {
+
+			p0.correctAllChoiceRecv();//1st OT
+			p0.correctAllChoiceSender();////other OT direction
+			p0.setPRNGseeds();
+
+		});
+		
+		p1.correctAllChoiceSender(); //1st OT
+		p1.correctAllChoiceRecv();////other OT direction
+		p1.setPRNGseeds();
+
+		thrd.join();
+
+		timer.setTimePoint("OtKeysDone");
+
+	/*	for (u64 i = 0; i < p1.mSendAllOtKeys.size(); i++)
+		{
+			std::cout << p1.mSendAllOtKeys[i][0] << " vs " << p1.mSendAllOtKeys[i][1] << "\n";
+			std::cout << p0.mRecvAllOtKeys[i] << " vs " << p0.mChoiceAllBitSharePoints[i] <<"\n";
+
+		}*/
+
+
+
+#if 1
 		//=======================online MUL===============================
 #pragma region MUL
 
@@ -1225,7 +1300,7 @@ namespace osuCrypto
 		p1.Print();
 
 
-
+#endif
 
 
 	}
