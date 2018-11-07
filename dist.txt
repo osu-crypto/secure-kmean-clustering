@@ -1,9 +1,151 @@
-
--bash-4.2$ ./bin/frontend -r 0
-d=2 | K= 4 | n= 4096 | l= 31 | T= 50     party0
+d=2 | K= 4 | n= 4096 | l= 31 | T= 10     party0
+DistDone
 Label                 Time (ms)  diff (ms)
 __________________________________
-offlineDone               111.5    111.466  ****
-sharingInputsDone         117.5      6.010  **
-OtKeysDone               2272.4   2154.893  *******
-DistDone                68889.1  66616.744  **********
+offlineDone                94.1     94.078  *****
+sharingInputsDone         100.5      6.452  **
+correctOTDone             141.9     41.369  ****
+OtKeysDone               2265.5   2123.632  ********
+DistDone                15430.1  13164.568  **********
+
+d=2 | K= 4 | n= 4096 | l= 31 | T= 20     party0
+DistDone
+Label                 Time (ms)  diff (ms)
+__________________________________
+offlineDone               110.9    110.867  *****
+sharingInputsDone         121.4     10.546  **
+correctOTDone             167.1     45.668  ****
+OtKeysDone               1376.8   1209.690  *******
+DistDone                26010.6  24633.842  **********
+
+d=2 | K= 16 | n= 4096 | l= 31 | T= 10    party0
+DistDone
+Label                 Time (ms)  diff (ms)
+__________________________________
+offlineDone                91.1     91.062  *****
+sharingInputsDone         122.5     31.396  ****
+correctOTDone             165.4     42.941  ****
+OtKeysDone               1520.9   1355.518  *******
+DistDone                20157.8  18636.924  **********
+
+-bash-4.2$ ./bin/frontend -r 0
+d=2 | K= 16 | n= 4096 | l= 31 | T= 20    party0
+DistDone
+Label                 Time (ms)  diff (ms)
+__________________________________
+offlineDone                96.6     96.642  ****
+sharingInputsDone         102.7      6.043  **
+correctOTDone             144.2     41.518  ***
+OtKeysDone               2200.8   2056.626  *******
+DistDone                44547.1  42346.285  **********
+
+d=2 | K= 4 | n= 65536 | l= 31 | T= 10    party0
+DistDone
+Label                 Time (ms)  diff (ms)
+__________________________________
+offlineDone               458.0    458.025  *****
+sharingInputsDone         549.1     91.039  ****
+correctOTDone            1062.6    513.533  *****
+OtKeysDone              33598.1  32535.496  ********
+DistDone               359372.9  325774.795  **********
+
+d=2 | K= 4 | n= 65536 | l= 31 | T= 20    party0
+DistDone
+Label                 Time (ms)  diff (ms)
+__________________________________
+offlineDone               511.6    511.564  *****
+sharingInputsDone         726.0    214.427  ****
+correctOTDone            1313.7    587.677  *****
+OtKeysDone              22691.1  21377.471  ********
+DistDone               485829.9  463138.744  **********
+
+
+d=2 | K= 16 | n= 65536 | l= 31 | T= 10   party0
+DistDone
+Label                 Time (ms)  diff (ms)
+__________________________________
+offlineDone               439.1    439.081  *****
+sharingInputsDone         792.6    353.541  *****
+correctOTDone            1414.2    621.544  *****
+OtKeysDone              21089.0  19674.828  ********
+DistDone               333460.4  312371.430  **********
+
+d=2 | K= 16 | n= 65536 | l= 31 | T= 20   party0
+DistDone
+Label                 Time (ms)  diff (ms)
+__________________________________
+offlineDone               720.5    720.549  *****
+sharingInputsDone         955.9    235.355  ****
+correctOTDone            1586.7    630.802  *****
+OtKeysDone              25513.7  23927.034  ********
+DistDone               635838.0  610324.298  **********
+
+
+-bash-4.2$ ./bin/euclidean_distance.exe -r 0
+
+Complexities:
+Boolean Sharing: ANDs: 0 (1-bit) ; Depth: 0
+Total Vec AND: 0
+Total Non-Vec AND: 0
+XOR vals: 0 gates: 0
+Comb gates: 0, CombStruct gates: 0, Perm gates: 0, Subset gates: 0, Split gates: 0
+Yao Sharing: ANDs: 3387 ; Depth: 3
+Arithmetic Sharing: MULs: 0 ; Depth: 0
+Total number of gates: 14397
+Timings:
+Total =         8.676 ms
+Init =          0.248 ms
+CircuitGen =    0.083 ms
+Network =       8445.09 ms
+BaseOTs =       302.659 ms
+Setup =         4.278 ms
+OTExtension =   1.667 ms
+Garbling =      2.567 ms
+Online =        4.398 ms
+Communication:
+Total Sent / Rcv        111488  bytes / 2103 bytes
+BaseOTs Sent / Rcv      49956  bytes / 49958 bytes
+Setup Sent / Rcv        9  bytes / 2082 bytes
+OTExtension Sent / Rcv  9  bytes / 2082 bytes
+Garbling Sent / Rcv     0  bytes / 0 bytes
+Online Sent / Rcv       111479  bytes / 21 bytes
+Testing Euclidean Distance in YAO sharing:
+
+ x1: 61, y1: 117
+ x2: 149, y2: 177
+ Circuit result: 106.508216
+ Verification: 106.508216
+
+Complexities:
+Boolean Sharing: ANDs: 3614 (1-bit) ; 4 (32-bit) ; Depth: 78
+Total Vec AND: 3618
+Total Non-Vec AND: 3742
+XOR vals: 10367 gates: 10119
+Comb gates: 0, CombStruct gates: 0, Perm gates: 0, Subset gates: 0, Split gates: 0
+Yao Sharing: ANDs: 0 ; Depth: 0
+Arithmetic Sharing: MULs: 0 ; Depth: 0
+Total number of gates: 14717
+Timings:
+Total =         13.862 ms
+Init =          0.084 ms
+CircuitGen =    0.032 ms
+Network =       10.882 ms
+BaseOTs =       296.026 ms
+Setup =         7.685 ms
+OTExtension =   7.597 ms
+Garbling =      0.001 ms
+Online =        6.174 ms
+Communication:
+Total Sent / Rcv        81013  bytes / 81013 bytes
+BaseOTs Sent / Rcv      49956  bytes / 49957 bytes
+Setup Sent / Rcv        79958  bytes / 79958 bytes
+OTExtension Sent / Rcv  79958  bytes / 79958 bytes
+Garbling Sent / Rcv     0  bytes / 0 bytes
+Online Sent / Rcv       1055  bytes / 1055 bytes
+Testing Euclidean Distance in BOOL sharing:
+
+ x1: 61, y1: 117
+ x2: 149, y2: 177
+ Circuit result: 106.508216
+ Verification: 106.508216
+

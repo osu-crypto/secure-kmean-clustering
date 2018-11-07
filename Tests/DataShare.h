@@ -18,7 +18,7 @@ namespace osuCrypto
 {
 
 static const u64 stepamortAdaptMULSize(1 << 8);
-static const u64 stepCorrectAllChoice(1 << 2);
+static const u64 stepCorrectAllChoice(1 << 5);
 
 	typedef u64 Word;
 	typedef i64 iWord;

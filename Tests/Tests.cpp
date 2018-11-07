@@ -835,9 +835,7 @@ namespace osuCrypto
 
 	}
 
-
-
-
+	
 	void DistTest()
 	{
 		Timer timer;
