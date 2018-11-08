@@ -1,0 +1,35 @@
+-bash-4.2$ ./bin/frontend -r 0
+d=2 | K= 4 | n= 4096 | l= 31 | T= 1      party0
+MinDone
+Label           Time (ms)  diff (ms)
+__________________________________
+offlineDone          93.2     93.203  *****
+MinStart             94.1      0.901
+MinDone            8036.7   7942.564  **********
+
+d=2 | K= 16 | n= 4096 | l= 31 | T= 1     party0
+MinDone
+Label           Time (ms)  diff (ms)
+__________________________________
+offlineDone          92.2     92.209  ****
+MinStart             95.0      2.818  *
+MinDone           40614.4  40519.351  **********
+
+d=2 | K= 4 | n= 65536 | l= 31 | T= 1     party0
+MinDone
+Label           Time (ms)  diff (ms)
+__________________________________
+offlineDone         445.4    445.389  *****
+MinStart            450.0      4.641  *
+MinDone          137186.4  136736.352  **********
+
+-bash-4.2$ ./bin/frontend -r 0
+d=2 | K= 16 | n= 65536 | l= 31 | T= 1    party0
+MinDone
+Label           Time (ms)  diff (ms)
+__________________________________
+offlineDone         436.3    436.286  *****
+MinStart            454.1     17.798  **
+MinDone          677785.3  677331.174  **********
+
+

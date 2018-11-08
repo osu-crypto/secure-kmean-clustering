@@ -305,6 +305,214 @@ void party1_Dist()
 
 }
 
+
+
+void party0_DistNorm1()
+{
+	Timer timer;
+	IOService ios;
+	Session ep01(ios, "127.0.0.1", SessionMode::Server);
+	Channel chl01 = ep01.addChannel();
+
+	u64 inMod = pow(2, inExMod);
+	std::vector<std::vector<Word>> inputA;
+	//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+
+	PRNG prng(ZeroBlock);
+
+	inputA.resize(numberTestA);
+	for (int i = 0; i < numberTestA; i++)
+	{
+		inputA[i].resize(inDimension);
+		for (size_t j = 0; j < inDimension; j++)
+		{
+			inputA[i][j] = prng.get<Word>() % inMod;
+
+		}
+	}
+
+	u64 inTotalPoint = inputA.size() + numberTestB;
+	//=======================offline===============================
+	DataShare p0;
+
+	p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
+		, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension, numInteration);
+
+	NaorPinkas baseOTs;
+	baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
+	p0.recv.setBaseOts(p0.mSendBaseMsg);
+
+
+	baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
+	p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
+
+
+	timer.setTimePoint("baseOTDone");	
+	timer.setTimePoint("offlineDone");
+	//std::cout << "offlineDone\n";
+
+	std::cout << "d=" << p0.mDimension << " | "
+		<< "K= " << p0.mNumCluster << " | "
+		<< "n= " << p0.mTotalNumPoints << " | "
+		<< "l= " << p0.mLenMod << " | "
+		<< "T= " << p0.mIteration << "\t party0\n";
+
+
+	//=======================online (sharing)===============================
+
+	p0.sendShareInput(0, 0, inNumCluster / 2);
+	p0.recvShareInput(p0.mPoint.size(), inNumCluster / 2, inNumCluster);
+
+	timer.setTimePoint("sharingInputsDone");
+	//std::cout << "sharingInputsDone\n";
+
+	//=======================Dist Norm1===============================
+	for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
+	{
+		std::vector<std::vector<iWord>> myShareCluster(p0.mNumCluster);
+
+		for (u64 k = 0; k < p0.mNumCluster; k++)
+		{
+			myShareCluster[k].resize(p0.mDimension);
+			for (u64 d = 0; d < p0.mDimension; d++)
+				memcpy((i8*)&myShareCluster[k][d], (u8*)&p0.mShareCluster[k][d], sizeof(Word));
+		}
+
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			std::vector<iWord> mySharePoint(p0.mDimension);
+			for (u64 d = 0; d < p0.mDimension; d++)
+			{
+				memcpy((i8*)&mySharePoint[d], (i8*)&p0.mSharePoint[i][d], sizeof(iWord));
+			}
+
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				p0.mDist[i][k] = signExtend(p0.mPrng.get<iWord>(), p0.mLenMod);
+				programDistNorm1(p0.parties, mySharePoint, myShareCluster[k], p0.mDist[i][k], p0.mLenMod);
+				//std::cout << p0.mDist[i][k] << "  p0.mDist[i][k]\n";
+
+			}
+		}
+	}
+
+	timer.setTimePoint("DistDone");
+	std::cout << "DistDone\n";
+
+	//p0.Print();
+
+
+	std::cout << timer << "\n";
+
+
+
+}
+void party1_DistNorm1()
+{
+	Timer timer;
+	IOService ios;
+	Session ep10(ios, "127.0.0.1", SessionMode::Client);
+	Channel chl10 = ep10.addChannel();
+	u64 inMod = pow(2, inExMod);
+	std::vector<std::vector<Word>> inputB;
+	//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+
+	PRNG prng(ZeroBlock);
+	inputB.resize(numberTestB);
+	for (int i = 0; i < numberTestB; i++)
+	{
+		inputB[i].resize(inDimension);
+		for (size_t j = 0; j < inDimension; j++)
+			inputB[i][j] = prng.get<Word>() % inMod;
+	}
+
+	u64 inTotalPoint = numberTestA + inputB.size();
+	//=======================offline===============================
+	DataShare  p1;
+
+	timer.setTimePoint("starts");
+
+	p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
+		, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension, numInteration);
+
+	NaorPinkas baseOTs;
+	baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
+	p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
+
+	baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
+	p1.recv.setBaseOts(p1.mSendBaseMsg);
+
+	timer.setTimePoint("baseOTDone");
+	timer.setTimePoint("offlineDone");
+
+	std::cout << "d=" << p1.mDimension << " | "
+		<< "K= " << p1.mNumCluster << " | "
+		<< "n= " << p1.mTotalNumPoints << " | "
+		<< "l= " << p1.mLenMod << " | "
+		<< "T= " << p1.mIteration << "\t party1\n";
+
+
+	std::cout << "offlineDone\n";
+
+
+	//=======================online (sharing)===============================
+	p1.recvShareInput(0, 0, inNumCluster / 2);
+	p1.sendShareInput(p1.mTheirNumPoints, inNumCluster / 2, inNumCluster);
+
+	timer.setTimePoint("sharingInputsDone");
+
+	//=======================Dist Norm1===============================
+	for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
+	{
+
+		std::vector<std::vector<iWord>> myShareCluster(p1.mNumCluster);
+
+		for (u64 k = 0; k < p1.mNumCluster; k++)
+		{
+			myShareCluster[k].resize(p1.mDimension);
+			for (u64 d = 0; d < p1.mDimension; d++)
+			{
+				memcpy((i8*)&myShareCluster[k][d], (u8*)&p1.mShareCluster[k][d], sizeof(Word));
+				
+				/*std::cout << IoStream::lock;
+				std::cout << p1.mShareCluster[k][d] << " vs " << myShareCluster[k][d] << "\n";
+				std::cout << IoStream::unlock;*/
+
+			}
+
+		}
+
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+		{
+			std::vector<iWord> mySharePoint(p1.mDimension);
+			for (u64 d = 0; d < p1.mDimension; d++)
+			{
+				memcpy((i8*)&mySharePoint[d], (i8*)&p1.mSharePoint[i][d], sizeof(iWord));
+			}
+
+			for (u64 k = 0; k < p1.mNumCluster; k++)
+			{
+
+				programDistNorm1(p1.parties, mySharePoint, myShareCluster[k], p1.mDist[i][k], p1.mLenMod);
+
+				/*std::cout << IoStream::lock;
+				std::cout << p1.mDist[i][k] << "  p1.mDist[i][k]\n";
+				std::cout << IoStream::unlock;*/
+			
+			}
+		}
+	}
+
+	timer.setTimePoint("DistDone");
+	std::cout << "DistDone\n";
+	std::cout << timer << "\n";
+
+
+	//p1.Print();
+
+}
+
+
 void party0_Min()
 {
 	Timer timer;
@@ -625,17 +833,212 @@ void party1_Min()
 
 }
 
+
+void party0_Min_BaseLine()
+{
+	Timer timer;
+	IOService ios;
+	Session ep01(ios, "127.0.0.1", SessionMode::Server);
+	Channel chl01 = ep01.addChannel();
+
+	u64 inMod = pow(2, inExMod);
+	std::vector<std::vector<Word>> inputA;
+	//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+
+	PRNG prng(ZeroBlock);
+
+	inputA.resize(numberTestA);
+	for (int i = 0; i < numberTestA; i++)
+	{
+		inputA[i].resize(inDimension);
+		for (size_t j = 0; j < inDimension; j++)
+		{
+			inputA[i][j] = prng.get<Word>() % inMod;
+
+		}
+	}
+
+	u64 inTotalPoint = inputA.size() + numberTestB;
+	//=======================offline===============================
+	DataShare p0;
+
+	p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
+		, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension, numInteration);
+
+	NaorPinkas baseOTs;
+	baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
+	p0.recv.setBaseOts(p0.mSendBaseMsg);
+
+
+	baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
+	p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
+
+
+	timer.setTimePoint("baseOTDone");
+	//std::cout << "baseOTDone\n";
+
+	//=======================OT extension===============================
+	//1st OT
+	p0.mChoiceAllBitSharePointsOffline.resize(p0.mTotalNumPoints*p0.mDimension*p0.mLenMod);
+	p0.mChoiceAllBitSharePointsOffline.randomize(p0.mPrng);
+
+	p0.recv.receive(p0.mChoiceAllBitSharePointsOffline, p0.mRecvAllOtKeys, p0.mPrng, p0.mChl);
+
+	//other OT direction
+	p0.sender.send(p0.mSendAllOtKeys, p0.mPrng, p0.mChl);
+
+
+	//===For cluster
+	p0.allChoicesClusterOffline.randomize(p0.mPrng);
+	p0.recv.receive(p0.allChoicesClusterOffline, p0.recvOTmsgClusterOffline, p0.mPrng, p0.mChl); //randome OT
+
+
+
+
+	timer.setTimePoint("offlineDone");
+	//std::cout << "offlineDone\n";
+
+	std::cout << "d=" << p0.mDimension << " | "
+		<< "K= " << p0.mNumCluster << " | "
+		<< "n= " << p0.mTotalNumPoints << " | "
+		<< "l= " << p0.mLenMod << " | "
+		<< "T= " << p0.mIteration << "\t party0\n";
+
+
+	//=======================fake dist===============================
+
+	for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		for (u64 k = 0; k < p0.mNumCluster; k++)
+		{
+			p0.mDist[i][k] = signExtend(prng.get<Word>(), p0.mLenMod);
+		}
+
+	timer.setTimePoint("MinStart");
+
+	for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
+	{
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			programLessThanBaseLine(p0.parties, p0.mDist[i], p0.mVecIdxMin[i], p0.mLenMod);
+		}
+	}
+	timer.setTimePoint("MinDone");
+	std::cout << "MinDone\n";
+
+	//p0.Print();
+
+	std::cout << timer << "\n";
+
+}
+void party1_Min_BaseLine()
+{
+	Timer timer;
+	IOService ios;
+	Session ep10(ios, "127.0.0.1", SessionMode::Client);
+	Channel chl10 = ep10.addChannel();
+	u64 inMod = pow(2, inExMod);
+	std::vector<std::vector<Word>> inputB;
+	//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+
+	PRNG prng(ZeroBlock);
+	inputB.resize(numberTestB);
+	for (int i = 0; i < numberTestB; i++)
+	{
+		inputB[i].resize(inDimension);
+		for (size_t j = 0; j < inDimension; j++)
+			inputB[i][j] = prng.get<Word>() % inMod;
+	}
+
+	u64 inTotalPoint = numberTestA + inputB.size();
+	//=======================offline===============================
+	DataShare  p1;
+
+	timer.setTimePoint("starts");
+
+	p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
+		, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension, numInteration);
+
+	NaorPinkas baseOTs;
+	baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
+	p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
+
+	baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
+	p1.recv.setBaseOts(p1.mSendBaseMsg);
+
+	timer.setTimePoint("baseOTDone");
+	//std::cout << "baseOTDone\n";
+	//=======================OT extension===============================
+	//1st OT
+	p1.sender.send(p1.mSendAllOtKeys, p1.mPrng, p1.mChl);
+
+	//other OT direction
+	p1.mChoiceAllBitSharePointsOffline.resize(p1.mTotalNumPoints*p1.mDimension*p1.mLenMod);
+	p1.mChoiceAllBitSharePointsOffline.randomize(p1.mPrng);
+	p1.recv.receive(p1.mChoiceAllBitSharePointsOffline, p1.mRecvAllOtKeys, p1.mPrng, p1.mChl);
+
+	//===For cluster
+	p1.sender.send(p1.sendOTmsgsClusterOffline, p1.mPrng, p1.mChl); //randome OT
+
+	timer.setTimePoint("offlineDone");
+
+	std::cout << "d=" << p1.mDimension << " | "
+		<< "K= " << p1.mNumCluster << " | "
+		<< "n= " << p1.mTotalNumPoints << " | "
+		<< "l= " << p1.mLenMod << " | "
+		<< "T= " << p1.mIteration << "\t party1\n";
+
+
+	std::cout << "offlineDone\n";
+
+
+	//=======================fake dist===============================
+
+	for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+		for (u64 k = 0; k < p1.mNumCluster; k++)
+		{
+			p1.mDist[i][k] = signExtend(prng.get<Word>(), p1.mLenMod);
+		}
+
+	timer.setTimePoint("MinStart");
+
+
+	for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
+	{
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+		{
+			programLessThanBaseLine(p1.parties, p1.mDist[i], p1.mVecIdxMin[i], p1.mLenMod);
+		}
+	}
+
+	timer.setTimePoint("MinDone");
+
+	std::cout << "\nMinDone";
+
+	std::cout << timer << "\n";
+
+
+	//p1.Print();
+
+}
+
 void unitTest()
 {
 	std::thread thrd = std::thread([&]() {
 		//party0_Dist();
-		party0_Min();
+		//party0_Min();
+		//party0_Min_BaseLine();
+		party0_DistNorm1();
 	});
 
 	//party1_Dist();
-	party1_Min();
+	//party1_Min();
+	//party1_Min_BaseLine();
+	party1_DistNorm1();
 
 	thrd.join();
+
+
+
 }
 
 int main(int argc, char** argv)
@@ -666,7 +1069,10 @@ int main(int argc, char** argv)
 						numInteration = T;
 					//	boost::this_thread::sleep(boost::posix_time::seconds(2));
 						//party0_Dist();
-						party0_Min();
+						//party0_Min();
+						party0_Min_BaseLine();
+						//party0_DistNorm1();
+
 					}
 			}
 
@@ -688,7 +1094,10 @@ int main(int argc, char** argv)
 					numInteration = T;
 					//boost::this_thread::sleep(boost::posix_time::seconds(2));
 					//party1_Dist();
-					party1_Min();
+					//party1_Min();
+					party1_Min_BaseLine();
+					//party1_DistNorm1();
+
 				}
 			}
 

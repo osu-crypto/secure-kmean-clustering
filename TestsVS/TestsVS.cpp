@@ -71,7 +71,17 @@ namespace osuCrypto
 			InitDebugPrinting();
 			testMinDist();
 		}
-		TEST_METHOD(ClusteringTesttVS)
+
+		
+		
+		TEST_METHOD(MinDistBaseLineVS)
+		{
+			InitDebugPrinting();
+			testMinDist_Baseline();
+		}
+
+
+			TEST_METHOD(ClusteringTesttVS)
 		{
 			InitDebugPrinting();
 			ClusteringTest();

@@ -208,59 +208,73 @@ namespace osuCrypto
 		};
 
 		std::thread thrd = std::thread([&]() {
-			rt0.init(chl01, prng.get<block>(), ShGcRuntime::Evaluator, 1);;
+			rt0.init(chl01, prng.get<block>(), ShGcRuntime::Garbler, 0); 
 		});
-		rt1.init(chl10, prng.get<block>(), ShGcRuntime::Garbler, 0);
+		rt1.init(chl10, prng.get<block>(), ShGcRuntime::Evaluator, 1);
 
 		thrd.join();
 
-		std::vector<Word> xx(numberTest), x1(numberTest), x2(numberTest);
-		std::vector<Word> yy(numberTest), y1(numberTest), y2(numberTest);
+		std::vector<iWord> dist(numberTest), dist1(numberTest), dist2(numberTest);
+		std::vector<iWord> cluster(numberTest), cluster1(numberTest), cluster2(numberTest);
 		for (i64 i = 0; i < numberTest; i++)
 		{
-			//xx[i] = 1000 + i;//p0.mPrng.get<Word>() % inMod;
-			xx[i] = signExtend(prng.get<Word>(), bitCount, true);
-			x1[i] = signExtend(prng.get<Word>(), bitCount, true);
-			x2[i] = signExtend(xx[i] - x1[i], bitCount, true);
+			//dist[i] = 1000 + i;//p0.mPrng.get<Word>() % inMod;
+			dist[i] = signExtend(prng.get<iWord>(), bitCount, true);
+			dist1[i] = signExtend(prng.get<iWord>(), bitCount, true);
+			dist2[i] = signExtend(dist[i] - dist1[i], bitCount, true);
 
-			yy[i] = signExtend(prng.get<Word>(), bitCount); // p0.mPrng.get<Word>() % inMod;
-			y1[i] = signExtend(prng.get<Word>(), bitCount);
-			y2[i] = signExtend(yy[i] - y1[i], bitCount);
+			cluster[i] = signExtend(prng.get<iWord>(), bitCount); // p0.mPrng.get<Word>() % inMod;
+			cluster1[i] = signExtend(prng.get<iWord>(), bitCount);
+			cluster2[i] = signExtend(cluster[i] - cluster1[i], bitCount);
 
 		}
 
-		for (i64 i = 0; i < numberTest; i++)
-		{
-
-			auto exp = int(xx[i] < yy[i]);
-
-			std::cout << "trial: " << i << "\n"
-				<< "  x   = " << xx[i] << " = ( " << x1[i] << ", " << x2[i] << ")  " << (x1[i] + x2[i]) << "\n"
-				<< "  y   = " << yy[i] << " = ( " << y1[i] << ", " << y2[i] << ")  " << (y1[i] + y2[i]) << "\n"
-				<< "  exp = " << exp << std::endl;
+		iWord myShare1, myShare2=0;
 
 			thrd = std::thread([&]() {
-				programLessThan22(parties0, x1[i], y1[i], bitCount, exp);
+
+				myShare1 = signExtend(prng.get<iWord>(), bitCount);
+				programDistNorm1(parties0, dist1, cluster1, myShare1,bitCount);
 			});
 
-			programLessThan22(parties1, x2[i], y2[i], bitCount, exp);
+			programDistNorm1(parties1, dist2, cluster2, myShare2, bitCount);
 
 			thrd.join();
 
-		}
+			std::cout << myShare1 << " vs " << myShare2 << " myShare\n";
+
+		//for (i64 i = 0; i < numberTest; i++)
+		//{
+
+		//	auto exp = int(dist[i] < cluster[i]);
+
+		//	std::cout << "trial: " << i << "\n"
+		//		<< "  x   = " << dist[i] << " = ( " << dist1[i] << ", " << dist2[i] << ")  " << (dist1[i] + dist2[i]) << "\n"
+		//		<< "  y   = " << cluster[i] << " = ( " << cluster1[i] << ", " << cluster2[i] << ")  " << (cluster1[i] + cluster2[i]) << "\n"
+		//		<< "  exp = " << exp << std::endl;
+
+		//	thrd = std::thread([&]() {
+		//		programLessThan22(parties0, dist1[i], cluster1[i], bitCount, exp);
+		//	});
+
+		//	programLessThan22(parties1, dist2[i], cluster2[i], bitCount, exp);
+
+		//	thrd.join();
+
+		//}
 
 
 		std::cout << " ==================\n";
 
 		/*for (i64 i = 0; i < numberTest; i++)
 		{
-			Word diff1 = signExtend(x1[i] - y1[i], bitCount);
-			Word diff2 = signExtend(y2[i] - x2[i], bitCount);
-			auto exp = int(xx[i] < yy[i]);
+			Word diff1 = signExtend(dist1[i] - cluster1[i], bitCount);
+			Word diff2 = signExtend(cluster2[i] - dist2[i], bitCount);
+			auto exp = int(dist[i] < cluster[i]);
 
 			std::cout << "trial: " << i << "\n"
-				<< "  x   = " << xx[i] << " = ( " << x1[i] << ", " << x2[i] << ")  " << (x1[i] + x2[i]) << "\n"
-				<< "  y   = " << yy[i] << " = ( " << y1[i] << ", " << y2[i] << ")  " << (y1[i] + y2[i]) << "\n"
+				<< "  x   = " << dist[i] << " = ( " << dist1[i] << ", " << dist2[i] << ")  " << (dist1[i] + dist2[i]) << "\n"
+				<< "  y   = " << cluster[i] << " = ( " << cluster1[i] << ", " << cluster2[i] << ")  " << (cluster1[i] + cluster2[i]) << "\n"
 				<< "  exp = " << exp << std::endl;
 
 			thrd = std::thread([&]() {
@@ -277,16 +291,16 @@ namespace osuCrypto
 		//
 		//	for (i64 i = 0; i < numberTest; i++)
 		//	{
-		//		std::cout << xx[i] << "/" << yy[i] << " = " << (xx[i] / yy[i]) << "  Expected\n";
+		//		std::cout << dist[i] << "/" << cluster[i] << " = " << (dist[i] / cluster[i]) << "  Expected\n";
 		//	}
 		//
 		//	thrd = std::thread([&]() {
 		//		for (i64 i = 0; i < numberTest; i++)
-		//			programDiv(parties0, x1[i], y1[i], inExMod);
+		//			programDiv(parties0, dist1[i], cluster1[i], inExMod);
 		//	});
 		//
 		//	for (i64 i = 0; i < numberTest; i++)
-		//		programDiv(parties1, x2[i], y2[i], inExMod);
+		//		programDiv(parties1, dist2[i], cluster2[i], inExMod);
 		//
 		//	thrd.join();
 	}
@@ -313,23 +327,23 @@ namespace osuCrypto
 		u64 numberTest = 10;
 
 
-		std::vector<Word> xx(numberTest), x1(numberTest), x2(numberTest);
-		std::vector<Word> yy(numberTest), y1(numberTest), y2(numberTest);
+		std::vector<Word> dist(numberTest), dist1(numberTest), dist2(numberTest);
+		std::vector<Word> cluster(numberTest), cluster1(numberTest), cluster2(numberTest);
 		for (i64 i = 0; i < numberTest; i++)
 		{
-			//xx[i] = 1000 + i;//p0.mPrng.get<Word>() % inMod;
-			xx[i] = signExtend1(prng.get<Word>(), inExMod);
-			x1[i] = signExtend1(prng.get<Word>(), inExMod);
-			x2[i] = signExtend1((xx[i] - x1[i]), inExMod);
+			//dist[i] = 1000 + i;//p0.mPrng.get<Word>() % inMod;
+			dist[i] = signExtend1(prng.get<Word>(), inExMod);
+			dist1[i] = signExtend1(prng.get<Word>(), inExMod);
+			dist2[i] = signExtend1((dist[i] - dist1[i]), inExMod);
 
-			yy[i] = 2000 + i; // p0.mPrng.get<Word>() % inMod;
-			y1[i] = signExtend1(prng.get<Word>(), inExMod);
-			y2[i] = signExtend1((yy[i] - y1[i]), inExMod);
+			cluster[i] = 2000 + i; // p0.mPrng.get<Word>() % inMod;
+			cluster1[i] = signExtend1(prng.get<Word>(), inExMod);
+			cluster2[i] = signExtend1((cluster[i] - cluster1[i]), inExMod);
 
-			if (xx[i] < yy[i])
-				std::cout << xx[i] << "<" << yy[i] << ": 1 Expected\n";
+			if (dist[i] < cluster[i])
+				std::cout << dist[i] << "<" << cluster[i] << ": 1 Expected\n";
 			else
-				std::cout << xx[i] << "<" << yy[i] << ": 0 Expected\n";
+				std::cout << dist[i] << "<" << cluster[i] << ": 0 Expected\n";
 
 		}
 
@@ -353,12 +367,12 @@ namespace osuCrypto
 
 		thrd = std::thread([&]() {
 			for (i64 i = 0; i < numberTest; i++)
-				programLessThan22(parties0, x1[i], y1[i], inExMod);
+				programLessThan22(parties0, dist1[i], cluster1[i], inExMod);
 		});
 
 
 		for (i64 i = 0; i < numberTest; i++)
-			programLessThan22(parties1, x2[i], y2[i], inExMod);
+			programLessThan22(parties1, dist2[i], cluster2[i], inExMod);
 
 		thrd.join();
 
@@ -367,16 +381,16 @@ namespace osuCrypto
 
 		for (i64 i = 0; i < numberTest; i++)
 		{
-			std::cout << xx[i] << "/" << yy[i] << " = " << (xx[i] / yy[i]) << "  Expected\n";
+			std::cout << dist[i] << "/" << cluster[i] << " = " << (dist[i] / cluster[i]) << "  Expected\n";
 		}
 
 		/*	thrd = std::thread([&]() {
 				for (i64 i = 0; i < numberTest; i++)
-					programDiv(parties0, x1[i], y1[i], inExMod);
+					programDiv(parties0, dist1[i], cluster1[i], inExMod);
 			});
 
 			for (i64 i = 0; i < numberTest; i++)
-				programDiv(parties1, x2[i], y2[i], inExMod);*/
+				programDiv(parties1, dist2[i], cluster2[i], inExMod);*/
 
 		thrd.join();
 	}
@@ -1712,7 +1726,7 @@ namespace osuCrypto
 		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
 
 		PRNG prng(ZeroBlock);
-		u64 numberTest = 2;
+		u64 numberTest = 10;
 		inputA.resize(numberTest);
 		inputB.resize(numberTest);
 		for (int i = 0; i < numberTest; i++)
@@ -1761,6 +1775,7 @@ namespace osuCrypto
 		p1.recv.setBaseOts(p1.mSendBaseMsg);
 		thrd.join();
 
+		
 
 
 		//fake dist
@@ -1979,7 +1994,7 @@ namespace osuCrypto
 
 					exp[i][k] = int(xx < yy);
 					std::cout << exp[i][k] << ": " << xx << "  " << yy << "  ||  " << xx%p0.mMod << "  " << yy%p0.mMod << "\n";
-					//std::cout << int(xx%p0.mMod < yy%p0.mMod) << ": " << xx << "  " << yy << "  ||  " << xx%p0.mMod << "  " << yy%p0.mMod << "\n";
+					//std::cout << int(dist%p0.mMod < cluster%p0.mMod) << ": " << dist << "  " << cluster << "  ||  " << dist%p0.mMod << "  " << cluster%p0.mMod << "\n";
 
 				}
 			}
@@ -2352,6 +2367,193 @@ namespace osuCrypto
 
 
 	}
+
+
+
+
+	void testMinDist_Baseline()
+	{
+		Timer timer; IOService ios;
+		Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
+		Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
+
+		u64 securityParams = 128, inDimension = 2, inExMod = 20, inNumCluster = 16;
+
+		int inMod = pow(2, inExMod);
+		std::vector<std::vector<Word>> inputA, inputB;
+		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+
+		PRNG prng(ZeroBlock);
+		u64 numberTest = 2;
+		inputA.resize(numberTest);
+		inputB.resize(numberTest);
+		for (int i = 0; i < numberTest; i++)
+		{
+			inputA[i].resize(inDimension);
+			inputB[i].resize(inDimension);
+			for (size_t j = 0; j < inDimension; j++)
+			{
+				inputA[i][j] = prng.get<Word>() % inMod;
+				inputB[i][j] = prng.get<Word>() % inMod;
+
+				//std::cout << inputA[i][j] << "\t" << inputB[i][j] << " p\n";
+			}
+		}
+
+		u64 inTotalPoint = inputA.size() + inputB.size();
+		//=======================offline===============================
+		DataShare p0, p1;
+
+		timer.setTimePoint("starts");
+		std::thread thrd = std::thread([&]() {
+			p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
+				, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension);
+
+			NaorPinkas baseOTs;
+			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
+			p0.recv.setBaseOts(p0.mSendBaseMsg);
+
+
+			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
+			p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
+
+
+		});
+
+
+		p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
+			, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension);
+
+		NaorPinkas baseOTs;
+		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
+		p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
+
+
+		baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
+		p1.recv.setBaseOts(p1.mSendBaseMsg);
+		thrd.join();
+
+
+
+		//fake dist
+		u64 num = 1;
+		u64 num2 = 1;
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				//if (i % 2)
+				{
+					p0.mDist[i][k] = signExtend(prng.get<Word>(), p0.mLenMod);
+					p1.mDist[i][k] = signExtend(prng.get<Word>(), p0.mLenMod);
+					//p1.mDist[i][k] = (num - p0.mDist[i][k]) % p0.mMod;;
+					std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << signExtend(p0.mDist[i][k] + p1.mDist[i][k], p0.mLenMod) << " dist\n";
+					std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (signExtend(p0.mDist[i][k] + p1.mDist[i][k], p0.mLenMod)) % p0.mMod << " dist\n";
+					num++;
+				}
+				/*else
+				{
+				num2 = rand() % 1000;
+				p0.mDist[i][k] = prng.get<Word>() % p0.mMod;
+				p1.mDist[i][k] = prng.get<Word>() % p0.mMod;;
+				std::cout << num << ":" << p0.mDist[i][k] << " + " << p1.mDist[i][k] << " = " << (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod << " dist\n";
+				num2++;
+				}*/
+			}
+
+		std::vector<std::vector<int>> exp(p0.mTotalNumPoints);
+		for (i64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			exp[i].resize(p0.mNumCluster / 2);
+			for (u64 k = 0; k < exp[i].size(); k++) {
+
+				iWord xx = signExtend(p0.mDist[i][2 * k] + p1.mDist[i][2 * k], p0.mLenMod);
+				iWord yy = signExtend(p0.mDist[i][2 * k + 1] + p1.mDist[i][2 * k + 1], p0.mLenMod);
+
+				exp[i][k] = int(xx < yy);
+			}
+		}
+
+		std::vector<std::vector<iWord>> outShareSend0, outShareRecv0;
+		std::vector<std::vector<BitVector>> outIdxShareSend0, outIdxShareRecv0;
+		std::vector<std::vector<iWord>> outShareSend1, outShareRecv1;
+		std::vector<std::vector<BitVector>> outIdxShareSend1, outIdxShareRecv1;
+
+		thrd = std::thread([&]() { //party 1
+
+			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+			{
+				programLessThanBaseLine(p0.parties, p0.mDist[i], p0.mVecIdxMin[i], p0.mLenMod);
+			}
+		
+		});
+
+		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
+		{
+			programLessThanBaseLine(p1.parties, p1.mDist[i], p1.mVecIdxMin[i], p1.mLenMod);
+		}
+
+
+		thrd.join();
+
+
+
+
+
+#if 1
+		for (u64 i = 0; i < p0.mTotalNumPoints; i++)
+		{
+			BitVector vecDist = p0.mVecIdxMin[i] ^ p1.mVecIdxMin[i];
+
+			u64 minIdx=0;
+
+			for (u64 k = 0; k < vecDist.size(); k++)
+				if (vecDist[k] == 1)
+				{
+					minIdx = k;
+					break;
+				}
+
+			Word actualMin = (p0.mDist[i][0] + p1.mDist[i][0]) % p0.mMod;
+			Word actualMinIdx = 0;
+			for (u64 k = 1; k < p0.mNumCluster; k++)
+			{
+				Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+				if (actualMin > point)
+				{
+					actualMin = point;
+					actualMinIdx = k;
+				}
+				//std::cout << point << " ";
+			}
+
+			if (actualMinIdx != minIdx)
+			{
+				std::cout << i << ": bitv= " << vecDist << " idx= " << minIdx << "\t";
+
+				std::cout << actualMin << " " << actualMinIdx << "\t ";
+
+
+				for (u64 k = 0; k < p0.mNumCluster; k++)
+				{
+					Word point = (p0.mDist[i][k] + p1.mDist[i][k]) % p0.mMod;
+					std::cout << point << " ";
+				}
+
+				///throw std::exception();
+
+			}
+		}
+
+#endif
+		
+
+		timer.setTimePoint("OTkeysDone");
+
+	
+
+
+	}
+
 
 
 	void testTranspose()
@@ -3377,7 +3579,7 @@ namespace osuCrypto
 
 					exp[i][k] = int(xx < yy);
 					std::cout << exp[i][k] << ": " << xx << "  " << yy << "  ||  " << xx%p0.mMod << "  " << yy%p0.mMod << "\n";
-					//std::cout << int(xx%p0.mMod < yy%p0.mMod) << ": " << xx << "  " << yy << "  ||  " << xx%p0.mMod << "  " << yy%p0.mMod << "\n";
+					//std::cout << int(dist%p0.mMod < cluster%p0.mMod) << ": " << dist << "  " << cluster << "  ||  " << dist%p0.mMod << "  " << cluster%p0.mMod << "\n";
 
 				}
 			}

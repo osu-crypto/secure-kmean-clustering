@@ -149,3 +149,29 @@ Testing Euclidean Distance in BOOL sharing:
  Circuit result: 106.508216
  Verification: 106.508216
 
+ 
+ ====================norm 1
+ -bash-4.2$ ./bin/frontend -r 0
+d=2 | K= 4 | n= 4096 | l= 31 | T= 1      party0
+DistDone
+Label                 Time (ms)  diff (ms)
+__________________________________
+offlineDone                 0.0      0.001
+sharingInputsDone          46.1     46.111  ****
+DistDone                25707.8  25661.667  **********
+
+d=2 | K= 16 | n= 4096 | l= 31 | T= 1     party0
+DistDone
+Label                 Time (ms)  diff (ms)
+__________________________________
+offlineDone                 0.0      0.001
+sharingInputsDone          45.6     45.639  ***
+DistDone                80041.6  79995.942  **********
+
+d=2 | K= 4 | n= 65536 | l= 31 | T= 1     party0
+DistDone
+Label                 Time (ms)  diff (ms)
+__________________________________
+offlineDone                 0.0      0.001
+sharingInputsDone         100.7    100.675  ****
+DistDone               375768.5  375667.849  **********

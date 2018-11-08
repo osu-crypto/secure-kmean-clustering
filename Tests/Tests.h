@@ -16,7 +16,7 @@ namespace osuCrypto
 	void testMinDistFirstLevel();
 	void testMinDist();
 	void ClusteringTest();
-
+	void testMinDist_Baseline();
 	//void testDecAES();
 	
 	
