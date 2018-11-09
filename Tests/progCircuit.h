@@ -263,7 +263,7 @@ namespace osuCrypto
 
 	}
 
-	void programDiv(std::array<Party, 2> parties, i64 myInput1, i64 myInput2, iWord& myShare, u64 bitCount)
+	void programDiv(std::array<Party, 2> parties, i64 myInput1, i64 myInput2, Word& myShare, u64 bitCount)
 	{
 
 		auto input01 = parties[0].isLocalParty() ?  //x1
@@ -307,7 +307,7 @@ namespace osuCrypto
 
 		if (parties[1].isLocalParty())
 		{
-			myShare = share.getValue();
+			myShare = signExtend(share.getValue(), bitCount);
 		}
 
 

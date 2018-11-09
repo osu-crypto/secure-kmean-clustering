@@ -2709,7 +2709,7 @@ namespace osuCrypto
 		Session ep01(ios, "127.0.0.1", SessionMode::Server); Session ep10(ios, "127.0.0.1", SessionMode::Client);
 		Channel chl01 = ep01.addChannel(); Channel chl10 = ep10.addChannel();
 
-		u64 securityParams = 128, inDimension = 1, inExMod = 20, inNumCluster = 15;
+		u64 securityParams = 128, inDimension = 1, inExMod = 16, inNumCluster = 15;
 		u64 numberTest = 4;
 
 		int inMod = pow(2, inExMod);
@@ -2980,9 +2980,9 @@ namespace osuCrypto
 				{
 					for (u64 d = 0; d < p0.mDimension; d++)
 					{
-						iWord myRandomShare = signExtend(p0.mPrng.get<iWord>(), p0.mLenMod);
+						Word myRandomShare = signExtend(p0.mPrng.get<Word>(), p0.mLenMod);
 						programDiv(p0.parties, p0.mShareNomCluster[k][d], p0.mShareDecCluster[k], myRandomShare, p0.mLenMod);
-						p0.mShareNomCluster[k][d] = myRandomShare;
+						p0.mShareCluster[k][d] = myRandomShare;
 					}
 				}
 			});
@@ -2990,18 +2990,22 @@ namespace osuCrypto
 			p1.mChl.recv(isDenZero1);
 			if (isDenZero1)
 			{
-				iWord myShare=0;
+				Word myShare=0;
 				for (u64 d = 0; d < p0.mDimension; d++)
 				{
 					programDiv(p1.parties, p1.mShareNomCluster[k][d], p1.mShareDecCluster[k], myShare, p1.mLenMod);
-					p1.mShareNomCluster[k][d] = myShare;
+					p1.mShareCluster[k][d] = myShare;
 				}
 			}
 
 			thrd.join();
 
-	
+			for (u64 d = 0; d < p0.mDimension; d++)
+				std::cout << p0.mShareCluster[k][d] << " vs " << p1.mShareCluster[k][d] << "\n";
 		}
+
+
+
 
 	}
 
@@ -3979,7 +3983,7 @@ namespace osuCrypto
 				{
 					for (u64 d = 0; d < p0.mDimension; d++)
 					{
-						iWord myRandomShare = signExtend(p0.mPrng.get<iWord>(), p0.mLenMod);
+						Word myRandomShare = signExtend(p0.mPrng.get<Word>(), p0.mLenMod);
 						programDiv(p0.parties, p0.mShareNomCluster[k][d], p0.mShareDecCluster[k], myRandomShare, p0.mLenMod);
 						p0.mShareNomCluster[k][d] = myRandomShare;
 					}
@@ -3989,7 +3993,7 @@ namespace osuCrypto
 			p1.mChl.recv(isDenZero1);
 			if (isDenZero1)
 			{
-				iWord myShare = 0;
+				Word myShare = 0;
 				for (u64 d = 0; d < p0.mDimension; d++)
 				{
 					programDiv(p1.parties, p1.mShareNomCluster[k][d], p1.mShareDecCluster[k], myShare, p1.mLenMod);
