@@ -279,7 +279,7 @@ namespace osuCrypto
 
 
 
-	void DataShare::getInitClusters(u64 startIdx, u64 endIdx) {
+	void DataShare::getInitClusters(std::vector<std::vector<Word>>& data,u64 startIdx, u64 endIdx) {
 
 		//std::cout << startIdx << "\n";
 		//std::cout << endIdx << "\n";
@@ -288,7 +288,15 @@ namespace osuCrypto
 		{
 			for (u64 d = 0; d < mDimension; d++)
 			{
-				mCluster[i][d] = mSharedPrng.get<Word>() % mMod; //TODO:choose local cluster or using Locality sensitive hashing
+				//mCluster[i][d] = mSharedPrng.get<Word>() % mMod; //TODO:choose local cluster or using Locality sensitive hashing
+				
+				if (data.size() < mNumCluster)
+				{
+					std::cout << "data.size() < mNumCluster\n";
+					throw std::exception();
+				}
+
+				mCluster[i][d] = data[i][d]; //TODO:choose local cluster or using Locality sensitive hashing
 
 				/*std::cout << IoStream::lock;
 				std::cout << i << "-" << d << ":  " << mCluster[i][d] << "  "<<mMod << " c\n";
@@ -360,7 +368,7 @@ namespace osuCrypto
 			mProdCluster[i].resize(mDimension);
 
 		}
-		getInitClusters(idxStartCluster, idxEndCluster);
+		getInitClusters(data,idxStartCluster, idxEndCluster);
 
 
 		mDist.resize(mTotalNumPoints);

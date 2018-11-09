@@ -209,7 +209,7 @@ static const u64 stepAmortBinArithMul(1 << 3);
 		std::vector<std::vector<Word>> amortMULrecv(std::vector<std::vector<Word>>& a, u64 iterOTstart = 0);
 
 
-		void getInitClusters(u64 startIdx, u64 endIdx);
+		void getInitClusters(std::vector<std::vector<Word>>& data, u64 startIdx, u64 endIdx);
 
 		void init(u64 partyIdx, Channel& chl, block seed, u64 securityParam, u64 totalPoints
 			, u64 numCluster, u64 idxStartCluster, u64 idxEndCluster, std::vector<std::vector<Word>>& data

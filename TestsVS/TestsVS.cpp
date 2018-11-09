@@ -72,7 +72,12 @@ namespace osuCrypto
 			testMinDist();
 		}
 
-		
+		TEST_METHOD(AccurancyTesttVS)
+		{
+			InitDebugPrinting();
+			testAccurancy();
+		}
+
 		
 		TEST_METHOD(MinDistBaseLineVS)
 		{

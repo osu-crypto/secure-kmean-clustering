@@ -295,6 +295,7 @@ namespace osuCrypto
 		auto share = div - inputShare;
 
 		parties[1].reveal(share);
+		//parties[1].reveal(div);
 
 #ifdef PRINTALL
 		parties[0].reveal(input0);
@@ -307,7 +308,10 @@ namespace osuCrypto
 
 		if (parties[1].isLocalParty())
 		{
-			myShare = signExtend(share.getValue(), bitCount);
+			myShare = share.getValue();
+			/*std::cout << IoStream::lock;
+			std::cout << div.getValue() <<" vs "<< share.getValue()<<" vs " <<myShare << "  p1--------------\n";
+			std::cout << IoStream::unlock;*/
 		}
 
 
