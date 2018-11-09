@@ -192,7 +192,7 @@ namespace osuCrypto
 
 		using Word = i32;
 		PRNG prng(ZeroBlock);
-		u64 numberTest = 20;
+		u64 numberTest = 4;
 
 
 
@@ -234,9 +234,11 @@ namespace osuCrypto
 			thrd = std::thread([&]() {
 
 				myShare1 = signExtend(prng.get<iWord>(), bitCount);
-				programDistNorm1(parties0, dist1, cluster1, myShare1,bitCount);
+				//programDistNormInf(parties0, dist1, cluster1, myShare1,bitCount);
+				programDistNorm1(parties0, dist1, cluster1, myShare1, bitCount);
 			});
 
+			//programDistNormInf(parties1, dist2, cluster2, myShare2, bitCount);
 			programDistNorm1(parties1, dist2, cluster2, myShare2, bitCount);
 
 			thrd.join();

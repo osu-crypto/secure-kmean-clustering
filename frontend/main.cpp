@@ -128,7 +128,7 @@ void party0_Dist()
 		<< "K= " << p0.mNumCluster << " | "
 		<< "n= " << p0.mTotalNumPoints << " | "
 		<< "l= " << p0.mLenMod << " | "
-		<< "T= " << p0.mIteration << "\t party0\n";
+		<< "T= " << p0.mIteration << "\t party0_Dist\n";
 
 
 	//=======================online (sharing)===============================
@@ -243,7 +243,7 @@ void party1_Dist()
 		<< "K= " << p1.mNumCluster << " | "
 		<< "n= " << p1.mTotalNumPoints << " | "
 		<< "l= " << p1.mLenMod << " | "
-		<< "T= " << p1.mIteration << "\t party1\n";
+		<< "T= " << p1.mIteration << "\t party1_Dist\n";
 
 
 	std::cout << "offlineDone\n";
@@ -307,7 +307,7 @@ void party1_Dist()
 
 
 
-void party0_DistNorm1()
+void party0_DistNorm(int norm1) //0 is inf, 1 is norm1
 {
 	Timer timer;
 	IOService ios;
@@ -355,7 +355,7 @@ void party0_DistNorm1()
 		<< "K= " << p0.mNumCluster << " | "
 		<< "n= " << p0.mTotalNumPoints << " | "
 		<< "l= " << p0.mLenMod << " | "
-		<< "T= " << p0.mIteration << "\t party0\n";
+		<< "T= " << p0.mIteration << "\t party0_DistNorm(" << norm1 << ")\n";
 
 
 	//=======================online (sharing)===============================
@@ -389,7 +389,11 @@ void party0_DistNorm1()
 			for (u64 k = 0; k < p0.mNumCluster; k++)
 			{
 				p0.mDist[i][k] = signExtend(p0.mPrng.get<iWord>(), p0.mLenMod);
-				programDistNorm1(p0.parties, mySharePoint, myShareCluster[k], p0.mDist[i][k], p0.mLenMod);
+				if(norm1==1)
+					programDistNorm1(p0.parties, mySharePoint, myShareCluster[k], p0.mDist[i][k], p0.mLenMod);
+				else
+					programDistNormInf(p0.parties, mySharePoint, myShareCluster[k], p0.mDist[i][k], p0.mLenMod);
+
 				//std::cout << p0.mDist[i][k] << "  p0.mDist[i][k]\n";
 
 			}
@@ -407,7 +411,7 @@ void party0_DistNorm1()
 
 
 }
-void party1_DistNorm1()
+void party1_DistNorm(int norm1) //0 is inf, 1 is norm1
 {
 	Timer timer;
 	IOService ios;
@@ -449,7 +453,7 @@ void party1_DistNorm1()
 		<< "K= " << p1.mNumCluster << " | "
 		<< "n= " << p1.mTotalNumPoints << " | "
 		<< "l= " << p1.mLenMod << " | "
-		<< "T= " << p1.mIteration << "\t party1\n";
+		<< "T= " << p1.mIteration << "\t party1_DistNorm("<< norm1 <<")\n";
 
 
 	std::cout << "offlineDone\n";
@@ -493,7 +497,10 @@ void party1_DistNorm1()
 			for (u64 k = 0; k < p1.mNumCluster; k++)
 			{
 
-				programDistNorm1(p1.parties, mySharePoint, myShareCluster[k], p1.mDist[i][k], p1.mLenMod);
+				if (norm1 == 1)
+					programDistNorm1(p1.parties, mySharePoint, myShareCluster[k], p1.mDist[i][k], p1.mLenMod);
+				else
+					programDistNormInf(p1.parties, mySharePoint, myShareCluster[k], p1.mDist[i][k], p1.mLenMod);
 
 				/*std::cout << IoStream::lock;
 				std::cout << p1.mDist[i][k] << "  p1.mDist[i][k]\n";
@@ -581,7 +588,7 @@ void party0_Min()
 		<< "K= " << p0.mNumCluster << " | "
 		<< "n= " << p0.mTotalNumPoints << " | "
 		<< "l= " << p0.mLenMod << " | "
-		<< "T= " << p0.mIteration << "\t party0\n";
+		<< "T= " << p0.mIteration << "\t party0_Min\n";
 
 
 	//=======================fake dist===============================
@@ -609,21 +616,21 @@ void party0_Min()
 				p0.lastNode[i] = p0.mDist[i][p0.mNumCluster - 1];
 
 
-			std::vector<iWord> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
-			for (u64 k = 0; k < dist1.size(); k++)
-			{
-				memcpy((i8*)&dist1[k], (i8*)&p0.mDist[i][2 * k], sizeof(iWord));
-				memcpy((i8*)&dist2[k], (i8*)&p0.mDist[i][2 * k + 1], sizeof(Word));
-			}
+			u64 sss= (numNodeThisLevel / 2);
 
-			programLessThan(p0.parties, dist1, dist2, p0.mVecGcMinOutput[i], p0.mLenMod);
+			p0.mVecGcMinOutput[i].resize(sss *2);
+			for (u64 k = 0; k < numNodeThisLevel / 2; k++)
+			{
+				programLessThan(p0.parties, p0.mDist[i][2 * k], p0.mDist[i][2 * k + 1], p0.mVecGcMinOutput[i], k, p0.mLenMod);
+			}
+			
 			p0.mVecIdxMin[i].append(p0.mVecGcMinOutput[i]);
 
 			if (numNodeThisLevel % 2) //odd number
 				p0.mVecIdxMin[i].append(oneBit); //make sure last vecIdxMin[i]=1 
 
 		}
-
+		timer.setTimePoint("GC done");
 		p0.amortBinArithMulsend(outShareSend0, p0.mVecGcMinOutput, p0.mDist); //(b^A \xor b^B)*(P^A)
 		p0.amortBinArithMULrecv(outShareRecv0, p0.mVecGcMinOutput); //(b^A \xor b^B)*(P^B)
 		p0.computeShareMin(outShareSend0, outShareRecv0);//compute (b1^A \xor b1^B)*(P1^A+P1^B)+(b2^A \xor b2^B)*(P2^A+P2^B)
@@ -632,8 +639,8 @@ void party0_Min()
 			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 				p0.mShareMin[i].push_back(p0.lastNode[i]);
 
-		while (p0.mShareMin[0].size() > 1)
-			//while (0)
+		//while (p0.mShareMin[0].size() > 1)
+		while (0)
 		{
 			//std::cout << "=======mShareMin============\n";
 
@@ -652,6 +659,7 @@ void party0_Min()
 					memcpy((i8*)&dist1[k], (i8*)&p0.mShareMin[i][2 * k], sizeof(iWord));
 					memcpy((i8*)&dist2[k], (i8*)&p0.mShareMin[i][2 * k + 1], sizeof(iWord));
 				}
+
 				programLessThan(p0.parties, dist1, dist2, p0.mVecGcMinOutput[i], p0.mLenMod);
 			}
 
@@ -680,6 +688,7 @@ void party1_Min()
 	IOService ios;
 	Session ep10(ios, "127.0.0.1", SessionMode::Client);
 	Channel chl10 = ep10.addChannel();
+
 	u64 inMod = pow(2, inExMod);
 	std::vector<std::vector<Word>> inputB;
 	//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
@@ -729,7 +738,7 @@ void party1_Min()
 		<< "K= " << p1.mNumCluster << " | "
 		<< "n= " << p1.mTotalNumPoints << " | "
 		<< "l= " << p1.mLenMod << " | "
-		<< "T= " << p1.mIteration << "\t party1\n";
+		<< "T= " << p1.mIteration << "\t party1_Min\n";
 
 
 	std::cout << "offlineDone\n";
@@ -760,21 +769,24 @@ void party1_Min()
 		{
 			if (numNodeThisLevel % 2) //odd number
 				p1.lastNode[i] = p1.mDist[i][p1.mNumCluster - 1];
+		
+			u64 sss = (numNodeThisLevel / 2);
 
-			std::vector<iWord> dist1(numNodeThisLevel / 2), dist2(numNodeThisLevel / 2);
-			for (u64 k = 0; k < dist1.size(); k++)
+
+			p1.mVecGcMinOutput[i].resize(sss*2);
+			for (u64 k = 0; k < numNodeThisLevel / 2; k++)
 			{
-				memcpy((i8*)&dist1[k], (i8*)&p1.mDist[i][2 * k], sizeof(iWord));
-				memcpy((i8*)&dist2[k], (i8*)&p1.mDist[i][2 * k + 1], sizeof(iWord));
+				programLessThan(p1.parties, p1.mDist[i][2 * k], p1.mDist[i][2 * k + 1], p1.mVecGcMinOutput[i],k, p1.mLenMod);
 			}
-
-			programLessThan(p1.parties, dist1, dist2, p1.mVecGcMinOutput[i], p1.mLenMod);
 
 			p1.mVecIdxMin[i].append(p1.mVecGcMinOutput[i]);//first level 10||01||01||01|1
 			if (numNodeThisLevel % 2) //odd number
 				p1.mVecIdxMin[i].append(zeroBit); //make sure last vecIdxMin[i]=1 
 
 		}
+
+
+
 
 		p1.amortBinArithMULrecv(outShareRecv1, p1.mVecGcMinOutput); //(b^A \xor b^B)*(P^A)
 		p1.amortBinArithMulsend(outShareSend1, p1.mVecGcMinOutput, p1.mDist); //(b^A \xor b^B)*(P^B)
@@ -787,7 +799,8 @@ void party1_Min()
 
 		//=============2nd level loop until root==================================
 
-		while (p1.mShareMin[0].size() > 1)
+		//while (p1.mShareMin[0].size() > 1)
+			while (0)
 		{
 
 			p1.stepIdxMin *= 2;
@@ -828,6 +841,10 @@ void party1_Min()
 
 	std::cout << timer << "\n";
 
+	u64 bandwith= (p1.mChl.getTotalDataRecv()+ p1.mChl.getTotalDataSent()) / (1 << 20);
+	std::cout << bandwith << " MB\n";
+
+	
 
 	//p1.Print();
 
@@ -902,7 +919,7 @@ void party0_Min_BaseLine()
 		<< "K= " << p0.mNumCluster << " | "
 		<< "n= " << p0.mTotalNumPoints << " | "
 		<< "l= " << p0.mLenMod << " | "
-		<< "T= " << p0.mIteration << "\t party0\n";
+		<< "T= " << p0.mIteration << "\t party0_Min_BaseLine\n";
 
 
 	//=======================fake dist===============================
@@ -985,7 +1002,7 @@ void party1_Min_BaseLine()
 		<< "K= " << p1.mNumCluster << " | "
 		<< "n= " << p1.mTotalNumPoints << " | "
 		<< "l= " << p1.mLenMod << " | "
-		<< "T= " << p1.mIteration << "\t party1\n";
+		<< "T= " << p1.mIteration << "\t party1_Min_BaseLine\n";
 
 
 	std::cout << "offlineDone\n";
@@ -1016,7 +1033,8 @@ void party1_Min_BaseLine()
 
 	std::cout << timer << "\n";
 
-
+	u64 bandwith = (p1.mChl.getTotalDataRecv() + p1.mChl.getTotalDataSent()) / (1 << 20);
+	std::cout << bandwith << " MB\n";
 	//p1.Print();
 
 }
@@ -1027,13 +1045,13 @@ void unitTest()
 		//party0_Dist();
 		//party0_Min();
 		//party0_Min_BaseLine();
-		party0_DistNorm1();
+		party0_DistNorm(1);
 	});
 
 	//party1_Dist();
 	//party1_Min();
 	//party1_Min_BaseLine();
-	party1_DistNorm1();
+	//party1_DistNorm(1);
 
 	thrd.join();
 
@@ -1055,49 +1073,59 @@ int main(int argc, char** argv)
 	else if (argc == 3 && argv[1][0] == '-' && argv[1][1] == 'r' && atoi(argv[2]) == 0) {
 
 		//party0_Dist();
-
-		for (u64 powNum : {12,16})
+		for (u64 d : { 10})
 		{
-			numberTestA = 1 << (powNum - 1);
-			numberTestB = 1 << (powNum - 1);
-			for (u64 K : { 4, 16})
+			inDimension = d;
+			for (u64 powNum : {12})
 			{
-				inNumCluster = K;
-					//for (u64 T : { 10, 20})
-					for (u64 T : { 1})
+				numberTestA = 1 << (powNum - 1);
+				numberTestB = 1 << (powNum - 1);
+				for (u64 K : {4,16})
+				{
+					inNumCluster = K;
+					for (u64 T : { 10, 20})
+					//for (u64 T : { 1})
 					{
 						numInteration = T;
-					//	boost::this_thread::sleep(boost::posix_time::seconds(2));
-						//party0_Dist();
-						//party0_Min();
-						party0_Min_BaseLine();
-						//party0_DistNorm1();
+						//	boost::this_thread::sleep(boost::posix_time::seconds(2));
+							party0_Dist();
+							//party0_Min();
+							//party0_Min_BaseLine();
+						//party0_DistNorm(1);
+						//party0_DistNorm(0);
 
 					}
+				}
 			}
-
 		}
 	}
 	else if (argc == 3 && argv[1][0] == '-' && argv[1][1] == 'r' && atoi(argv[2]) == 1) {
 
 		//party1_Dist();
-		for (u64 powNum : { 12, 16})
-		{
-			numberTestA = 1 << (powNum - 1);
-			numberTestB = 1 << (powNum - 1);
-			for (u64 K : { 4, 16})
-			{
-				inNumCluster = K;
-				//for (u64 T : { 10, 20})
-				for (u64 T : { 1})
-				{
-					numInteration = T;
-					//boost::this_thread::sleep(boost::posix_time::seconds(2));
-					//party1_Dist();
-					//party1_Min();
-					party1_Min_BaseLine();
-					//party1_DistNorm1();
 
+		for (u64 d : { 10})
+		{
+			inDimension = d;
+			for (u64 powNum : { 12})
+			{
+				numberTestA = 1 << (powNum - 1);
+				numberTestB = 1 << (powNum - 1);
+				for (u64 K : { 4,16})
+				{
+					inNumCluster = K;
+					for (u64 T : {10, 20})
+					//for (u64 T : { 1})
+					{
+						numInteration = T;
+						//boost::this_thread::sleep(boost::posix_time::seconds(2));
+						party1_Dist();
+						//party1_Min();
+						//party1_Min_BaseLine();
+						//party1_DistNorm(1);
+						//party1_DistNorm(0);
+
+
+					}
 				}
 			}
 

@@ -410,6 +410,84 @@ namespace osuCrypto
 	}
 
 
+
+	void programLessThan(std::array<Party, 2> parties, iWord & myInput1
+		, iWord& myInput2, BitVector& myOutput, u64 idxOutput, u64 bitCount, std::vector<int> expLt = {})
+	{
+
+		
+			auto input01 = parties[0].isLocalParty() ?  //x1
+				parties[0].input<sInt>(myInput1, bitCount) :
+				parties[0].input<sInt>(bitCount);
+
+			auto input11 = parties[1].isLocalParty() ? //x2
+				parties[1].input<sInt>(myInput1, bitCount) :
+				parties[1].input<sInt>(bitCount);
+
+			auto input02 = parties[0].isLocalParty() ? //y1
+				parties[0].input<sInt>(myInput2, bitCount) :
+				parties[0].input<sInt>(bitCount);
+
+			auto input12 = parties[1].isLocalParty() ? //y2
+				parties[1].input<sInt>(myInput2, bitCount) :
+				parties[1].input<sInt>(bitCount);
+
+			auto input0 = input01 + input11;
+			auto input1 = input02 + input12;
+
+			auto lt = input0 < input1;
+			auto invert = ~lt;
+
+#ifdef PRINTALL
+			auto minus = input0 - input1;
+			parties[0].reveal(input0);
+			parties[0].reveal(input1);
+			parties[0].reveal(lt);
+			parties[0].reveal(minus);
+#endif // PRINTALL		
+
+			parties[1].getRuntime().processesQueue();
+
+
+			ShGcInt * v = static_cast<ShGcInt*>(lt.mData.get());
+			ShGcInt * v1 = static_cast<ShGcInt*>(invert.mData.get());
+			myOutput[2 * idxOutput] = PermuteBit((*v->mLabels)[0]); //YES=10, NO=01
+			myOutput[2 * idxOutput + 1] = PermuteBit((*v1->mLabels)[0]);
+
+#ifdef PRINTALL
+			if (parties[0].isLocalParty())
+			{
+
+				auto ltVal = lt.getValue();
+
+				bool passed = expLt[i] == ltVal;
+				std::cout << "eval:\n"
+					<< "    x  = " << input0.getValue() << "\t"
+					<< "    y  = " << input1.getValue() << "\t"
+					<< "    lt = " << ltVal << "\t"
+					<< " minus = " << minus.getValue() << "\t --------------" << std::endl;
+				if (passed)
+					std::cout << Color::Green << "    Passed " << ColorDefault << std::endl;
+				else
+				{
+					std::cout << Color::Red << "    Failed " << ColorDefault << std::endl;
+					throw std::exception();
+				}
+
+			}
+
+			if (parties[1].isLocalParty())
+			{
+				//std::cout << i << ": lt= " << lt.getValue() << " vs " << invert.getValue() << std::endl;
+				//ostreamLock(std::cout) << i << ": slt= " << int(myOutput[2 * i]) << int(myOutput[2 * i + 1]) << "    B\n";// << (*v1->mLabels)[0] << std::endl;
+			}
+#endif
+
+
+	}
+
+
+
 	void programLessThanBaseLine(std::array<Party, 2> parties, std::vector<iWord>& myInput, BitVector& myOutput, u64 bitCount)
 	{
 
@@ -756,7 +834,7 @@ namespace osuCrypto
 	}
 
 
-	void programDistNorm1(std::array<Party, 2> parties, std::vector<iWord>& mySharePoint
+	void programDistNormInf(std::array<Party, 2> parties, std::vector<iWord>& mySharePoint
 		, std::vector<iWord>& myShareCluster, iWord& myShare, u64 bitCount)
 	{
 
@@ -825,7 +903,7 @@ namespace osuCrypto
 		parties[1].reveal(share);
 
 #ifdef PRINTALL
-		parties[1].reveal(max);
+		parties[1].reveal(dist);
 #endif // PRINTALL		
 
 			parties[1].getRuntime().processesQueue();
@@ -836,7 +914,7 @@ namespace osuCrypto
 				
 		/*		std::cout << IoStream::lock;
 				std::cout << "myShare  = " << myShare << " p1\n";
-				std::cout << "max  = " << max.getValue() << "\n";
+				std::cout << "dist  = " << dist.getValue() << "\n";
 				std::cout << IoStream::unlock;*/
 
 			}
@@ -851,7 +929,7 @@ namespace osuCrypto
 			if (parties[0].isLocalParty())
 			{
 				std::cout << "myShare  = " << myShare << " p0\t";
-				std::cout << "max  = " << max.getValue() << "\t";
+				std::cout << "dist  = " << dist.getValue() << "\t";
 				for (u64 i = 0; i < mySharePoint.size(); i++) //[d]
 				{
 					if (i != 0) {
@@ -873,6 +951,129 @@ namespace osuCrypto
 
 
 	}
+
+
+	void programDistNorm1(std::array<Party, 2> parties, std::vector<iWord>& mySharePoint
+		, std::vector<iWord>& myShareCluster, iWord& myShare, u64 bitCount)
+	{
+
+	//	#define PRINTALL
+		std::vector<sInt> diff(mySharePoint.size());
+		std::vector<sInt> abss(mySharePoint.size());
+		std::vector<sInt> diff2(mySharePoint.size());
+		std::vector<sInt> abss2(mySharePoint.size());
+
+		sInt dist;
+		for (u64 i = 0; i < mySharePoint.size(); i++) //[d]
+		{
+			auto inputPoint0 = parties[0].isLocalParty() ?  //x1
+				parties[0].input<sInt>(mySharePoint[i], bitCount) :
+				parties[0].input<sInt>(bitCount);
+
+			auto inputPoint1 = parties[1].isLocalParty() ? //x2
+				parties[1].input<sInt>(mySharePoint[i], bitCount) :
+				parties[1].input<sInt>(bitCount);
+
+			auto inputCluster0 = parties[0].isLocalParty() ? //y1
+				parties[0].input<sInt>(myShareCluster[i], bitCount) :
+				parties[0].input<sInt>(bitCount);
+
+			auto inputCluster1 = parties[1].isLocalParty() ? //y2
+				parties[1].input<sInt>(myShareCluster[i], bitCount) :
+				parties[1].input<sInt>(bitCount);
+
+			auto inputPoint = inputPoint0 + inputPoint1;
+			auto inputCluster = inputCluster0 + inputCluster1;
+
+			diff[i] = inputPoint - inputCluster;
+
+			if (i == 0)
+				dist = diff[i].abs();
+			else
+			{
+				dist= dist+diff[i].abs();
+			}
+
+#ifdef PRINTALL
+			//if (i != 0) 
+			{
+				diff2[i] = inputCluster - inputPoint;
+				abss2[i] = diff2[i].abs();
+				abss[i] = diff[i].abs();
+
+				parties[1].reveal(diff[i]);
+				parties[1].reveal(abss[i]);
+				parties[1].reveal(diff2[i]);
+				parties[1].reveal(abss2[i]);
+			}
+#endif // PRINTALL
+
+		}
+
+
+
+
+
+		auto inputShare = parties[0].isLocalParty() ? //y2
+			parties[0].input<sInt>(myShare, bitCount) :
+			parties[0].input<sInt>(bitCount);
+
+		auto share = dist - inputShare;
+
+		parties[1].reveal(share);
+
+#ifdef PRINTALL
+		parties[1].reveal(dist);
+#endif // PRINTALL		
+
+		parties[1].getRuntime().processesQueue();
+
+		if (parties[1].isLocalParty())
+		{
+			myShare = share.getValue();// signExtend(share.getValue(), bitCount);
+
+									   /*		std::cout << IoStream::lock;
+									   std::cout << "myShare  = " << myShare << " p1\n";
+									   std::cout << "dist  = " << dist.getValue() << "\n";
+									   std::cout << IoStream::unlock;*/
+
+		}
+
+		if (parties[0].isLocalParty())
+		{
+			//std::cout << IoStream::lock;
+			//std::cout << "myShare  = " << myShare << " p0\t";
+			//std::cout << IoStream::unlock;
+		}
+#ifdef PRINTALL
+		if (parties[1].isLocalParty())
+		{
+			std::cout << "myShare  = " << myShare << " p0\t";
+			std::cout << "dist  = " << dist.getValue() << "\t";
+			for (u64 i = 0; i < mySharePoint.size(); i++) //[d]
+			{
+				//if (i != 0) 
+				{
+					std::cout << "    diff  = " << diff[i].getValue() << "\t"
+						<< "    abss  = " << abss[i].getValue() << "\t"
+						<< "    diff2 = " << diff2[i].getValue() << "\t"
+						<< " abss2 = " << abss2[i].getValue() << "\t --------------" << std::endl;
+				}
+			}
+
+		}
+
+		if (parties[1].isLocalParty())
+		{
+			//std::cout << i << ": lt= " << lt.getValue() << " vs " << invert.getValue() << std::endl;
+			//ostreamLock(std::cout) << i << ": slt= " << int(myOutput[2 * i]) << int(myOutput[2 * i + 1]) << "    B\n";// << (*v1->mLabels)[0] << std::endl;
+		}
+#endif
+
+
+	}
+
+
 
 
 
