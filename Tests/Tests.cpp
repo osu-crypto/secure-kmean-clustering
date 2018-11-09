@@ -4105,6 +4105,7 @@ namespace osuCrypto
 
 		std::vector<std::vector<Word>> points(p0.mTotalNumPoints); //[i][d]
 		std::vector<std::vector<Word>> clusters(p0.mNumCluster); //[k][d]
+		std::vector<std::vector<Word>> newClusters(p0.mNumCluster); //[k][d]
 		std::vector<std::vector<iWord>> eDists(p0.mTotalNumPoints); //[i][k]
 		std::vector<BitVector> vecIdxMin(p0.mTotalNumPoints); //[i][k]
 		std::vector<BitVector> vecIdxMinTranspose(p0.mNumCluster); //[k][i]
@@ -4129,7 +4130,10 @@ namespace osuCrypto
 				clusters[k][d] = (Word)(p0.mShareCluster[k][d] + p1.mShareCluster[k][d]);
 		}
 
-		for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
+		//for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
+		bool stopLoop = false;
+		u64 iterLoop = 1;
+		while(!stopLoop)
 		{
 			//compute dist
 			for (u64 i = 0; i < p0.mTotalNumPoints; i++) //original points
@@ -4160,7 +4164,7 @@ namespace osuCrypto
 					}
 				}
 				vecIdxMin[i][actualMinIdx] = 1;
-				std::cout << vecIdxMin[i] << "   vecIdxMin[i]\n";
+				//std::cout << vecIdxMin[i] << "   vecIdxMin[i]\n";
 			}
 
 			//TODO: matrix transpose
@@ -4172,7 +4176,7 @@ namespace osuCrypto
 					vecIdxMinTranspose[k][i] = vecIdxMin[i][k];
 				}
 
-				std::cout << vecIdxMinTranspose[k] << "   vecIdxMin[i]\n";
+				//std::cout << vecIdxMinTranspose[k] << "   vecIdxMin[i]\n";
 			}
 
 			//compute nom/den
@@ -4190,20 +4194,46 @@ namespace osuCrypto
 				}
 			}
 			//divide
-			for (u64 k = 0; k <p0.mNumCluster; k++)
+			for (u64 k = 0; k < p0.mNumCluster; k++)
+			{
+				newClusters[k].resize(p0.mDimension);
 				for (u64 d = 0; d < p0.mDimension; d++)
 				{
 					nomCluster[k][d] = nomCluster[k][d] % p0.mMod;
-					clusters[k][d] = nomCluster[k][d] / denCluster[k];
-					std::cout << clusters[k][d] <<  " = " << nomCluster[k][d] <<" / " << denCluster[k]  <<  "   ==clusters[k][d]\n";
+					newClusters[k][d] = nomCluster[k][d] / denCluster[k];
+					//std::cout << clusters[k][d] <<  " = " << newClusters[k][d] <<" / " << denCluster[k]  <<  "   ==newClusters[k][d]\n";
 
-					if(denCluster[k]==0)
-						std::cout <<  "   denCluster[k]==0=============================================\n";
+					if (denCluster[k] == 0)
+						std::cout << "   denCluster[k]==0=============================================\n";
 
 
 				}
+			}
 
-			std::cout <<"---------------------------\n";
+			
+			//check stop
+			
+
+			//compute cluster dist
+			u64 error = 0;
+			std::vector<std::vector<iWord>> clusterDists(p0.mNumCluster); //[k][k]
+			for (u64 k1 = 0; k1 < p0.mNumCluster; k1++) //original points
+			{
+				clusterDists[k1].resize(p0.mNumCluster);
+				for (u64 k = 0; k < p0.mNumCluster; k++) //original cluster
+				{
+					for (u64 d = 0; d < p0.mDimension; d++)
+					{
+						iWord diff = signExtend((newClusters[k1][d] - clusters[k][d]), p0.mLenMod);
+						clusterDists[k1][k] = signExtend((eDists[k1][k] + (iWord)pow(diff, 2)), p0.mLenMod);
+					}
+					error += (clusterDists[k1][k] % p0.mMod);
+				}
+			}
+			std::cout << "------------i=" << iterLoop << "e= " << error<< " ---------------\n";
+			iterLoop++;
+			if (error < 1000)
+				stopLoop = true;
 
 		}
 
