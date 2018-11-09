@@ -2917,7 +2917,7 @@ namespace osuCrypto
 
 		////=====================compute nom/dec===========================
 		std::vector<std::vector<iWord>> shareNomSend0, shareNomRecv0, shareNomSend1, shareNomRecv1;
-		std::vector<iWord> shareDenSend0, shareDenSend1, shareDenRecv0, shareDenRecv1;
+		std::vector<iWord> shareDenSend0,  shareDenRecv0, shareDenSend1, shareDenRecv1;
 
 		thrd = std::thread([&]() {
 			p0.vecMinTranspose();

@@ -1076,7 +1076,7 @@ namespace osuCrypto
 			}
 		}
 
-#if 1
+#if 0
 		std::cout << IoStream::lock;
 		std::cout << "-------------vecMinTranspose-------------\n";
 
@@ -1161,6 +1161,11 @@ namespace osuCrypto
 					iWord temp = signExtend((bitVecs[k][i] * mSharePoint[i][d].mArithShare - r[d][0]), mLenMod);
 					outNomSend[k][d] = signExtend((outNomSend[k][d] + temp), mLenMod);
 
+					//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
+					memcpy(sendBuff.data() + iter, (i8*)&correction, sizeof(iWord));
+					iter += sizeof(iWord);
+
+#ifdef PRINTALL
 					iWord their= signExtend(((1 - 2 * bitVecs[k][i])*mSharePoint[i][d].mArithShare + r[d][0]), mLenMod);
 					std::cout << IoStream::lock;
 					std::cout << k << "-" << i << "-" << d << ":  " << r[d][0] << " vs " << r[d][1]
@@ -1169,10 +1174,8 @@ namespace osuCrypto
 						<< " \t " << outNomSend[k][d]
 						<< " c= " << correction << " s\n";
 					std::cout << IoStream::unlock;
-
-					//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
-					memcpy(sendBuff.data() + iter, (i8*)&correction, sizeof(iWord));
-					iter += sizeof(iWord);
+#endif //PRINTALL
+					
 				}
 
 
@@ -1189,16 +1192,19 @@ namespace osuCrypto
 					i8 myshare = bitVecs[k][i] - rQuo[0];
 					outDenSend[k] = outDenSend[k] + myshare;
 
+					//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
+					memcpy(sendBuff.data() + iter, (i8*)&correction, sizeof(i8));
+					iter += sizeof(i8);
+
+#ifdef PRINTALL
 					std::cout << IoStream::lock;
 					std::cout << k << "-" << i << " bitshare s:  " << int(rQuo[0]) << " vs " << int(rQuo[1])
 						<< " \t " << int(correction + rQuo[1])
 						<< " \t " << int(myshare)
 						<< " c= " << int(correction) << " bitshare s\n";
 					std::cout << IoStream::unlock;
-
-					//y=b+r0-r1, if choice=0, OTrecv=r0; choice=1, OTrecv=y+r_choice=y+r1=b+r0
-					memcpy(sendBuff.data() + iter, (i8*)&correction, sizeof(i8));
-					iter += sizeof(i8);
+#endif //PRINTALL
+					
 				}
 
 			}
@@ -1294,6 +1300,7 @@ namespace osuCrypto
 				if (isDen)
 				outDenRecv[k] = outDenRecv[k] + rQuo;
 
+#ifdef PRINTALL
 				std::cout << IoStream::lock;
 				for (u64 d = 0; d < mDimension; d++)
 					std::cout << i << "-" << k << ":  " << r[d] << " vs " << bitVecs[k][i] << " c= " << correction[d] << " r\n";
@@ -1302,6 +1309,7 @@ namespace osuCrypto
 					std::cout << k << "-" << i << " bitshare r:  " << int(rQuo) << " vs " << bitVecs[k][i] << " c= " << int(correctbit) << " bitshare r \n";
 				
 				std::cout << IoStream::unlock;
+#endif //PRINTALL
 
 
 			}

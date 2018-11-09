@@ -229,12 +229,18 @@ namespace osuCrypto
 		auto input0 = input01 + input11;
 		auto eq = input0 > 0;
 
+#ifdef PRINTALL
 		parties[0].reveal(input0);
-		//parties[0].reveal(eq);
+#endif //PRINTALL
+
 		parties[0].reveal(eq);
 		parties[1].getRuntime().processesQueue();
 
-#if 1
+
+		if (parties[0].isLocalParty())
+			output = eq.getValue();
+
+#ifdef PRINTALL
 		if (parties[0].isLocalParty())
 		{
 			output = eq.getValue();
