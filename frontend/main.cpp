@@ -211,6 +211,7 @@ void party0_Dist()
 
 
 	//=======================online OT (setting up keys for adaptive ED)===============================
+	u64 bandwithDistStart = (p0.mChl.getTotalDataRecv() + p0.mChl.getTotalDataSent()) / (pow(10, 6));
 
 	p0.correctAllChoiceRecv();//1st OT
 	p0.correctAllChoiceSender();////other OT direction
@@ -220,7 +221,6 @@ void party0_Dist()
 
 	timer.setTimePoint("OtKeysDone");
 	//std::cout << "OtKeysDone\n";
-
 
 	for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
 	{
@@ -255,7 +255,8 @@ void party0_Dist()
 
 	std::cout << timer << "\n";
 	u64 bandwith = (p0.mChl.getTotalDataRecv() + p0.mChl.getTotalDataSent()) / (pow(10, 6));
-	std::cout << "comm. = " << bandwith << " MB\n";
+	std::cout << "start Dist comm. = " << bandwithDistStart << "\t  MB\n";
+	std::cout << "done Dist comm. = " << bandwith << "\t" << bandwith - bandwithDistStart << "  MB\n========================\n";
 
 }
 void party1_Dist()
@@ -326,6 +327,8 @@ void party1_Dist()
 	timer.setTimePoint("sharingInputsDone");
 
 	//=======================online OT (setting up keys for adaptive ED)===============================
+	u64 bandwithDistStart = (p1.mChl.getTotalDataRecv() + p1.mChl.getTotalDataSent()) / (pow(10, 6));
+
 	p1.correctAllChoiceSender(); //1st OT
 	p1.correctAllChoiceRecv();////other OT direction
 	std::cout << "correctOTDone\n";
@@ -369,8 +372,10 @@ void party1_Dist()
 	std::cout << "\nDistDone";
 
 	std::cout << timer << "\n";
-	u64 bandwith = (p1.mChl.getTotalDataRecv() + p1.mChl.getTotalDataSent()) / (pow(10, 6));
-	std::cout << "comm. = " << bandwith << " MB\n";
+	u64 bandwith = (p1.mChl.getTotalDataRecv() + p1.mChl.getTotalDataSent() ) / (pow(10, 6));
+	std::cout << "start Dist comm. = " << bandwithDistStart << "\t  MB\n";
+	std::cout << "done Dist comm. = " << bandwith << "\t"<< bandwith- bandwithDistStart<<"  MB\n========================\n";
+
 
 
 	//p1.Print();
@@ -676,6 +681,8 @@ void party0_Min()
 	std::vector<std::vector<iWord>> outShareSend0, outShareRecv0;
 	std::vector<std::vector<BitVector>> outIdxShareSend0, outIdxShareRecv0;
 
+	u64 bandwithMinStart = (p0.mChl.getTotalDataRecv() + p0.mChl.getTotalDataSent()) / (pow(10, 6));
+
 	for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
 	{
 
@@ -757,7 +764,8 @@ void party0_Min()
 
 	std::cout << timer << "\n";
 	u64 bandwith = (p0.mChl.getTotalDataRecv() + p0.mChl.getTotalDataSent()) / (pow(10, 6));
-	std::cout << "comm. = " << bandwith << " MB\n";
+	std::cout << "start Min comm. = " << bandwithMinStart << "\t  MB\n";
+	std::cout << "done Min comm. = " << bandwith << "\t | \t " << bandwith - bandwithMinStart << "  MB\n========================\n";
 }
 void party1_Min()
 {
@@ -831,6 +839,7 @@ void party1_Min()
 
 	timer.setTimePoint("MinStart");
 
+	u64 bandwithMinStart = (p1.mChl.getTotalDataRecv() + p1.mChl.getTotalDataSent()) / (pow(10, 6));
 
 	for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
 	{
@@ -919,7 +928,8 @@ void party1_Min()
 	std::cout << timer << "\n";
 
 	u64 bandwith = (p1.mChl.getTotalDataRecv() + p1.mChl.getTotalDataSent()) / (pow(10, 6));
-	std::cout << "comm. = " << bandwith << " MB\n";
+	std::cout << "start Min comm. = " << bandwithMinStart << "\t  MB\n";
+	std::cout << "done Min comm. = " << bandwith << "\t | \t " << bandwith - bandwithMinStart << "  MB\n========================\n";
 
 	
 
@@ -1224,6 +1234,7 @@ void party0_UpdateCluster()
 	std::cout << p0.mDist[1][1] << "  vs  " << p0.mVecIdxMin[1] << "\n";
 	timer.setTimePoint("UpdateStart");
 
+	u64 bandwithUpdateStart = (p0.mChl.getTotalDataRecv() + p0.mChl.getTotalDataSent()) / (pow(10, 6));
 
 	for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
 	{
@@ -1264,7 +1275,8 @@ void party0_UpdateCluster()
 
 	std::cout << timer << "\n";
 	u64 bandwith = (p0.mChl.getTotalDataRecv() + p0.mChl.getTotalDataSent()) / (pow(10, 6));
-	std::cout << "comm. = " << bandwith << " MB\n";
+	std::cout << "start Update comm. = " << bandwithUpdateStart << "\t  MB\n";
+	std::cout << "done Update comm. = " << bandwith << "\t | \t " << bandwith - bandwithUpdateStart << "  MB\n========================\n";
 
 
 }
@@ -1362,7 +1374,7 @@ void party1_UpdateCluster()
 	std::cout << p1.mDist[1][1] << "  vs  "<< p1.mVecIdxMin[1] <<"\n";
 	timer.setTimePoint("UpdateStart");
 
-
+	u64 bandwithUpdateStart = (p1.mChl.getTotalDataRecv() + p1.mChl.getTotalDataSent()) / (pow(10, 6));
 	for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
 	{
 		////=====================compute nom/dec===========================
@@ -1400,7 +1412,8 @@ void party1_UpdateCluster()
 
 	std::cout << timer << "\n";
 	u64 bandwith = (p1.mChl.getTotalDataRecv() + p1.mChl.getTotalDataSent()) / (pow(10, 6));
-	std::cout <<"comm. = "<< bandwith << " MB\n";
+	std::cout << "start Update comm. = " << bandwithUpdateStart << "\t  MB\n";
+	std::cout << "done Update comm. = " << bandwith << "\t | \t " << bandwith - bandwithUpdateStart << "  MB\n========================\n";
 
 
 }
@@ -2040,27 +2053,45 @@ void nPartiesClustering()
 
 void unitTest()
 {
-	std::thread thrd = std::thread([&]() {
-		//party0_Dist();
-		//party0_Min();
-		//party0_Min_BaseLine();
-		//party0_DistNorm(1);
-		//party0_UpdateCluster();
-		party0_Clustering();
-	});
+	for (u64 d : { 2})
+	{
+		inDimension = d;
+		for (u64 n : {400})//, 100000
+		{
+			numberTestA = n / 2;
+			numberTestB = n / 2;
+			for (u64 K : { 3})
+			{
+				inNumCluster = K;
+				//for (u64 T : { 10,20})
+				for (u64 T : { 1})
+				{
+					numInteration = T;
+					generateDist_VecIdxMin();
 
-	//party1_Dist();
-	//party1_Min();
-	//party1_Min_BaseLine();
-	//party1_DistNorm(1);
-	//party1_UpdateCluster();
-	party1_Clustering();
-	thrd.join();
+					std::thread thrd = std::thread([&]() {
+						//party0_Dist();
+						//party0_Min();
+						//party0_Min_BaseLine();
+						//party0_DistNorm(1);
+						party0_UpdateCluster();
+						//party0_Clustering();
+					});
 
+					//party1_Dist();
+					//party1_Min();
+					//party1_Min_BaseLine();
+					//party1_DistNorm(1);
+					party1_UpdateCluster();
+					//party1_Clustering();
+					thrd.join();
+				}
 
+			}
+		}
 
+	}
 }
-
 
 
 int main(int argc, char** argv)
@@ -2084,15 +2115,15 @@ int main(int argc, char** argv)
 		for (u64 d : { 2})
 		{
 			inDimension = d;
-			for (u64 n : {10000,100000})
+			for (u64 n : {400})//, 100000
 			{
-				numberTestA =n/2;
+				numberTestA = n / 2;
 				numberTestB = n / 2;
-				for (u64 K : {3,8})
+				for (u64 K : { 3})
 				{
 					inNumCluster = K;
-					for (u64 T : { 10, 20})
-					//for (u64 T : { 1})
+					//for (u64 T : { 10,20})
+					for (u64 T : { 40})
 					{
 						numInteration = T;
 						//	boost::this_thread::sleep(boost::posix_time::seconds(2));
@@ -2102,6 +2133,7 @@ int main(int argc, char** argv)
 						//party0_DistNorm(1);
 						//party0_DistNorm(0);
 						//party0_UpdateCluster();
+						//party0_Clustering();
 					}
 				}
 			}
@@ -2114,15 +2146,15 @@ int main(int argc, char** argv)
 		for (u64 d : { 2})
 		{
 			inDimension = d;
-			for (u64 n : {10000, 100000})
+			for (u64 n : {400})//, 100000
 			{
 				numberTestA = n / 2;
 				numberTestB = n / 2;
-				for (u64 K : {3, 8})
+				for (u64 K : { 3})
 				{
 					inNumCluster = K;
-					for (u64 T : {10, 20})
-					//for (u64 T : { 1})
+					//for (u64 T : { 10,20})
+					for (u64 T : { 40})
 					{
 						numInteration = T;
 						//boost::this_thread::sleep(boost::posix_time::seconds(2));
@@ -2132,6 +2164,8 @@ int main(int argc, char** argv)
 						//party1_DistNorm(1);
 						//party1_DistNorm(0);
 						//party1_UpdateCluster();
+						//party1_Clustering();
+
 
 					}
 				}

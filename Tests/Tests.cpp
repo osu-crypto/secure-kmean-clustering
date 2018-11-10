@@ -474,7 +474,7 @@ namespace osuCrypto
 	void readData_test() {
 		int mDimension = 2;
 		std::vector<std::vector<Word>> inputA, inputB;
-		loadTxtFile("I:/kmean-impl/dataset/s1.txt", mDimension, inputA, inputB);
+		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", mDimension, inputA, inputB);
 
 		std::cout << inputA.size() << " \t " << inputB.size() << "\n";
 
@@ -3933,7 +3933,7 @@ namespace osuCrypto
 	void testAccurancy()
 	{
 
-		u64 inDimension = 2, inNumCluster = 15, inExMod = 20;
+		/*u64 inDimension = 2, inNumCluster = 15, inExMod = 20;
 
 		std::vector<std::vector<Word>> points;
 		loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, points, 2);
@@ -3977,7 +3977,7 @@ namespace osuCrypto
 		ratio = computeAccuracy(points, myPlaintextClusters, expClusters);
 		std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, expClusters)\n";
 		ratio = computeAccuracy(points, myPlaintextClusters, myPlaintextClusters);
-		std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, myPlaintextClusters)\n";
+		std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, myPlaintextClusters)\n"*/;
 	}
 
 
