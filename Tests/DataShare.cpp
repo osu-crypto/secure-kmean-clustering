@@ -292,7 +292,7 @@ namespace osuCrypto
 				
 				if (data.size() < mNumCluster)
 				{
-					std::cout << "data.size() < mNumCluster\n";
+					std::cout << data.size()<< " < "<< mNumCluster << " data.size() < mNumCluster\n";
 					throw std::exception();
 				}
 

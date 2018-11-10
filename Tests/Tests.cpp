@@ -44,6 +44,7 @@ using namespace osuCrypto;
 #include <Ivory-Runtime/ivory/Runtime/ShGc/ShGcRuntime.h>
 #include "progCircuit.h"
 
+#include "Accuracy.h"
 i64 signExtend1(i64 v, u64 b, bool print = false)
 {
 	i64 loc = (i64(1) << (b - 1));
@@ -431,7 +432,7 @@ namespace osuCrypto
 
 	}
 
-	void loadTxtFile(const std::string & fileName, int mDimension, std::vector<std::vector<i64>>& inputA, std::vector<std::vector<i64>>& inputB)
+	void loadTxtFile(const std::string & fileName, int mDimension, std::vector<std::vector<u64>>& input)
 	{
 		std::ifstream inFile;
 		inFile.open(fileName, std::ios::in);
@@ -451,10 +452,10 @@ namespace osuCrypto
 
 			/*std::cout << line << "\n";
 			for (size_t i = 0; i < results.size(); i++)
-				std::cout << results[i] << " ";*/
+			std::cout << results[i] << " ";*/
 
 
-			std::vector<i64> idata(mDimension);
+			std::vector<u64> idata(mDimension);
 
 			if (mDimension != results.size())
 			{
@@ -465,17 +466,14 @@ namespace osuCrypto
 			for (size_t i = 0; i < results.size(); i++)
 				idata[i] = stoi(results[i]);
 
-			auto isA = rand() % 2;
-			if (isA)
-				inputA.push_back(idata);
-			else
-				inputB.push_back(idata);
+			
+			input.push_back(idata);
 		}
 	}
 
 	void readData_test() {
 		int mDimension = 2;
-		std::vector<std::vector<i64>> inputA, inputB;
+		std::vector<std::vector<Word>> inputA, inputB;
 		loadTxtFile("I:/kmean-impl/dataset/s1.txt", mDimension, inputA, inputB);
 
 		std::cout << inputA.size() << " \t " << inputB.size() << "\n";
@@ -1036,7 +1034,7 @@ namespace osuCrypto
 																 //(p^A[i][d]*(p^B[i][d]-c^B[k][d]) => A receiver
 			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 				for (u64 d = 0; d < p0.mDimension; d++)
-					p0.mProdPointPPC[i][d] = p0.amortAdaptMULrecv(i, d, p0.mNumCluster); //for each point to all clusters
+					p0.mProdPointPPC[i][d] = p0.amortAdaptMULrecv(i, d, p0.mNumCluster); //for each point to all myClusters
 
 			//(p^B[i][d]*c^A[k][d]) => A is sender
 			for (u64 d = 0; d < p0.mDimension; d++)
@@ -1045,7 +1043,7 @@ namespace osuCrypto
 
 			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 				for (u64 d = 0; d < p0.mDimension; d++)
-					p0.mProdPointPC[i][d] = p0.amortAdaptMULsend(i, d, p0.prodTempC[d]); //for each point to all clusters
+					p0.mProdPointPC[i][d] = p0.amortAdaptMULsend(i, d, p0.prodTempC[d]); //for each point to all myClusters
 
 		});
 
@@ -1067,7 +1065,7 @@ namespace osuCrypto
 		//(p^B[i][d]*c^A[k][d]) => B is recv
 		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
 			for (u64 d = 0; d < p1.mDimension; d++)
-				p1.mProdPointPC[i][d] = p1.amortAdaptMULrecv(i, d, p1.mNumCluster); //for each point to all clusters
+				p1.mProdPointPC[i][d] = p1.amortAdaptMULrecv(i, d, p1.mNumCluster); //for each point to all myClusters
 
 		thrd.join();
 
@@ -3111,7 +3109,7 @@ namespace osuCrypto
 																 //(p^A[i][d]*(p^B[i][d]-c^B[k][d]) => A receiver
 			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 				for (u64 d = 0; d < p0.mDimension; d++)
-					p0.mProdPointPPC[i][d] = p0.amortAdaptMULrecv(i, d, p0.mNumCluster); //for each point to all clusters
+					p0.mProdPointPPC[i][d] = p0.amortAdaptMULrecv(i, d, p0.mNumCluster); //for each point to all myClusters
 
 																						 //(p^B[i][d]*c^A[k][d]) => A is sender
 			for (u64 d = 0; d < p0.mDimension; d++)
@@ -3120,7 +3118,7 @@ namespace osuCrypto
 
 			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
 				for (u64 d = 0; d < p0.mDimension; d++)
-					p0.mProdPointPC[i][d] = p0.amortAdaptMULsend(i, d, p0.prodTempC[d]); //for each point to all clusters
+					p0.mProdPointPC[i][d] = p0.amortAdaptMULsend(i, d, p0.prodTempC[d]); //for each point to all myClusters
 
 		});
 
@@ -3142,7 +3140,7 @@ namespace osuCrypto
 		//(p^B[i][d]*c^A[k][d]) => B is recv
 		for (u64 i = 0; i < p1.mTotalNumPoints; i++)
 			for (u64 d = 0; d < p1.mDimension; d++)
-				p1.mProdPointPC[i][d] = p1.amortAdaptMULrecv(i, d, p1.mNumCluster); //for each point to all clusters
+				p1.mProdPointPC[i][d] = p1.amortAdaptMULrecv(i, d, p1.mNumCluster); //for each point to all myClusters
 
 		thrd.join();
 
@@ -3929,316 +3927,58 @@ namespace osuCrypto
 
 	}
 
+	
+	
 
 	void testAccurancy()
 	{
 
-		int securityParams = 128;
-		int inDimension = 2;
-		int inExMod = 20;
-		u64 inNumCluster = 4;
-		u64 numberTestA = 1 << 5;
-		u64 numberTestB = 1 << 5;
-		u64 numInteration = 2;
+		u64 inDimension = 2, inNumCluster = 15, inExMod = 20;
 
-		Timer timer;
-		IOService ios;
-		Session ep01(ios, "127.0.0.1", SessionMode::Server);
-		Session ep10(ios, "127.0.0.1", SessionMode::Client);
-		Channel chl01 = ep01.addChannel();
-		Channel chl10 = ep10.addChannel();
+		std::vector<std::vector<Word>> points;
+		loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, points, 2);
 
-		u64 inMod = pow(2, inExMod);
 		std::vector<std::vector<Word>> inputA, inputB;
-		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
+		loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
 
-		PRNG prng(ZeroBlock);
-		inputA.resize(numberTestA);
-		inputB.resize(numberTestB);
-		for (int i = 0; i < numberTestA; i++)
+
+		std::vector<std::vector<u64>> clusterDataLoad;
+		loadTxtFile("I:/kmean-impl/dataset/s1c.txt", inDimension, clusterDataLoad, 2);
+
+
+		std::vector<std::vector<double>> expClusters(inNumCluster);
+		std::vector<std::vector<Word>> initClusters(inNumCluster);
+		for (u64 k = 0; k < inNumCluster; k++)
 		{
-			inputA[i].resize(inDimension);
-			for (size_t j = 0; j < inDimension; j++)
+			expClusters[k].resize(inDimension);
+			initClusters[k].resize(inDimension);
+			for (u64 d = 0; d < inDimension; d++)
 			{
-				inputA[i][j] = prng.get<Word>() % inMod;
-
-			}
-		}
-
-		for (int i = 0; i < numberTestB; i++)
-		{
-			inputB[i].resize(inDimension);
-			for (size_t j = 0; j < inDimension; j++)
-			{
-				inputB[i][j] = prng.get<Word>() % inMod;
-
-			}
-		}
-
-		u64 inTotalPoint = inputA.size() + inputB.size();
-		//=======================offline===============================
-		DataShare p0, p1;
-
-		timer.setTimePoint("starts");
-		std::thread thrd = std::thread([&]() {
-			p0.init(0, chl01, toBlock(34265), securityParams, inTotalPoint
-				, inNumCluster, 0, inNumCluster / 2, inputA, inExMod, inDimension, numInteration);
-
-			NaorPinkas baseOTs;
-			baseOTs.send(p0.mSendBaseMsg, p0.mPrng, p0.mChl, 1); //first OT for D_B
-			p0.recv.setBaseOts(p0.mSendBaseMsg);
-
-
-			baseOTs.receive(p0.mBaseChoices, p0.mRecvBaseMsg, p0.mPrng, p0.mChl, 1); //second OT for D_A
-			p0.sender.setBaseOts(p0.mRecvBaseMsg, p0.mBaseChoices); //set base OT
-
-
-		});
-
-
-		p1.init(1, chl10, toBlock(34265), securityParams, inTotalPoint
-			, inNumCluster, inNumCluster / 2, inNumCluster, inputB, inExMod, inDimension, numInteration);
-
-		NaorPinkas baseOTs;
-		baseOTs.receive(p1.mBaseChoices, p1.mRecvBaseMsg, p1.mPrng, p1.mChl, 1); //first OT for D_B
-		p1.sender.setBaseOts(p1.mRecvBaseMsg, p1.mBaseChoices); //set base OT
-
-
-		baseOTs.send(p1.mSendBaseMsg, p1.mPrng, p1.mChl, 1); //second OT for D_A
-		p1.recv.setBaseOts(p1.mSendBaseMsg);
-
-		thrd.join();
-		timer.setTimePoint("baseOTDone");
-
-
-
-		//=======================online (sharing)===============================
-
-		thrd = std::thread([&]() {
-
-			p0.sendShareInput(0, 0, p0.mNumCluster / 2);
-			p0.recvShareInput(p0.mPoint.size(), p0.mNumCluster / 2, p0.mNumCluster);
-
-		});
-
-		p1.recvShareInput(0, 0, p0.mNumCluster / 2);
-		p1.sendShareInput(p1.mTheirNumPoints, p0.mNumCluster / 2, p0.mNumCluster);
-
-
-		thrd.join();
-		timer.setTimePoint("sharingInputsDone");
-
-#if 1
-		//check share
-		for (u64 i = 0; i < p0.mPoint.size(); i++)
-		{
-			for (u64 j = 0; j < inDimension; j++)
-			{
-				if ((p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != p0.mPoint[i][j])
-				{
-
-					std::cout << "(p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != 0\n";
-					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " + " << p1.mSharePoint[i][j].mArithShare
-						<< " = " << (p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod
-						<< " vs " << p0.mPoint[i][j] << "\n";
-					throw std::exception();
-				}
-			}
-		}
-
-		for (u64 i = p0.mPoint.size(); i < inTotalPoint; i++)
-		{
-			for (u64 j = 0; j < inDimension; j++)
-			{
-				if ((p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != p1.mPoint[i - p0.mPoint.size()][j])
-				{
-
-					std::cout << "(p0.mSharePoint[i][j].mArithShare + p1.mSharePoint[i][j].mArithShare) % inMod != 0\n";
-					std::cout << i << "-" << j << ": " << p0.mSharePoint[i][j].mArithShare << " vs " << p1.mSharePoint[i][j].mArithShare << "\n";
-					throw std::exception();
-				}
-			}
-		}
-
-		for (u64 i = 0; i < inNumCluster / 2; i++)
-		{
-			for (u64 j = 0; j < inDimension; j++)
-			{
-				if ((p0.mShareCluster[i][j] + p1.mShareCluster[i][j]) % inMod != p0.mCluster[i][j])
-				{
-
-					std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
-					std::cout << i << "-" << j << ": " << p0.mShareCluster[i][j] << " vs " << p1.mShareCluster[i][j] << "\n";
-					throw std::exception();
-				}
+				expClusters[k][d] = clusterDataLoad[k][d];
+				initClusters[k][d] = points[k][d];
 			}
 		}
 
 
-		for (u64 i = inNumCluster / 2; i < inNumCluster; i++)
-		{
-			for (u64 j = 0; j < inDimension; j++)
-			{
-				if ((p0.mShareCluster[i][j] + p1.mShareCluster[i][j]) % inMod != p1.mCluster[i][j])
-				{
-
-					std::cout << "(p0.mShareCluster[i][j].mArithShare + p1.mShareCluster[i][j].mArithShare) % inMod != p0.mCluster[i][j])\n";
-					std::cout << i << "-" << j << ": " << p0.mShareCluster[i][j] << " vs " << p1.mShareCluster[i][j] << "\n";
-					throw std::exception();
-				}
-			}
-		}
+		auto myPlaintextClusters = plaintextClustering(points, inNumCluster, inExMod, initClusters);
 
 
-#endif
-
-		std::cout << "d=" << p0.mDimension << " | "
-			<< "K= " << p0.mNumCluster << " | "
-			<< "n= " << p0.mTotalNumPoints << " | "
-			<< "l= " << p0.mLenMod << " | "
-			<< "T= " << p0.mIteration << "\t testAccurancy\n";
-
-
-		timer.setTimePoint("offlineDone");
+		auto mySecureClusters = secureTestClustering(inputA, inputB, inNumCluster, inExMod, initClusters);
 
 
 
-		std::vector<std::vector<Word>> points(p0.mTotalNumPoints); //[i][d]
-		std::vector<std::vector<Word>> clusters(p0.mNumCluster); //[k][d]
-		std::vector<std::vector<Word>> newClusters(p0.mNumCluster); //[k][d]
-		std::vector<std::vector<iWord>> eDists(p0.mTotalNumPoints); //[i][k]
-		std::vector<BitVector> vecIdxMin(p0.mTotalNumPoints); //[i][k]
-		std::vector<BitVector> vecIdxMinTranspose(p0.mNumCluster); //[k][i]
 
-		std::vector<std::vector<iWord>> nomCluster(p0.mNumCluster);//[k][d]
-		std::vector<iWord> denCluster(p0.mNumCluster, 0);//[k]
+		auto ratio = computeAccuracy(points, mySecureClusters, myPlaintextClusters);
+		std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, myPlaintextClusters)\n";
 
+		ratio = computeAccuracy(points, mySecureClusters, expClusters);
+		std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, expClusters)\n";
 
-		for (u64 i = 0; i < p0.mTotalNumPoints; i++) //original points
-		{
-			points[i].resize(p0.mDimension);
-			for (u64 d = 0; d < p0.mDimension; d++)
-				points[i][d] = (Word)(p0.mSharePoint[i][d].mArithShare + p1.mSharePoint[i][d].mArithShare);
-		}
-
-
-		//compute cluster
-		for (u64 k = 0; k < p0.mNumCluster; k++) //original cluster
-		{
-			clusters[k].resize(p0.mDimension);
-			for (u64 d = 0; d < p0.mDimension; d++)
-				clusters[k][d] = (Word)(p0.mShareCluster[k][d] + p1.mShareCluster[k][d]);
-		}
-
-		//for (u64 idxIter = 0; idxIter < numInteration; idxIter++)
-		bool stopLoop = false;
-		u64 iterLoop = 1;
-		while(!stopLoop)
-		{
-			//compute dist
-			for (u64 i = 0; i < p0.mTotalNumPoints; i++) //original points
-			{
-				eDists[i].resize(p0.mTotalNumPoints, 0);
-				for (u64 k = 0; k < p0.mNumCluster; k++) //original cluster
-				{
-					for (u64 d = 0; d < p0.mDimension; d++)
-					{
-						iWord diff = signExtend((points[i][d] - clusters[k][d]), p0.mLenMod);
-						eDists[i][k] = signExtend((eDists[i][k] + (iWord)pow(diff, 2)), p0.mLenMod);
-					}
-				}
-			}
-
-			//compute vecMin
-			for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-			{
-				vecIdxMin[i].resize(p0.mNumCluster);
-				iWord actualMin = eDists[i][0];
-				Word actualMinIdx = 0;
-				for (u64 k = 1; k < p0.mNumCluster; k++)
-				{
-					if (actualMin > eDists[i][k])
-					{
-						actualMin = eDists[i][k];
-						actualMinIdx = k;
-					}
-				}
-				vecIdxMin[i][actualMinIdx] = 1;
-				//std::cout << vecIdxMin[i] << "   vecIdxMin[i]\n";
-			}
-
-			//TODO: matrix transpose
-			for (u64 k = 0; k <p0.mNumCluster; k++)
-			{
-				vecIdxMinTranspose[k].resize(p0.mTotalNumPoints);
-				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-				{
-					vecIdxMinTranspose[k][i] = vecIdxMin[i][k];
-				}
-
-				//std::cout << vecIdxMinTranspose[k] << "   vecIdxMin[i]\n";
-			}
-
-			//compute nom/den
-			for (u64 k = 0; k <p0.mNumCluster; k++)
-			{
-				nomCluster[k].resize(p0.mDimension, 0);
-				for (u64 i = 0; i < p0.mTotalNumPoints; i++)
-				{
-					for (u64 d = 0; d < p0.mDimension; d++)
-					{
-						nomCluster[k][d] = signExtend(nomCluster[k][d] + vecIdxMinTranspose[k][i] * points[i][d], p0.mLenMod);
-
-					}
-					denCluster[k] = denCluster[k] + vecIdxMinTranspose[k][i];
-				}
-			}
-			//divide
-			for (u64 k = 0; k < p0.mNumCluster; k++)
-			{
-				newClusters[k].resize(p0.mDimension);
-				for (u64 d = 0; d < p0.mDimension; d++)
-				{
-					nomCluster[k][d] = nomCluster[k][d] % p0.mMod;
-					newClusters[k][d] = nomCluster[k][d] / denCluster[k];
-					//std::cout << clusters[k][d] <<  " = " << newClusters[k][d] <<" / " << denCluster[k]  <<  "   ==newClusters[k][d]\n";
-
-					if (denCluster[k] == 0)
-						std::cout << "   denCluster[k]==0=============================================\n";
-
-
-				}
-			}
-
-			
-			//check stop
-			
-
-			//compute cluster dist
-			u64 error = 0;
-			std::vector<std::vector<iWord>> clusterDists(p0.mNumCluster); //[k][k]
-			for (u64 k1 = 0; k1 < p0.mNumCluster; k1++) //original points
-			{
-				clusterDists[k1].resize(p0.mNumCluster);
-				for (u64 k = 0; k < p0.mNumCluster; k++) //original cluster
-				{
-					for (u64 d = 0; d < p0.mDimension; d++)
-					{
-						iWord diff = signExtend((newClusters[k1][d] - clusters[k][d]), p0.mLenMod);
-						clusterDists[k1][k] = signExtend((eDists[k1][k] + (iWord)pow(diff, 2)), p0.mLenMod);
-					}
-					error += (clusterDists[k1][k] % p0.mMod);
-				}
-			}
-			std::cout << "------------i=" << iterLoop << "e= " << error<< " ---------------\n";
-			iterLoop++;
-			if (error < 1000)
-				stopLoop = true;
-
-		}
-
+		ratio = computeAccuracy(points, myPlaintextClusters, expClusters);
+		std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, expClusters)\n";
+		ratio = computeAccuracy(points, myPlaintextClusters, myPlaintextClusters);
+		std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, myPlaintextClusters)\n";
 	}
-
 
 
 

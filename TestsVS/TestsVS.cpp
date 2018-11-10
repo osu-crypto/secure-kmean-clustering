@@ -72,6 +72,13 @@ namespace osuCrypto
 			testMinDist();
 		}
 
+		/*TEST_METHOD(plaintextTesttVS)
+		{
+			InitDebugPrinting();
+			plaintextClustering();
+		}*/
+
+
 		TEST_METHOD(AccurancyTesttVS)
 		{
 			InitDebugPrinting();

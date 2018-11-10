@@ -80,6 +80,7 @@
     <ClCompile Include="Tests.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Accuracy.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="DataShare.h" />
     <ClInclude Include="progCircuit.h" />
