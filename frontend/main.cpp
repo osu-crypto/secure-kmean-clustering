@@ -1945,6 +1945,99 @@ void computeAccurancy()
 #endif
 }
 
+
+void nPartiesClustering()
+{
+
+	u64 nParties = 4;
+	u64 inDimension = 2, inNumCluster = 15, inExMod = 30;
+
+	std::cout << "d=" << inDimension << " | "
+		<< "K= " << inNumCluster << " | "
+		//<< "n= " << p0.mTotalNumPoints << " | "
+		<< "l= " << inExMod << " | "
+		//<< "T= " << p0.mIteration 
+		<< "\t computeAccurancy\n";
+
+
+	std::vector<std::vector<Word>> allPoints;
+	loadTxtFile("./dataset/s1.txt", inDimension, allPoints, 2);
+
+	u64 lastSize = allPoints.size() -(nParties-1)*allPoints.size() / nParties;
+
+	std::vector<std::vector<std::vector<Word>>> partyPoints(nParties);
+
+	u64 iter = 0;
+	
+	for (u64 i = 0; i < allPoints.size(); i++) //#points
+	{
+		u64 ip = iter % nParties;
+		partyPoints[ip].push_back(allPoints[i]);
+		iter++;
+	}
+
+	u64 inClusterA = inNumCluster / 2;
+	u64 inClusterB = inNumCluster - inClusterA;
+
+
+	auto initClusterA = plaintextClustering(partyPoints[0], inClusterA, inExMod);
+	auto initClusterB = plaintextClustering(partyPoints[1], inClusterB, inExMod);
+	std::vector<std::vector<Word>> initClustersSecure(inNumCluster);
+
+	for (u64 k = 0; k < inNumCluster / 2; k++)
+	{
+		initClustersSecure[k].resize(inDimension);
+		for (u64 d = 0; d < inDimension; d++)
+			initClustersSecure[k][d] = initClusterA[k][d];
+	}
+
+	for (u64 k = inNumCluster / 2; k < inNumCluster; k++)
+	{
+		initClustersSecure[k].resize(inDimension);
+		for (u64 d = 0; d < inDimension; d++)
+			initClustersSecure[k][d] = initClusterB[k - inClusterA][d];
+	}
+
+
+	auto nClusters=secureTestClustering(partyPoints[0], partyPoints[1], inNumCluster, inExMod, initClustersSecure);
+
+
+	for (u64 p = 2; p < nParties; p++)
+	{
+		nClusters = secureTestClustering(partyPoints[0], partyPoints[p], inNumCluster, inExMod, nClusters);
+	}
+	
+	ifstream indata;
+	ofstream outdata;
+	string namefile = to_string(nParties) + "Cluster.csv";
+	outdata.open(namefile, ios::trunc);
+
+	outdata << "Centroids";
+
+	for (u64 k = 0; k < nClusters.size(); k++) //assign cluster
+	{
+		for (u64 d = 0; d < inDimension; d++)
+		{
+			outdata << "," << nClusters[k][d];
+		}
+		outdata << endl;
+	}
+
+	outdata << "Data";
+	for (u64 p = 0; p < nParties; p++)
+	{
+		for (u64 i = 0; i < partyPoints[p].size(); i++) //assign cluster
+		{
+			for (u64 d = 0; d < inDimension; d++)
+			{
+				outdata << "," << partyPoints[p][i][d];
+			}
+			outdata << ", party#" << p<< endl;
+
+		}
+	}
+}
+
 void unitTest()
 {
 	std::thread thrd = std::thread([&]() {
@@ -1971,8 +2064,8 @@ void unitTest()
 
 int main(int argc, char** argv)
 {
-
-	computeAccurancy();
+	//nPartiesClustering();
+	//computeAccurancy();
 
 	//generateDist_VecIdxMin();
 
@@ -1990,11 +2083,11 @@ int main(int argc, char** argv)
 		for (u64 d : { 2})
 		{
 			inDimension = d;
-			for (u64 powNum : {16})
+			for (u64 n : {10000,100000})
 			{
-				numberTestA = 1 << (powNum - 1);
-				numberTestB = 1 << (powNum - 1);
-				for (u64 K : {4,16})
+				numberTestA =n/2;
+				numberTestB = n / 2;
+				for (u64 K : {3,8})
 				{
 					inNumCluster = K;
 					for (u64 T : { 10, 20})
@@ -2002,12 +2095,12 @@ int main(int argc, char** argv)
 					{
 						numInteration = T;
 						//	boost::this_thread::sleep(boost::posix_time::seconds(2));
-							//party0_Dist();
+							party0_Dist();
 							//party0_Min();
 							//party0_Min_BaseLine();
 						//party0_DistNorm(1);
 						//party0_DistNorm(0);
-						party0_UpdateCluster();
+						//party0_UpdateCluster();
 					}
 				}
 			}
@@ -2020,11 +2113,11 @@ int main(int argc, char** argv)
 		for (u64 d : { 2})
 		{
 			inDimension = d;
-			for (u64 powNum : { 16})
+			for (u64 n : {10000, 100000})
 			{
-				numberTestA = 1 << (powNum - 1);
-				numberTestB = 1 << (powNum - 1);
-				for (u64 K : { 4,16})
+				numberTestA = n / 2;
+				numberTestB = n / 2;
+				for (u64 K : {3, 8})
 				{
 					inNumCluster = K;
 					for (u64 T : {10, 20})
@@ -2032,12 +2125,12 @@ int main(int argc, char** argv)
 					{
 						numInteration = T;
 						//boost::this_thread::sleep(boost::posix_time::seconds(2));
-						//party1_Dist();
+						party1_Dist();
 						//party1_Min();
 						//party1_Min_BaseLine();
 						//party1_DistNorm(1);
 						//party1_DistNorm(0);
-						party1_UpdateCluster();
+						//party1_UpdateCluster();
 
 					}
 				}
