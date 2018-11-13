@@ -3933,7 +3933,8 @@ namespace osuCrypto
 	void testAccurancy()
 	{
 
-		/*u64 inDimension = 2, inNumCluster = 15, inExMod = 20;
+		u64 inDimension = 2, inNumCluster = 15, inExMod = 20;
+		double ratio;
 
 		std::vector<std::vector<Word>> points;
 		loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, points, 2);
@@ -3962,22 +3963,18 @@ namespace osuCrypto
 
 		auto myPlaintextClusters = plaintextClustering(points, inNumCluster, inExMod, initClusters);
 
+		//auto mySecureClusters = secureTestClustering(inputA, inputB, inNumCluster, inExMod, initClusters);
 
-		auto mySecureClusters = secureTestClustering(inputA, inputB, inNumCluster, inExMod, initClusters);
+		//auto ratio = computeAccuracy(points, mySecureClusters, myPlaintextClusters);
+		//std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, myPlaintextClusters)\n";
 
-
-
-
-		auto ratio = computeAccuracy(points, mySecureClusters, myPlaintextClusters);
-		std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, myPlaintextClusters)\n";
-
-		ratio = computeAccuracy(points, mySecureClusters, expClusters);
-		std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, expClusters)\n";
+		//ratio = computeAccuracy(points, mySecureClusters, expClusters);
+		//std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, expClusters)\n";
 
 		ratio = computeAccuracy(points, myPlaintextClusters, expClusters);
 		std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, expClusters)\n";
 		ratio = computeAccuracy(points, myPlaintextClusters, myPlaintextClusters);
-		std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, myPlaintextClusters)\n"*/;
+		std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, myPlaintextClusters)\n";
 	}
 
 

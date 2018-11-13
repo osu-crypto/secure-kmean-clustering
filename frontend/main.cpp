@@ -1933,27 +1933,53 @@ void computeAccurancy()
 	}
 
 
-	auto myPlaintextClusters = plaintextClustering(points, inNumCluster, inExMod, initClustersSecure);
-	auto mySecureClusters = secureTestClustering(inputA, inputB, inNumCluster, inExMod, initClustersSecure);
-	secureTestClustering(inputA, inputB, inNumCluster, inExMod, initClusters);
+	auto myPlaintextClusters = plaintextClustering(points, inNumCluster, inExMod, initClusters);
+	auto mySecureClusters = secureTestClustering(inputA, inputB, inNumCluster, inExMod, initClusters);
+	//secureTestClustering(inputA, inputB, inNumCluster, inExMod, initClusters);
 
 
 	//auto mySecureClustersSign = secureTestClusteringSignExtend(inputA, inputB, inNumCluster, inExMod, initClusters);
 
-#if 1
+
 	double ratio;
 	//ratio = computeAccuracy(points, mySecureClusters, mySecureClustersSign);
 	//std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, mySecureClustersSign)\n";
 
-	ratio = computeAccuracy(points, mySecureClusters, myPlaintextClusters);
+
+	std::vector<std::vector<double>> myDSecureCluster(myPlaintextClusters.size());
+	for (u64 k = 0; k < myDSecureCluster.size(); k++)
+	{
+		myDSecureCluster[k].resize(inDimension);
+		for (u64 d = 0; d < inDimension; d++)
+			myDSecureCluster[k][d] = mySecureClusters[k][d];
+	}
+
+	ratio = computeAccuracy(points, myDSecureCluster, myPlaintextClusters);
 	std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, myPlaintextClusters)\n";
 
-	ratio = computeAccuracy(points, mySecureClusters, expClusters);
+	ratio = computeAccuracy(points, myDSecureCluster, expClusters);
 	std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, expClusters)\n";
 
 	ratio = computeAccuracy(points, myPlaintextClusters, expClusters);
 	std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, expClusters)\n";
-	ratio = computeAccuracy(points, myPlaintextClusters, myPlaintextClusters);
+
+	
+#if 0
+	ratio = computeAccuracy(points, mySecureClusters, myPlaintextClusters);
+	std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, myPlaintextClusters)\n";
+
+	ratio = computeAccuracy(points, myPlaintextClusters, expClusters);
+	std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, expClusters)\n";
+
+
+	std::vector<std::vector<double>> roundPlainTextCluster;
+	for (u64 k = 0; k < myPlaintextClusters.size(); k++)
+	{
+		roundPlainTextCluster.push_back(myPlaintextClusters[(k + 3) % myPlaintextClusters.size()]);
+	}
+
+
+	ratio = computeAccuracy(points, myPlaintextClusters, roundPlainTextCluster);
 	std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, myPlaintextClusters)\n";
 #endif
 }
@@ -2056,11 +2082,11 @@ void unitTest()
 	for (u64 d : { 2})
 	{
 		inDimension = d;
-		for (u64 n : {400})//, 100000
+		for (u64 n : {5000})//, 100000
 		{
 			numberTestA = n / 2;
 			numberTestB = n / 2;
-			for (u64 K : { 3})
+			for (u64 K : { 15})
 			{
 				inNumCluster = K;
 				//for (u64 T : { 10,20})
@@ -2097,7 +2123,7 @@ void unitTest()
 int main(int argc, char** argv)
 {
 	//nPartiesClustering();
-	//computeAccurancy();
+	computeAccurancy();
 
 	//generateDist_VecIdxMin();
 
@@ -2115,20 +2141,20 @@ int main(int argc, char** argv)
 		for (u64 d : { 2})
 		{
 			inDimension = d;
-			for (u64 n : {400})//, 100000
+			for (u64 n : {5000})//, 100000
 			{
 				numberTestA = n / 2;
 				numberTestB = n / 2;
-				for (u64 K : { 3})
+				for (u64 K : { 15})
 				{
 					inNumCluster = K;
 					//for (u64 T : { 10,20})
-					for (u64 T : { 40})
+					for (u64 T : { 1})
 					{
 						numInteration = T;
 						//	boost::this_thread::sleep(boost::posix_time::seconds(2));
-							party0_Dist();
-							//party0_Min();
+							//party0_Dist();
+							party0_Min();
 							//party0_Min_BaseLine();
 						//party0_DistNorm(1);
 						//party0_DistNorm(0);
@@ -2143,23 +2169,24 @@ int main(int argc, char** argv)
 
 		//party1_Dist();
 
+		//party0_Dist();
 		for (u64 d : { 2})
 		{
 			inDimension = d;
-			for (u64 n : {400})//, 100000
+			for (u64 n : {5000})//, 100000
 			{
 				numberTestA = n / 2;
 				numberTestB = n / 2;
-				for (u64 K : { 3})
+				for (u64 K : { 15})
 				{
 					inNumCluster = K;
 					//for (u64 T : { 10,20})
-					for (u64 T : { 40})
+					for (u64 T : { 1})
 					{
 						numInteration = T;
 						//boost::this_thread::sleep(boost::posix_time::seconds(2));
-						party1_Dist();
-						//party1_Min();
+						//party1_Dist();
+						party1_Min();
 						//party1_Min_BaseLine();
 						//party1_DistNorm(1);
 						//party1_DistNorm(0);

@@ -146,6 +146,36 @@ namespace osuCrypto
 		u64 inDimension = points[0].size();
 		u64 numCorrectCluster = 0;
 
+		//=================================Lable cluster================
+		std::vector<u64> myLableMap(myClusters.size());
+
+
+		for (u64 k1 = 0; k1 < myClusters.size(); k1++) //original cluster
+		{
+			double maxDistCC = 0; u64 maxIdxCC = 0;
+			for (u64 k = 0; k < expClusters.size(); k++) //for each myClusters[k1]
+			{
+				double distCC = 0;
+				for (u64 d = 0; d < inDimension; d++)
+				{
+					double diff = (myClusters[k1][d] - expClusters[k][d]); //dist(k1, all k)
+					distCC = (distCC + diff*diff);
+				}
+				if (k == 0)
+					maxDistCC = distCC;
+
+				if (maxDistCC > distCC)
+				{
+					maxDistCC = distCC;
+					maxIdxCC = k; //cluster idx
+				}
+			}
+			myLableMap[k1] = maxIdxCC; // map mylable to expcluster
+			std::cout << "myLableMap[" << k1 + 1 << "] = " << maxIdxCC + 1 << "\n ";
+
+		}
+
+
 		//compute dist
 		for (u64 i = 0; i < points.size(); i++) //original points
 		{
@@ -192,7 +222,7 @@ namespace osuCrypto
 					}
 				}
 			}
-			if (myIdK == expIdK)
+			if (myLableMap[myIdK] == expIdK)
 			{
 				numCorrectCluster++;
 				//std::cout << myIdK << " vs " << expIdK << "   expIdK\n ";
@@ -206,8 +236,12 @@ namespace osuCrypto
 		double ratio = (double)numCorrectCluster / (double)points.size();
 		//std::cout << ratio << " -----------------------\n ";
 
+
+
+
 		return ratio;
 	}
+
 
 
 	double computeAccuracy(std::vector<std::vector<Word>>& points, std::vector<std::vector<Word>>& myClusters, std::vector<std::vector<double>>& expClusters)
@@ -216,6 +250,36 @@ namespace osuCrypto
 		u64 inDimension = points[0].size();
 		u64 numCorrectCluster = 0;
 
+		//=================================Lable cluster================
+		std::vector<u64> myLableMap(myClusters.size());
+
+
+		for (u64 k1 = 0; k1 < myClusters.size(); k1++) //original cluster
+		{
+			double maxDistCC = 0; u64 maxIdxCC = 0;
+			for (u64 k = 0; k < expClusters.size(); k++) //for each myClusters[k1]
+			{
+				double distCC = 0;
+				for (u64 d = 0; d < inDimension; d++)
+				{
+					double diff = (myClusters[k1][d] - expClusters[k][d]); //dist(k1, all k)
+					distCC = (distCC + diff*diff);
+				}
+				if (k == 0)
+					maxDistCC = distCC;
+
+				if (maxDistCC > distCC)
+				{
+					maxDistCC = distCC;
+					maxIdxCC = k; //cluster idx
+				}
+			}
+			myLableMap[k1] = maxIdxCC; // map mylable to expcluster
+			std::cout << "myLableMap[" << k1 + 1 << "] = " << maxIdxCC + 1 << "\n ";
+
+		}
+
+
 		//compute dist
 		for (u64 i = 0; i < points.size(); i++) //original points
 		{
@@ -262,7 +326,7 @@ namespace osuCrypto
 					}
 				}
 			}
-			if (myIdK == expIdK)
+			if (myLableMap[myIdK] == expIdK)
 			{
 				numCorrectCluster++;
 				//std::cout << myIdK << " vs " << expIdK << "   expIdK\n ";
@@ -275,6 +339,9 @@ namespace osuCrypto
 
 		double ratio = (double)numCorrectCluster / (double)points.size();
 		//std::cout << ratio << " -----------------------\n ";
+
+
+
 
 		return ratio;
 	}
@@ -286,6 +353,36 @@ namespace osuCrypto
 		u64 inDimension = points[0].size();
 		u64 numCorrectCluster = 0;
 
+		//=================================Lable cluster================
+		std::vector<u64> myLableMap(myClusters.size());
+
+
+		for (u64 k1 = 0; k1 < myClusters.size(); k1++) //original cluster
+		{
+			double maxDistCC = 0; u64 maxIdxCC = 0;
+			for (u64 k = 0; k < expClusters.size(); k++) //for each myClusters[k1]
+			{
+				double distCC = 0;
+				for (u64 d = 0; d < inDimension; d++)
+				{
+					double diff = (myClusters[k1][d] - expClusters[k][d]); //dist(k1, all k)
+					distCC = (distCC + diff*diff);
+				}
+				if (k == 0)
+					maxDistCC = distCC;
+
+				if (maxDistCC > distCC)
+				{
+					maxDistCC = distCC;
+					maxIdxCC = k; //cluster idx
+				}
+			}
+			myLableMap[k1] = maxIdxCC; // map mylable to expcluster
+			std::cout << "myLableMap[" << k1 + 1 << "] = " << maxIdxCC + 1 << "\n ";
+
+		}
+
+
 		//compute dist
 		for (u64 i = 0; i < points.size(); i++) //original points
 		{
@@ -332,7 +429,7 @@ namespace osuCrypto
 					}
 				}
 			}
-			if (myIdK == expIdK)
+			if (myLableMap[myIdK] == expIdK)
 			{
 				numCorrectCluster++;
 				//std::cout << myIdK << " vs " << expIdK << "   expIdK\n ";
@@ -345,6 +442,9 @@ namespace osuCrypto
 
 		double ratio = (double)numCorrectCluster / (double)points.size();
 		//std::cout << ratio << " -----------------------\n ";
+
+
+
 
 		return ratio;
 	}
@@ -721,9 +821,6 @@ namespace osuCrypto
 		}
 		return myClusters;
 	}
-
-
-
 
 	std::vector<std::vector<Word>> secureTestClustering(std::vector<std::vector<Word>>& inputA, std::vector<std::vector<Word>>& inputB, u64 inNumCluster, u64 bitlength, std::vector<std::vector<Word>> initCluster)
 	{
