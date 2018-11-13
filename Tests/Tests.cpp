@@ -3971,10 +3971,10 @@ namespace osuCrypto
 		//ratio = computeAccuracy(points, mySecureClusters, expClusters);
 		//std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, expClusters)\n";
 
-		ratio = computeAccuracy(points, myPlaintextClusters, expClusters);
-		std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, expClusters)\n";
-		ratio = computeAccuracy(points, myPlaintextClusters, myPlaintextClusters);
-		std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, myPlaintextClusters)\n";
+		//ratio = computeAccuracy(points, myPlaintextClusters, expClusters);
+		//std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, expClusters)\n";
+		//ratio = computeAccuracy(points, myPlaintextClusters, myPlaintextClusters);
+		//std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, myPlaintextClusters)\n";
 	}
 
 
