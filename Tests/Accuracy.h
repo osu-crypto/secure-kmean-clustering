@@ -146,10 +146,11 @@ namespace osuCrypto
 		//=================================Lable cluster================
 		std::vector<u64> myLableMap(myClusters.size());
 
+		std::vector<u64> alreadyUsed;
 
 		for (u64 k1 = 0; k1 < myClusters.size(); k1++) //original cluster
 		{
-			double maxDistCC = 0; u64 maxIdxCC = 0;
+			double minDistCC = std::numeric_limits<double>::max(); u64 minIdxCC = 0;
 			for (u64 k = 0; k < expClusters.size(); k++) //for each myClusters[k1]
 			{
 				double distCC = 0;
@@ -158,18 +159,19 @@ namespace osuCrypto
 					double diff = (myClusters[k1][d] - expClusters[k][d]); //dist(k1, all k)
 					distCC = (distCC + diff*diff);
 				}
-				if (k == 0)
-					maxDistCC = distCC;
-
-				if (maxDistCC > distCC)
+				
+				if (minDistCC > distCC)
 				{
-					maxDistCC = distCC;
-					maxIdxCC = k; //cluster idx
+					//if(!(std::find(alreadyUsed.begin(), alreadyUsed.end(), k) != alreadyUsed.end()))
+					{
+						minDistCC = distCC;
+						minIdxCC = k; //cluster idx
+					}
 				}
 			}
-			myLableMap[k1] = maxIdxCC; // map mylable to expcluster
-			std::cout << "myLableMap[" << k1 + 1 << "] = " << maxIdxCC + 1 << "\n ";
-
+			myLableMap[k1] = minIdxCC; // map mylable to expcluster
+			std::cout << "myLableMap[" << k1 + 1 << "] = " << minIdxCC + 1 << "\n ";
+			alreadyUsed.push_back(minIdxCC);
 		}
 
 
