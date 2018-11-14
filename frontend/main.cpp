@@ -1876,7 +1876,7 @@ void computeAccurancy()
 {
 
 
-	u64 inDimension = 2, inNumCluster = 15, inExMod = 30;
+	u64 inDimension = 2, inNumCluster = 15, inExMod = 30; PRNG prng(ZeroBlock);
 
 	std::cout << "d=" << inDimension << " | "
 		<< "K= " << inNumCluster << " | "
@@ -1904,16 +1904,20 @@ void computeAccurancy()
 	
 	
 	std::vector<std::vector<double>> expClusters(inNumCluster);
-	std::vector<std::vector<Word>> initClusters(inNumCluster);
+	std::vector<std::vector<Word>> initPointClusters(inNumCluster);
+	std::vector<std::vector<Word>> initRandomClusters(inNumCluster);
 	std::vector<std::vector<Word>> initClustersSecure(inNumCluster);
 	for (u64 k = 0; k < inNumCluster; k++)
 	{
 		expClusters[k].resize(inDimension);
-		initClusters[k].resize(inDimension);
+		initPointClusters[k].resize(inDimension);
+		initRandomClusters[k].resize(inDimension);
 		for (u64 d = 0; d < inDimension; d++)
 		{
 			expClusters[k][d] = clusterDataLoad[k][d];
-			initClusters[k][d] = points[k][d];
+			u64 rndIdx = rand() % points.size();
+			initPointClusters[k][d] = points[rndIdx][d];
+			initRandomClusters[k][d] = prng.get<Word>()%(1<< (inExMod-10));
 		}
 	}
 
@@ -1933,12 +1937,12 @@ void computeAccurancy()
 	}
 
 
-	auto myPlaintextClusters = plaintextClustering(points, inNumCluster, inExMod, initClusters);
-	auto mySecureClusters = secureTestClustering(inputA, inputB, inNumCluster, inExMod, initClusters);
-	//secureTestClustering(inputA, inputB, inNumCluster, inExMod, initClusters);
+	auto myPlaintextClusters = plaintextClustering(points, inNumCluster, inExMod, initPointClusters);
+	auto mySecureClusters = secureTestClustering(inputA, inputB, inNumCluster, inExMod, initPointClusters);
+	//secureTestClustering(inputA, inputB, inNumCluster, inExMod, initPointClusters);
 
 
-	//auto mySecureClustersSign = secureTestClusteringSignExtend(inputA, inputB, inNumCluster, inExMod, initClusters);
+	//auto mySecureClustersSign = secureTestClusteringSignExtend(inputA, inputB, inNumCluster, inExMod, initPointClusters);
 
 
 	double ratio;
