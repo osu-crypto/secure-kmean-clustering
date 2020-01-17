@@ -1,0 +1,72 @@
+/scratch/setup-network status >> output_comprCryptoSub
+
+echo "======================================================="  >> output_comprCryptoSub
+
+./bin/frontend.exe -r 1 -n 8 -t 8  >> output_comprCryptoSub & ./bin/frontend.exe -r 0 -n 8 -t 8 >> output_comprCryptoSub
+sleep 10
+
+echo "================================="  >> output_comprCryptoSub
+
+./bin/frontend.exe -r 1 -n 8 -t 8  >> output_comprCryptoSub & ./bin/frontend.exe -r 0 -n 8 -t 8 >> output_comprCryptoSub
+sleep 10
+
+echo "======================================================="  >> output_comprCryptoSub
+echo "======================================================="  >> output_comprCryptoSub
+
+
+./bin/frontend.exe -r 1 -n 10 -t 8  >> output_comprCryptoSub & ./bin/frontend.exe -r 0 -n 10 -t 8 >> output_comprCryptoSub
+sleep 10
+
+echo "================================="  >> output_comprCryptoSub
+
+./bin/frontend.exe -r 1 -n 10 -t 8  >> output_comprCryptoSub & ./bin/frontend.exe -r 0 -n 10 -t 8 >> output_comprCryptoSub
+sleep 10
+
+
+
+echo "======================================================="  >> output_comprCryptoSub
+echo "======================================================="  >> output_comprCryptoSub
+
+./bin/frontend.exe -r 1 -n 12 -t 8  >> output_comprCryptoSub & ./bin/frontend.exe -r 0 -n 12 -t 8 >> output_comprCryptoSub
+sleep 10
+
+echo "================================="  >> output_comprCryptoSub
+
+./bin/frontend.exe -r 1 -n 12 -t 8  >> output_comprCryptoSub & ./bin/frontend.exe -r 0 -n 12 -t 8 >> output_comprCryptoSub
+sleep 10
+
+echo "======================================================="  >> output_comprCryptoSub
+echo "======================================================="  >> output_comprCryptoSub
+
+./bin/frontend.exe -r 1 -n 14 -t 8  >> output_comprCryptoSub & ./bin/frontend.exe -r 0 -n 14 -t 8 >> output_comprCryptoSub
+sleep 10
+
+echo "================================="  >> output_comprCryptoSub
+
+./bin/frontend.exe -r 1 -n 14 -t 8  >> output_comprCryptoSub & ./bin/frontend.exe -r 0 -n 14 -t 8 >> output_comprCryptoSub
+sleep 10
+
+
+echo "======================================================="  >> output_comprCryptoSub
+echo "======================================================="  >> output_comprCryptoSub
+
+./bin/frontend.exe -r 1 -n 16 -t 8  >> output_comprCryptoSub & ./bin/frontend.exe -r 0 -n 16 -t 8 >> output_comprCryptoSub
+sleep 10
+
+echo "================================="  >> output_comprCryptoSub
+
+./bin/frontend.exe -r 1 -n 16 -t 8  >> output_comprCryptoSub & ./bin/frontend.exe -r 0 -n 16 -t 8 >> output_comprCryptoSub
+sleep 10
+
+echo "======================================================="  >> output_comprCryptoSub
+echo "======================================================="  >> output_comprCryptoSub
+
+./bin/frontend.exe -r 1 -n 18 -t 8  >> output_comprCryptoSub & ./bin/frontend.exe -r 0 -n 18 -t 8 >> output_comprCryptoSub
+sleep 10
+
+echo "================================="  >> output_comprCryptoSub
+
+./bin/frontend.exe -r 1 -n 18 -t 8  >> output_comprCryptoSub & ./bin/frontend.exe -r 0 -n 18 -t 8 >> output_comprCryptoSub
+sleep 10
+
+

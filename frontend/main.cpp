@@ -54,7 +54,7 @@ using namespace osuCrypto;
 
 int securityParams = 128;
 int inDimension = 2;
-int inExMod = 31;
+int inExMod = 16;
 u64 inNumCluster = 4;
 u64 numberTestA = 1 << 5;
 u64 numberTestB = 1 << 5;
@@ -2127,7 +2127,7 @@ void unitTest()
 int main(int argc, char** argv)
 {
 	//nPartiesClustering();
-	computeAccurancy();
+	//computeAccurancy();
 
 	//generateDist_VecIdxMin();
 
@@ -2142,23 +2142,23 @@ int main(int argc, char** argv)
 	else if (argc == 3 && argv[1][0] == '-' && argv[1][1] == 'r' && atoi(argv[2]) == 0) {
 
 		//party0_Dist();
-		for (u64 d : { 2})
+		for (u64 d : { 96})
 		{
 			inDimension = d;
-			for (u64 n : {5000})//, 100000
+			for (u64 n : {10000})//, 100000
 			{
 				numberTestA = n / 2;
 				numberTestB = n / 2;
-				for (u64 K : { 15})
+				for (u64 K : { 3})
 				{
 					inNumCluster = K;
 					//for (u64 T : { 10,20})
-					for (u64 T : { 1})
+					for (u64 T : { 10})
 					{
 						numInteration = T;
 						//	boost::this_thread::sleep(boost::posix_time::seconds(2));
-							//party0_Dist();
-							party0_Min();
+							party0_Dist();
+							//party0_Min();
 							//party0_Min_BaseLine();
 						//party0_DistNorm(1);
 						//party0_DistNorm(0);
@@ -2174,23 +2174,23 @@ int main(int argc, char** argv)
 		//party1_Dist();
 
 		//party0_Dist();
-		for (u64 d : { 2})
+		for (u64 d : { 96})
 		{
 			inDimension = d;
-			for (u64 n : {5000})//, 100000
+			for (u64 n : {10000})//, 100000
 			{
 				numberTestA = n / 2;
 				numberTestB = n / 2;
-				for (u64 K : { 15})
+				for (u64 K : { 3})
 				{
 					inNumCluster = K;
 					//for (u64 T : { 10,20})
-					for (u64 T : { 1})
+					for (u64 T : { 10})
 					{
 						numInteration = T;
 						//boost::this_thread::sleep(boost::posix_time::seconds(2));
-						//party1_Dist();
-						party1_Min();
+						party1_Dist();
+						//party1_Min();
 						//party1_Min_BaseLine();
 						//party1_DistNorm(1);
 						//party1_DistNorm(0);

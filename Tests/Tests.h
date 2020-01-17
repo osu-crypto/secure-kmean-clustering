@@ -20,7 +20,8 @@ namespace osuCrypto
 	//void plaintextClustering();
 	void testAccurancy();
 	//void testDecAES();
-	
+	void testAccurancy_new();
+
 	
 	void testUpdateCluster();
 }

@@ -48,6 +48,97 @@ using namespace osuCrypto;
 namespace osuCrypto
 {
 
+	void loadTxtFile(const std::string& fileName, int mDimension, std::vector<std::vector<u64>>& input, std::vector<u64>& cluster)
+	{
+		std::ifstream inFile;
+		inFile.open(fileName, std::ios::in);
+
+		if (inFile.is_open() == false)
+		{
+			std::cout << "failed to open:\n     " << fileName << std::endl;
+			throw std::runtime_error(LOCATION);
+		}
+
+		std::string line;
+
+		//int iter = 0;
+		while (getline(inFile, line))
+		{
+			boost::char_separator<char> sep{ "," };
+			boost::tokenizer<boost::char_separator<char>> tokens(line, sep);
+			std::vector<std::string> results(tokens.begin(), tokens.end());
+
+		/*	std::cout << line << "\n";
+			for (size_t i = 0; i < results.size(); i++)
+				std::cout << results[i] << " ";*/
+
+
+			std::vector<u64> idata(mDimension);
+
+			if (mDimension != results.size()-1)
+			{
+				std::cout << "inDimension!= results.size()" << results.size() << std::endl;
+				throw std::runtime_error(LOCATION);
+			}
+
+			for (size_t i = 0; i < results.size() - 1; i++)
+			{
+			
+				idata[i] = round((stof(results[i]) + 10) * pow(10, 4));
+				//std::cout << idata[i] << "\n";
+				//idata[i] = stof(results[i]) * pow(10, 6);
+			}
+			cluster.push_back(stoi(results[results.size() - 1]));
+			input.push_back(idata);
+		}
+	}
+
+
+	void loadTxtFile(const std::string& fileName, int mDimension, std::vector<std::vector<u64>>& input)
+	{
+		std::ifstream inFile;
+		inFile.open(fileName, std::ios::in);
+
+		if (inFile.is_open() == false)
+		{
+			std::cout << "failed to open:\n     " << fileName << std::endl;
+			throw std::runtime_error(LOCATION);
+		}
+
+		std::string line;
+
+		//int iter = 0;
+		while (getline(inFile, line))
+		{
+			boost::tokenizer<boost::char_separator<char>> tokens(line, boost::char_separator<char>());
+			std::vector<std::string> results(tokens.begin(), tokens.end());
+
+			/*	std::cout << line << "\n";
+				for (size_t i = 0; i < results.size(); i++)
+					std::cout << results[i] << " ";*/
+
+
+			std::vector<u64> idata(mDimension);
+
+			if (mDimension != results.size())
+			{
+				std::cout << "inDimension!= results.size()" << results.size() << std::endl;
+				throw std::runtime_error(LOCATION);
+			}
+
+			for (size_t i = 0; i < results.size(); i++)
+			{
+
+				//idata[i] = round((stof(results[i]) + 10) * pow(10, 6));
+				//std::cout << idata[i] << "\n";
+				idata[i] = stoi(results[i]);// *pow(10, 6);
+				//std::cout << idata[i] << "\n";
+			}
+			input.push_back(idata);
+		}
+	}
+
+
 	void loadTxtFile(const std::string & fileName, int mDimension, std::vector<std::vector<u64>>& inputA, std::vector<std::vector<u64>>& inputB)
 	{
 		std::ifstream inFile;
@@ -241,6 +332,20 @@ namespace osuCrypto
 		return ratio;
 	}
 	
+	double computeAccuracy(std::vector<std::vector<Word>>& points, std::vector<std::vector<Word>>& myClusters, std::vector<std::vector<double>>& expClusters)
+	{
+		std::vector<std::vector<double>> mydblClusters(myClusters.size());
+		for (u64 k = 0; k < myClusters.size(); k++)
+		{
+			mydblClusters[k].resize(myClusters[k].size());
+			for (u64 d = 0; d < myClusters[k].size(); d++)
+			{
+				mydblClusters[k][d] = myClusters[k][d];
+			}
+		}
+		return computeAccuracy(points, mydblClusters, expClusters);
+	}
+
 	std::vector<std::vector<Word>> secureTestClusteringSignExtend(std::vector<std::vector<Word>>& inputA, std::vector<std::vector<Word>>& inputB, u64 inNumCluster, u64 bitlength, std::vector<std::vector<Word>> initCluster)
 	{
 
@@ -705,7 +810,7 @@ namespace osuCrypto
 		thrd.join();
 		timer.setTimePoint("sharingInputsDone");
 
-#if 1
+#if 0
 		//check share
 		for (u64 i = 0; i < p0.mPoint.size(); i++)
 		{
@@ -797,10 +902,11 @@ namespace osuCrypto
 			u64 randIdx = std::rand() % p0.mNumCluster;
 
 			for (u64 d = 0; d < p0.mDimension; d++)
-				//points[i][d] = expectedCluster[randIdx] + p0.mPrng.get<Word>() % sizeChunk;;
+			{	//points[i][d] = expectedCluster[randIdx] + p0.mPrng.get<Word>() % sizeChunk;;
 				points[i][d] = (Word)(p0.mSharePoint[i][d].mArithShare + p1.mSharePoint[i][d].mArithShare);
-
-			//std::cout << points[i][0] << "   points[i][0]\n";
+				std::cout << points[i][d] << ", ";
+			}
+			std::cout <<  "\t\t  secure_points\n";
 
 		}
 
@@ -812,8 +918,11 @@ namespace osuCrypto
 		{
 			myClusters[k].resize(p0.mDimension);
 			for (u64 d = 0; d < p0.mDimension; d++)
-				myClusters[k][d] = (p0.mShareCluster[k][d] + p1.mShareCluster[k][d]);
-			std::cout << myClusters[k][0] << "   myClusters[i][0]\n";
+			{
+				myClusters[k][d] = initCluster[k][d];// (p0.mShareCluster[k][d] + p1.mShareCluster[k][d]);
+				std::cout << myClusters[k][d] << ", ";
+			}
+			std::cout << "\t\t  secure_myClusters\n";
 
 		}
 
@@ -841,7 +950,7 @@ namespace osuCrypto
 						//iWord diff = signExtend((points[i][d] - myClusters[k][d]), p0.mLenMod);
 						//eDists[i][k] = signExtend((eDists[i][k] + (iWord)pow(diff, 2)), p0.mLenMod);
 
-						i64 diff = (points[i][d] - myClusters[k][d]);
+						auto diff = (points[i][d] - myClusters[k][d]);
 						eDists[i][k] = (eDists[i][k] + diff*diff);
 					}
 				}
@@ -933,7 +1042,7 @@ namespace osuCrypto
 					//iWord diff = signExtend((newClusters[k1][d] - myClusters[k][d]), p0.mLenMod);
 					//clusterDists[k1][k] = signExtend((clusterDists[k1][k] + (iWord)pow(diff, 2)), p0.mLenMod);
 
-					i64 diff = ((newClusters[k][d] - myClusters[k][d]));
+					auto diff = ((newClusters[k][d] - myClusters[k][d]));
 					//std::cout << myClusters[k][d] << " = " << newClusters[k][d] << " vs " <<diff << "   diff\n";
 
 					clusterDists[k] = (clusterDists[k] + diff*diff);
@@ -985,7 +1094,7 @@ namespace osuCrypto
 		return myClusters;
 	}
 
-	std::vector<std::vector<double>> plaintextClustering(std::vector<std::vector<Word>>& points, u64 inNumCluster, u64 bitlength, std::vector<std::vector<Word>> initCluster)
+	std::vector<std::vector<double>> plaintextClustering_old(std::vector<std::vector<Word>>& points, u64 inNumCluster, u64 bitlength, std::vector<std::vector<Word>> initCluster)
 	{
 
 		int inDimension = points[0].size();
@@ -1154,7 +1263,7 @@ namespace osuCrypto
 		return myClusters;
 	}
 
-	std::vector<std::vector<double>> plaintextClustering(std::vector<std::vector<Word>>& points, u64 inNumCluster, u64 bitlength)
+	std::vector<std::vector<double>> plaintextClustering_old(std::vector<std::vector<Word>>& points, u64 inNumCluster, u64 bitlength)
 	{
 
 		int inDimension = points[0].size();
@@ -1323,5 +1432,388 @@ namespace osuCrypto
 		return myClusters;
 	}
 
+	//===========new
 
+	std::vector<std::vector<double>> plaintextClustering(std::vector<std::vector<Word>>& points, u64 inNumCluster, std::vector<std::vector<Word>> initCluster)
+	{
+
+		int inDimension = points[0].size();
+		u64 numInteration = 2;
+		PRNG prng(ZeroBlock);
+
+		u64 inTotalPoint = points.size();
+
+		std::vector<std::vector<double>> myClusters(inNumCluster); //[k][d]
+		std::vector<u64> idxPointvsCluster(points.size()); //[k][d]
+
+																   //compute cluster
+
+
+		for (u64 k = 0; k < myClusters.size(); k++) //original cluster
+		{
+			myClusters[k].resize(inDimension);
+			for (u64 d = 0; d < inDimension; d++)
+				//myClusters[k][d] = clusterDataLoad[k][d];
+				//myClusters[k][d] = prng.get<Word>()%inMod;
+				myClusters[k][d] = initCluster[k][d];
+
+			//std::cout << myClusters[k][0] << "   myClusters[i][0]\n";
+
+		}
+
+
+		bool stopLoop = false;
+		u64 iterLoop = 1;
+		//while (!stopLoop)
+		for (u64 idxIter = 0; idxIter <15; idxIter++)
+		{
+			std::vector<std::vector<double>> newClusters(myClusters.size()); //[k][d]
+			std::vector<std::vector<double>> eDists(points.size()); //[i][k]
+			std::vector<std::vector<double>> nomCluster(myClusters.size());//[k][d]
+			std::vector<double> denCluster(myClusters.size(), 0);//[k]
+
+
+			for (u64 k = 0; k < myClusters.size(); k++)
+				nomCluster[k].resize(inDimension, 0);
+
+			//compute dist
+			for (u64 i = 0; i < points.size(); i++) //original points
+			{
+				eDists[i].resize(points.size(), 0);
+				for (u64 k = 0; k < myClusters.size(); k++) //original cluster
+				{
+					for (u64 d = 0; d < inDimension; d++)
+					{
+						auto diff = (points[i][d] - myClusters[k][d]);
+						eDists[i][k] = (eDists[i][k] + diff * diff);
+					}
+				}
+
+
+			}
+
+			//compute vecMin
+			for (u64 i = 0; i < points.size(); i++)
+			{
+				Word actualMin = eDists[i][0];
+				Word actualMinIdx = 0;
+				for (u64 k = 1; k < myClusters.size(); k++)
+				{
+					if (actualMin > eDists[i][k])
+					{
+						actualMin = eDists[i][k];
+						actualMinIdx = k; //cluster idx
+					}
+				}
+
+				for (u64 d = 0; d < inDimension; d++)
+				{
+					nomCluster[actualMinIdx][d] = (nomCluster[actualMinIdx][d] + points[i][d]);
+				}
+				denCluster[actualMinIdx]+=1.0;
+				idxPointvsCluster[i] = actualMinIdx;
+			}
+
+
+			//divide
+			for (u64 k = 0; k < myClusters.size(); k++)
+			{
+				newClusters[k].resize(inDimension);
+				for (u64 d = 0; d < inDimension; d++)
+				{
+					if (denCluster[k] == 0)
+					{
+						std::cout << "   denCluster[k]==0=============================================\n";
+						newClusters[k][d] = myClusters[k][d];
+					}
+					else
+					{
+						//newClusters[k][d] = (double)nomCluster[k][d] / (double)denCluster[k];
+						newClusters[k][d] = nomCluster[k][d] / (double)denCluster[k];
+						//std::cout << std::fixed << std::setprecision(2) << newClusters[k][d] << std::endl;
+
+						std::cout << std::fixed << std::setprecision(2) << myClusters[k][d] << " vs " << newClusters[k][d] << " = " << nomCluster[k][d] << " / " << denCluster[k] << "   newClusters[k][d]\n";
+					}
+				}
+			}
+
+
+			//check stop
+
+			//compute cluster dist
+			double error = 0;
+			std::vector<double> clusterDists(myClusters.size(), 0); //[k][k]
+
+			for (u64 k = 0; k < myClusters.size(); k++) //original cluster
+			{
+				for (u64 d = 0; d < inDimension; d++)
+				{
+					//iWord diff = signExtend((newClusters[k1][d] - myClusters[k][d]), p0.mLenMod);
+					//clusterDists[k1][k] = signExtend((clusterDists[k1][k] + (iWord)pow(diff, 2)), p0.mLenMod);
+
+					double diff = ((newClusters[k][d] - myClusters[k][d]));
+					//std::cout << myClusters[k][d] << " = " << newClusters[k][d] << " vs " <<diff << "   diff\n";
+
+					clusterDists[k] = (clusterDists[k] + diff * diff);
+				}
+				//	std::cout << clusterDists[k]<< "   clusterDists[k]\n";
+				error = error + (clusterDists[k]);
+			}
+
+			std::cout << "plaintext i=" << iterLoop << "e= " << error << "-----------------------------------------------------\n";
+			iterLoop++;
+			if (error < 1000)
+				stopLoop = true;
+			else
+				for (u64 k = 0; k < myClusters.size(); k++) //assign cluster
+				{
+					for (u64 d = 0; d < inDimension; d++)
+					{
+						myClusters[k][d] = newClusters[k][d];
+					}
+				}
+
+		}
+
+
+		ifstream indata;
+		ofstream outdata, outdatatxt;
+		outdata.open("PlainTextCluster.csv", ios::trunc);
+		outdatatxt.open("PlainTextCluster.txt", ios::trunc);
+
+		outdata << "Centroids";
+
+		for (u64 k = 0; k < myClusters.size(); k++) //assign cluster
+		{
+			for (u64 d = 0; d < inDimension; d++)
+			{
+				outdata << "," << myClusters[k][d];
+				
+			}
+			outdata << endl;
+		}
+
+		outdata << "Data";
+		for (u64 i = 0; i < points.size(); i++) //assign cluster
+		{
+			for (u64 d = 0; d < inDimension; d++)
+			{
+				outdata << "," << points[i][d];
+				outdatatxt <<  points[i][d] << ",";
+			}
+			outdatatxt << idxPointvsCluster[i];
+			outdatatxt << endl;
+			outdata << endl;
+		}
+
+		return myClusters;
+	}
+
+
+	std::vector<std::vector<Word>> secureClustering(std::vector<std::vector<Word>>& points, u64 inNumCluster, std::vector<std::vector<Word>> initCluster, u64 shift)
+	{
+		u64 shift10 = pow(10, shift);
+		int inDimension = points[0].size();
+		u64 numInteration = 2;
+		PRNG prng(ZeroBlock);
+
+		u64 inTotalPoint = points.size();
+
+		std::vector<std::vector<Word>> points_shift(points.size());
+		std::vector<std::vector<Word>> myClusters(inNumCluster); //[k][d]
+		std::vector<u64> idxPointvsCluster(points.size()); //[k][d]
+
+																   //compute cluster
+		for (u64 k = 0; k < points.size(); k++) //original cluster
+		{
+			points_shift[k].resize(inDimension);
+			for (u64 d = 0; d < inDimension; d++)
+				points_shift[k][d] = points[k][d] * shift10;
+		}
+
+		for (u64 k = 0; k < myClusters.size(); k++) //original cluster
+		{
+			myClusters[k].resize(inDimension);
+			for (u64 d = 0; d < inDimension; d++)
+				//myClusters[k][d] = clusterDataLoad[k][d];
+				//myClusters[k][d] = prng.get<Word>()%inMod;
+				myClusters[k][d] = initCluster[k][d]* shift10;
+
+			//std::cout << myClusters[k][0] << "   myClusters[i][0]\n";
+
+		}
+
+
+		bool stopLoop = false;
+		u64 iterLoop = 1;
+		//while (!stopLoop)
+		for (u64 idxIter = 0; idxIter < 15; idxIter++)
+		{
+			std::vector<std::vector<Word>> newClusters(myClusters.size()); //[k][d]
+			std::vector<std::vector<Word>> eDists(points.size()); //[i][k]
+			std::vector<std::vector<Word>> nomCluster(myClusters.size());//[k][d]
+			std::vector<Word> denCluster(myClusters.size(), 0);//[k]
+
+
+			for (u64 k = 0; k < myClusters.size(); k++)
+				nomCluster[k].resize(inDimension, 0);
+
+			//compute dist
+			for (u64 i = 0; i < points.size(); i++) //original points
+			{
+				eDists[i].resize(points.size(), 0);
+				for (u64 k = 0; k < myClusters.size(); k++) //original cluster
+				{
+					for (u64 d = 0; d < inDimension; d++)
+					{
+						auto diff = (points_shift[i][d] - myClusters[k][d]);
+						eDists[i][k] = (eDists[i][k] + diff * diff);
+					}
+				}
+
+
+			}
+
+			//compute vecMin
+			for (u64 i = 0; i < points.size(); i++)
+			{
+				Word actualMin = eDists[i][0];
+				Word actualMinIdx = 0;
+				for (u64 k = 1; k < myClusters.size(); k++)
+				{
+					if (actualMin > eDists[i][k])
+					{
+						actualMin = eDists[i][k];
+						actualMinIdx = k; //cluster idx
+					}
+				}
+
+				for (u64 d = 0; d < inDimension; d++)
+				{
+					nomCluster[actualMinIdx][d] = (nomCluster[actualMinIdx][d] + points_shift[i][d]);
+				}
+				denCluster[actualMinIdx]++;
+				idxPointvsCluster[i] = actualMinIdx;
+			}
+
+
+			//divide
+			for (u64 k = 0; k < myClusters.size(); k++)
+			{
+				newClusters[k].resize(inDimension);
+				for (u64 d = 0; d < inDimension; d++)
+				{
+					if (denCluster[k] == 0)
+					{
+						std::cout << "   denCluster[k]==0=============================================\n";
+						newClusters[k][d] = myClusters[k][d];
+					}
+					else
+					{
+						newClusters[k][d] = nomCluster[k][d] / denCluster[k];
+						std::cout << std::fixed << std::setprecision(2) << myClusters[k][d] << " vs " << newClusters[k][d] << " = " << nomCluster[k][d] << " / " << denCluster[k] << "   newClusters[k][d]\n";
+					}
+				}
+			}
+
+
+			//check stop
+
+			//compute cluster dist
+			double error = 0;
+			std::vector<Word> clusterDists(myClusters.size(), 0); //[k][k]
+
+			for (u64 k = 0; k < myClusters.size(); k++) //original cluster
+			{
+				for (u64 d = 0; d < inDimension; d++)
+				{
+					//iWord diff = signExtend((newClusters[k1][d] - myClusters[k][d]), p0.mLenMod);
+					//clusterDists[k1][k] = signExtend((clusterDists[k1][k] + (iWord)pow(diff, 2)), p0.mLenMod);
+
+					auto diff = ((newClusters[k][d] - myClusters[k][d]));
+					//std::cout << myClusters[k][d] << " = " << newClusters[k][d] << " vs " <<diff << "   diff\n";
+
+					clusterDists[k] = (clusterDists[k] + diff * diff);
+				}
+				//	std::cout << clusterDists[k]<< "   clusterDists[k]\n";
+				error = error + (clusterDists[k]);
+			}
+
+			std::cout << "secure i=" << iterLoop << "e= " << error << "-----------------------------------------------------\n";
+			iterLoop++;
+			if (error < 1000)
+				stopLoop = true;
+			else
+				for (u64 k = 0; k < myClusters.size(); k++) //assign cluster
+				{
+					for (u64 d = 0; d < inDimension; d++)
+					{
+						myClusters[k][d] = newClusters[k][d];
+					}
+				}
+
+		}
+
+
+		ifstream indata;
+		ofstream outdata, outdatatxt;
+		outdata.open("SecureCluster.csv", ios::trunc);
+		outdatatxt.open("SecureCluster.txt", ios::trunc);
+
+		outdata << "Centroids";
+
+		for (u64 k = 0; k < myClusters.size(); k++) //assign cluster
+		{
+			for (u64 d = 0; d < inDimension; d++)
+			{
+				outdata << "," << myClusters[k][d];
+
+			}
+			outdata << endl;
+		}
+
+		outdata << "Data";
+		for (u64 i = 0; i < points.size(); i++) //assign cluster
+		{
+			for (u64 d = 0; d < inDimension; d++)
+			{
+				outdata << "," << points[i][d];
+				outdatatxt << points[i][d] << ",";
+			}
+			outdatatxt << idxPointvsCluster[i];
+			outdatatxt << endl;
+			outdata << endl;
+		}
+
+		for (u64 k = 0; k < myClusters.size(); k++) //original cluster
+		{
+			for (u64 d = 0; d < inDimension; d++)
+				myClusters[k][d] = myClusters[k][d]/ shift10;
+		}
+
+		return myClusters;
+	}
+
+#if 0
+	double computeAccuracy(std::vector<std::vector<Word>>& points, std::vector<std::vector<double>> output, std::vector<std::vector<double>> expected)
+	{
+
+		for (u64 i = 0; i < points.size(); i++) //original points
+		{
+			eDists[i].resize(points.size(), 0);
+			for (u64 k = 0; k < myClusters.size(); k++) //original cluster
+			{
+				for (u64 d = 0; d < inDimension; d++)
+				{
+					auto diff = (points[i][d] - myClusters[k][d]);
+					eDists[i][k] = (eDists[i][k] + diff * diff);
+				}
+			}
+
+
+		}
+
+		return 0;
+	}
+#endif
 }

@@ -84,7 +84,12 @@ namespace osuCrypto
 			InitDebugPrinting();
 			testAccurancy();
 		}
-
+		TEST_METHOD(AccurancyNewTesttVS)
+		{
+			InitDebugPrinting();
+			testAccurancy_new();
+		}
+		
 		
 		TEST_METHOD(MinDistBaseLineVS)
 		{

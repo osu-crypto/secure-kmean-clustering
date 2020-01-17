@@ -432,6 +432,7 @@ namespace osuCrypto
 
 	}
 
+#if 0
 	void loadTxtFile(const std::string & fileName, int mDimension, std::vector<std::vector<u64>>& input)
 	{
 		std::ifstream inFile;
@@ -470,6 +471,7 @@ namespace osuCrypto
 			input.push_back(idata);
 		}
 	}
+#endif
 
 	void readData_test() {
 		int mDimension = 2;
@@ -3937,14 +3939,14 @@ namespace osuCrypto
 		double ratio;
 
 		std::vector<std::vector<Word>> points;
-		loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, points, 2);
+		loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, points);
 
 		std::vector<std::vector<Word>> inputA, inputB;
 		loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, inputA, inputB);
 
 
 		std::vector<std::vector<u64>> clusterDataLoad;
-		loadTxtFile("I:/kmean-impl/dataset/s1c.txt", inDimension, clusterDataLoad, 2);
+		loadTxtFile("I:/kmean-impl/dataset/s1c.txt", inDimension, clusterDataLoad);
 
 
 		std::vector<std::vector<double>> expClusters(inNumCluster);
@@ -3953,23 +3955,51 @@ namespace osuCrypto
 		{
 			expClusters[k].resize(inDimension);
 			initClusters[k].resize(inDimension);
+			u64 rand_idx = rand() % points.size();
 			for (u64 d = 0; d < inDimension; d++)
 			{
 				expClusters[k][d] = clusterDataLoad[k][d];
-				initClusters[k][d] = points[k][d];
+				initClusters[k][d] = points[rand_idx][d];
 			}
 		}
 
 
-		auto myPlaintextClusters = plaintextClustering(points, inNumCluster, inExMod, initClusters);
 
-		//auto mySecureClusters = secureTestClustering(inputA, inputB, inNumCluster, inExMod, initClusters);
+		//============print
+		for (size_t i = 0; i < expClusters.size(); i++)
+		{
+			for (u64 d = 0; d < inDimension; d++)
+				std::cout << expClusters[i][d] << " ,";
+			std::cout << "\t\t --cluster\n";
+		}
 
-		//auto ratio = computeAccuracy(points, mySecureClusters, myPlaintextClusters);
-		//std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, myPlaintextClusters)\n";
+		for (size_t i = 0; i < 10; i++)
+		{
+			for (u64 d = 0; d < inDimension; d++)
+				std::cout << points[i][d] << " ,";
+			std::cout << "\t\t--points\n";
 
-		//ratio = computeAccuracy(points, mySecureClusters, expClusters);
-		//std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, expClusters)\n";
+			for (u64 d = 0; d < inDimension; d++)
+				std::cout << inputA[i][d] << " ,";
+			std::cout << "\t\t--points A \n";
+
+			for (u64 d = 0; d < inDimension; d++)
+				std::cout << inputB[i][d] << " ,";
+			std::cout << "\t\t--points B\n";
+		}
+
+
+
+
+		auto mySecureClusters = secureTestClustering(inputA, inputB, inNumCluster, inExMod, initClusters);
+		auto myPlaintextClusters = plaintextClustering_old(points, inNumCluster, inExMod, initClusters);
+
+
+		ratio = computeAccuracy(points, myPlaintextClusters, expClusters);
+		std::cout << ratio << "\t computeAccuracy(points,  myPlaintextClusters, expectedCluster)\n";
+
+		ratio = computeAccuracy(points, mySecureClusters, expClusters);
+		std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, expClusters)\n";
 
 		//ratio = computeAccuracy(points, myPlaintextClusters, expClusters);
 		//std::cout << ratio << "\t computeAccuracy(points, myPlaintextClusters, expClusters)\n";
@@ -3980,6 +4010,105 @@ namespace osuCrypto
 
 
 
+	void testAccurancy_new()
+	{
+		double aa = 10, bb = 3;
+		double cc = 10/(double)3;
+		std::cout << "float" << cc <<"\n";
+
+		u64 inDimension = 2, inNumCluster = 15, inExMod = 20;
+
+		std::vector<std::vector<Word>> points;
+		std::vector<std::vector<double>> expectedCluster(inNumCluster);
+		std::vector<u64> cntClusters(inNumCluster);
+
+		for (u64 k = 0; k < inNumCluster; k++)
+		{
+			expectedCluster[k].resize(inDimension);
+			for (u64 d = 0; d < inDimension; d++)
+				expectedCluster[k][d] = 0;
+		}
+		std::vector<u64> idxClusters;
+		//loadTxtFile("I:/kmean-impl/dataset/sizes1.arff.txt", inDimension, points, idxClusters);
+		loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, points);
+
+		if (idxClusters.empty())
+		{
+			std::vector<std::vector<u64>> clusterDataLoad;
+			std::cout << "loading I:/kmean-impl/dataset/s1c.txt\n";
+			loadTxtFile("I:/kmean-impl/dataset/s1c.txt", inDimension, clusterDataLoad);
+
+			for (u64 k = 0; k < inNumCluster; k++)
+				for (u64 d = 0; d < inDimension; d++)
+					expectedCluster[k][d] = clusterDataLoad[k][d];
+		}
+		else
+		{
+			for (size_t i = 0; i < points.size(); i++)
+			{
+				//	std::cout << points[i][0] << ", " << points[i][1] << " , " << idxClusters[i] << "\n";
+				for (u64 k = 0; k < inNumCluster; k++)
+					if (idxClusters[i] == k)
+					{
+						cntClusters[k]++;
+						for (u64 d = 0; d < inDimension; d++)
+						{
+							expectedCluster[k][d] = +points[k][d];
+						}
+					}
+			}
+
+			for (u64 k = 0; k < inNumCluster; k++)
+				for (u64 d = 0; d < inDimension; d++)
+					expectedCluster[k][d] = expectedCluster[k][d] / (double)cntClusters[k]; //avg
+		}
+
+
+		std::vector<std::vector<Word>> initClusters(inNumCluster);
+		for (u64 k = 0; k < inNumCluster; k++)
+		{
+			initClusters[k].resize(inDimension);
+			u64 rand_idx = rand() % points.size();
+			for (u64 d = 0; d < inDimension; d++)
+			{
+				initClusters[k][d] = points[rand_idx][d];
+			}
+		}
+
+		//============print
+		for (size_t i = 0; i < expectedCluster.size(); i++)
+		{
+			for (u64 d = 0; d < inDimension; d++)
+				std::cout << expectedCluster[i][d] << " ,";
+			std::cout << "\t\t --cluster\n";
+		}
+
+		for (size_t i = 0; i < 10; i++)
+		{
+			for (u64 d = 0; d < inDimension; d++)
+				std::cout << points[i][d] << " ,";
+			std::cout << "\t\t--points\n";
+		}
+
+		
+
+		auto myPlaintextClusters = plaintextClustering(points, inNumCluster, initClusters);
+		auto mySecureClusters = secureClustering(points, inNumCluster, initClusters, 0);
+
+		auto ratio = computeAccuracy(points, expectedCluster, expectedCluster);
+		std::cout << ratio << "\t computeAccuracy(points,  expectedCluster, expectedCluster)\n";
+
+		ratio = computeAccuracy(points, myPlaintextClusters, expectedCluster);
+		std::cout << ratio << "\t computeAccuracy(points,  myPlaintextClusters, expectedCluster)\n";
+
+		ratio = computeAccuracy(points, mySecureClusters, expectedCluster);
+		std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, expectedCluster)\n";
+
+		ratio = computeAccuracy(points, mySecureClusters, myPlaintextClusters);
+		std::cout << ratio << "\t computeAccuracy(points, mySecureClusters, myPlaintextClusters)\n";
+
+
+	}
 #if 0
 
 	void testMinDistFirstLevel_old()
