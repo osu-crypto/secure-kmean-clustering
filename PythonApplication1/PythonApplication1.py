@@ -28,7 +28,7 @@ ax = fig.add_subplot(1, 1, 1)
 
 for data, color, group in zip(data, colors, groups):
     x, y = np.array(data).T
-    ax.scatter(x, y, alpha=0.8, c=color, edgecolors='none', s=30, label=group)
+    ax.scatter(x, y, alpha=0.8, c=color, edgecolors='none', s=30)
 
 plt.title('Matplot scatter plot')
 plt.legend(loc=2)

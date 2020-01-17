@@ -1110,15 +1110,18 @@ namespace osuCrypto
 																   //compute cluster
 
 
+
 		for (u64 k = 0; k < myClusters.size(); k++) //original cluster
 		{
 			myClusters[k].resize(inDimension);
 			for (u64 d = 0; d < inDimension; d++)
+			{
 				//myClusters[k][d] = clusterDataLoad[k][d];
 				//myClusters[k][d] = prng.get<Word>()%inMod;
 				myClusters[k][d] = initCluster[k][d];
-
-			//std::cout << myClusters[k][0] << "   myClusters[i][0]\n";
+				std::cout << myClusters[k][d] << ", ";
+			}
+			std::cout << "\t\t  plaintext_myClusters\n";
 
 		}
 

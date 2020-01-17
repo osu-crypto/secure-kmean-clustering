@@ -3970,7 +3970,11 @@ namespace osuCrypto
 		{
 			for (u64 d = 0; d < inDimension; d++)
 				std::cout << expClusters[i][d] << " ,";
-			std::cout << "\t\t --cluster\n";
+			std::cout << "\t\t --expClusters\n";
+
+			for (u64 d = 0; d < inDimension; d++)
+				std::cout << initClusters[i][d] << " ,";
+			std::cout << "\t\t --initClusters\n";
 		}
 
 		for (size_t i = 0; i < 10; i++)
@@ -4012,9 +4016,9 @@ namespace osuCrypto
 
 	void testAccurancy_new()
 	{
-		double aa = 10, bb = 3;
+		/*double aa = 10, bb = 3;
 		double cc = 10/(double)3;
-		std::cout << "float" << cc <<"\n";
+		std::cout << "float" << cc <<"\n";*/
 
 		u64 inDimension = 2, inNumCluster = 15, inExMod = 20;
 
@@ -4029,8 +4033,8 @@ namespace osuCrypto
 				expectedCluster[k][d] = 0;
 		}
 		std::vector<u64> idxClusters;
-		//loadTxtFile("I:/kmean-impl/dataset/sizes1.arff.txt", inDimension, points, idxClusters);
-		loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, points);
+		loadTxtFile("I:/kmean-impl/dataset/sizes1.arff.txt", inDimension, points, idxClusters);
+		//loadTxtFile("I:/kmean-impl/dataset/s1.txt", inDimension, points);
 
 		if (idxClusters.empty())
 		{
@@ -4071,7 +4075,7 @@ namespace osuCrypto
 			u64 rand_idx = rand() % points.size();
 			for (u64 d = 0; d < inDimension; d++)
 			{
-				initClusters[k][d] = points[rand_idx][d];
+				initClusters[k][d] = points[k][d];//points[rand_idx][d];
 			}
 		}
 
