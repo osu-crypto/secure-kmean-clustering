@@ -4020,7 +4020,7 @@ namespace osuCrypto
 		double cc = 10/(double)3;
 		std::cout << "float" << cc <<"\n";*/
 
-		u64 inDimension = 2, inNumCluster = 15, inExMod = 20;
+		u64 inDimension = 2, inNumCluster = 4, inExMod = 20;
 
 		std::vector<std::vector<Word>> points;
 		std::vector<std::vector<double>> expectedCluster(inNumCluster);
@@ -4075,7 +4075,7 @@ namespace osuCrypto
 			u64 rand_idx = rand() % points.size();
 			for (u64 d = 0; d < inDimension; d++)
 			{
-				initClusters[k][d] = points[k][d];//points[rand_idx][d];
+				initClusters[k][d] =points[rand_idx][d];
 			}
 		}
 
@@ -4084,7 +4084,11 @@ namespace osuCrypto
 		{
 			for (u64 d = 0; d < inDimension; d++)
 				std::cout << expectedCluster[i][d] << " ,";
-			std::cout << "\t\t --cluster\n";
+			std::cout << "\t\t --expectedCluster\n";
+
+			for (u64 d = 0; d < inDimension; d++)
+				std::cout << initClusters[i][d] << " ,";
+			std::cout << "\t\t --initClusters\n";
 		}
 
 		for (size_t i = 0; i < 10; i++)

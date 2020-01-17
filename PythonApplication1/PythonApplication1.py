@@ -9,7 +9,8 @@ import matplotlib.pyplot as plt
 
 # read from txt file
 data = [[], [], [],[]]
-with open('unitTest.txt', 'r') as f:
+#with open('SecureCluster_sizes1.arff.txt', 'r') as f:
+with open('raw_sizes1.arff.txt', 'r') as f:
     for line in f.readlines():
         line = line.strip()
         x, y, g = line.split(',')
@@ -19,17 +20,18 @@ with open('unitTest.txt', 'r') as f:
         data[g].append((x,y))
 
 # data = (g1, g2, g3)
-colors = ("red", "green", "blue","yellow")
+colors = ("red", "green", "blue","purple")
+#colors = ("blue", "purple", "red","green")
 groups = ("coffee", "tea", "water", "water")
 
 # Create plot
 fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1)
 
-for data, color, group in zip(data, colors, groups):
+for data, color in zip(data, colors):
     x, y = np.array(data).T
     ax.scatter(x, y, alpha=0.8, c=color, edgecolors='none', s=30)
 
-plt.title('Matplot scatter plot')
+plt.title('')
 plt.legend(loc=2)
 plt.show()

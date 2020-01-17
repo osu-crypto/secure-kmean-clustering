@@ -62,6 +62,10 @@ namespace osuCrypto
 		std::string line;
 
 		//int iter = 0;
+
+		ofstream  outdatatxt;
+		outdatatxt.open("raw_sizes1.arff.txt", ios::trunc);
+
 		while (getline(inFile, line))
 		{
 			boost::char_separator<char> sep{ "," };
@@ -84,12 +88,16 @@ namespace osuCrypto
 			for (size_t i = 0; i < results.size() - 1; i++)
 			{
 			
-				idata[i] = round((stof(results[i]) + 10) * pow(10, 4));
+				idata[i] = round((stof(results[i]) + 10) * pow(10, 3));
+				outdatatxt << idata[i] << ",";
+
 				//std::cout << idata[i] << "\n";
 				//idata[i] = stof(results[i]) * pow(10, 6);
 			}
 			cluster.push_back(stoi(results[results.size() - 1]));
 			input.push_back(idata);
+			outdatatxt << stoi(results[results.size() - 1]);
+			outdatatxt << endl;
 		}
 	}
 
@@ -1467,8 +1475,8 @@ namespace osuCrypto
 
 		bool stopLoop = false;
 		u64 iterLoop = 1;
-		//while (!stopLoop)
-		for (u64 idxIter = 0; idxIter <15; idxIter++)
+		while (!stopLoop)
+		//for (u64 idxIter = 0; idxIter <15; idxIter++)
 		{
 			std::vector<std::vector<double>> newClusters(myClusters.size()); //[k][d]
 			std::vector<std::vector<double>> eDists(points.size()); //[i][k]
@@ -1581,8 +1589,8 @@ namespace osuCrypto
 
 		ifstream indata;
 		ofstream outdata, outdatatxt;
-		outdata.open("PlainTextCluster.csv", ios::trunc);
-		outdatatxt.open("PlainTextCluster.txt", ios::trunc);
+		outdata.open("PlainTextCluster_new.csv", ios::trunc);
+		outdatatxt.open("PlainTextCluster_new.txt", ios::trunc);
 
 		outdata << "Centroids";
 
@@ -1649,8 +1657,8 @@ namespace osuCrypto
 
 		bool stopLoop = false;
 		u64 iterLoop = 1;
-		//while (!stopLoop)
-		for (u64 idxIter = 0; idxIter < 15; idxIter++)
+		while (!stopLoop)
+		//for (u64 idxIter = 0; idxIter < 15; idxIter++)
 		{
 			std::vector<std::vector<Word>> newClusters(myClusters.size()); //[k][d]
 			std::vector<std::vector<Word>> eDists(points.size()); //[i][k]
@@ -1760,8 +1768,8 @@ namespace osuCrypto
 
 		ifstream indata;
 		ofstream outdata, outdatatxt;
-		outdata.open("SecureCluster.csv", ios::trunc);
-		outdatatxt.open("SecureCluster.txt", ios::trunc);
+		outdata.open("SecureCluster_new.csv", ios::trunc);
+		outdatatxt.open("SecureCluster_new.txt", ios::trunc);
 
 		outdata << "Centroids";
 
