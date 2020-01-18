@@ -54,7 +54,7 @@ using namespace osuCrypto;
 
 int securityParams = 128;
 int inDimension = 2;
-int inExMod = 16;
+int inExMod = 31;
 u64 inNumCluster = 4;
 u64 numberTestA = 1 << 5;
 u64 numberTestB = 1 << 5;
@@ -1895,8 +1895,8 @@ void computeAccurancy()
 
 	u64 inClusterA = inNumCluster / 2;
 	u64 inClusterB = inNumCluster - inClusterA;
-	auto initClusterA = plaintextClustering(inputA, inClusterA, inExMod);
-	auto initClusterB= plaintextClustering(inputB, inClusterB, inExMod);
+	auto initClusterA = plaintextClustering_old(inputA, inClusterA, inExMod);
+	auto initClusterB= plaintextClustering_old(inputB, inClusterB, inExMod);
 
 
 	std::vector<std::vector<u64>> clusterDataLoad;
@@ -1937,7 +1937,7 @@ void computeAccurancy()
 	}
 
 
-	auto myPlaintextClusters = plaintextClustering(points, inNumCluster, inExMod, initPointClusters);
+	auto myPlaintextClusters = plaintextClustering_old(points, inNumCluster, inExMod, initPointClusters);
 	auto mySecureClusters = secureTestClustering(inputA, inputB, inNumCluster, inExMod, initPointClusters);
 	//secureTestClustering(inputA, inputB, inNumCluster, inExMod, initPointClusters);
 
@@ -2023,8 +2023,8 @@ void nPartiesClustering()
 	u64 inClusterB = inNumCluster - inClusterA;
 
 
-	auto initClusterA = plaintextClustering(partyPoints[0], inClusterA, inExMod);
-	auto initClusterB = plaintextClustering(partyPoints[1], inClusterB, inExMod);
+	auto initClusterA = plaintextClustering_old(partyPoints[0], inClusterA, inExMod);
+	auto initClusterB = plaintextClustering_old(partyPoints[1], inClusterB, inExMod);
 	std::vector<std::vector<Word>> initClustersSecure(inNumCluster);
 
 	for (u64 k = 0; k < inNumCluster / 2; k++)
@@ -2142,14 +2142,14 @@ int main(int argc, char** argv)
 	else if (argc == 3 && argv[1][0] == '-' && argv[1][1] == 'r' && atoi(argv[2]) == 0) {
 
 		//party0_Dist();
-		for (u64 d : { 96})
+		for (u64 d : { 2})
 		{
 			inDimension = d;
-			for (u64 n : {10000})//, 100000
+			for (u64 n : {5000})//, 100000
 			{
 				numberTestA = n / 2;
 				numberTestB = n / 2;
-				for (u64 K : { 3})
+				for (u64 K : { 8})
 				{
 					inNumCluster = K;
 					//for (u64 T : { 10,20})
@@ -2157,12 +2157,12 @@ int main(int argc, char** argv)
 					{
 						numInteration = T;
 						//	boost::this_thread::sleep(boost::posix_time::seconds(2));
-							party0_Dist();
-							//party0_Min();
-							//party0_Min_BaseLine();
+							//party0_Dist();
+						//party0_Min();
+						//party0_Min_BaseLine();
 						//party0_DistNorm(1);
 						//party0_DistNorm(0);
-						//party0_UpdateCluster();
+						party0_UpdateCluster();
 						//party0_Clustering();
 					}
 				}
@@ -2174,14 +2174,14 @@ int main(int argc, char** argv)
 		//party1_Dist();
 
 		//party0_Dist();
-		for (u64 d : { 96})
+		for (u64 d : { 2})
 		{
 			inDimension = d;
-			for (u64 n : {10000})//, 100000
+			for (u64 n : {5000})//, 100000
 			{
 				numberTestA = n / 2;
 				numberTestB = n / 2;
-				for (u64 K : { 3})
+				for (u64 K : { 8})
 				{
 					inNumCluster = K;
 					//for (u64 T : { 10,20})
@@ -2189,12 +2189,12 @@ int main(int argc, char** argv)
 					{
 						numInteration = T;
 						//boost::this_thread::sleep(boost::posix_time::seconds(2));
-						party1_Dist();
+						//party1_Dist();
 						//party1_Min();
 						//party1_Min_BaseLine();
 						//party1_DistNorm(1);
 						//party1_DistNorm(0);
-						//party1_UpdateCluster();
+						party1_UpdateCluster();
 						//party1_Clustering();
 
 

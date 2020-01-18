@@ -1,37 +1,26 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# # Create data
-# N = 60
-# g1 = (0.6 + 0.6 * np.random.rand(N), np.random.rand(N))
-# g2 = (0.4+0.3 * np.random.rand(N), 0.5*np.random.rand(N))
-# g3 = (0.3*np.random.rand(N),0.3*np.random.rand(N))
 
-# read from txt file
-data = [[], [], [],[]]
-#with open('SecureCluster_sizes1.arff.txt', 'r') as f:
-with open('raw_sizes1.arff.txt', 'r') as f:
-    for line in f.readlines():
-        line = line.strip()
-        x, y, g = line.split(',')
-        x = float(x)
-        y = float(y)
-        g = int(g)
-        data[g].append((x,y))
+N = 5
+menMeans = (20, 35, 30, 35, 27)
+womenMeans = (25, 32, 34, 20, 25)
+womenMeans1 = (25, 32, 34, 20, 25)
+menStd = (2, 3, 4, 1, 2)
+womenStd = (3, 5, 2, 3, 3)
+ind = np.arange(N)    # the x locations for the groups
+width = 0.35       # the width of the bars: can also be len(x) sequence
 
-# data = (g1, g2, g3)
-colors = ("red", "green", "blue","purple")
-#colors = ("blue", "purple", "red","green")
-groups = ("coffee", "tea", "water", "water")
+p1 = plt.bar(ind, menMeans, width, yerr=menStd)
+p2 = plt.bar(ind, womenMeans, width,
+             bottom=menMeans, yerr=womenStd)
+p3 = plt.bar(ind, womenMeans, width,
+             bottom=menMeans, yerr=womenMeans1)
 
-# Create plot
-fig = plt.figure()
-ax = fig.add_subplot(1, 1, 1)
+plt.ylabel('Scores')
+plt.title('Scores by group and gender')
+plt.xticks(ind, ('G1', 'G2', 'G3', 'G4', 'G5'))
+plt.yticks(np.arange(0, 81, 10))
+plt.legend((p1[0], p2[0], p3[0]), ('Men', 'Women','fsd'))
 
-for data, color in zip(data, colors):
-    x, y = np.array(data).T
-    ax.scatter(x, y, alpha=0.8, c=color, edgecolors='none', s=30)
-
-plt.title('')
-plt.legend(loc=2)
 plt.show()

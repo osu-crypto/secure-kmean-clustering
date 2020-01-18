@@ -1,0 +1,128 @@
+482.132 ,614.697 ,		 --expectedCluster
+166400 ,189525 ,		 --initClusters
+1119.88 ,922.445 ,		 --expectedCluster
+208882 ,125923 ,		 --initClusters
+936.81 ,1084.02 ,		 --expectedCluster
+188248 ,170449 ,		 --initClusters
+955.1 ,1141.63 ,		 --expectedCluster
+220278 ,69033 ,		 --initClusters
+192853 ,245879 ,		--points
+223977 ,184489 ,		--points
+187362 ,216803 ,		--points
+191020 ,228327 ,		--points
+222948 ,186737 ,		--points
+210270 ,206794 ,		--points
+180270 ,190369 ,		--points
+160486 ,207805 ,		--points
+159635 ,225684 ,		--points
+198647 ,218412 ,		--points
+166400.00 vs 125736.91 = 52935240.00 / 421.00   newClusters[k][d]
+189525.00 vs 185875.13 = 78253428.00 / 421.00   newClusters[k][d]
+208882.00 vs 161179.77 = 32397133.00 / 201.00   newClusters[k][d]
+125923.00 vs 105503.45 = 21206194.00 / 201.00   newClusters[k][d]
+188248.00 vs 209434.74 = 55919075.00 / 267.00   newClusters[k][d]
+170449.00 vs 189778.11 = 50670755.00 / 267.00   newClusters[k][d]
+220278.00 vs 185319.39 = 20570452.00 / 111.00   newClusters[k][d]
+69033.00 vs 76236.01 = 8462197.00 / 111.00   newClusters[k][d]
+plaintext i=1e= 6455749554.53-----------------------------------------------------
+125736.91 vs 102128.15 = 23489474.00 / 230.00   newClusters[k][d]
+185875.13 vs 195735.22 = 45019101.00 / 230.00   newClusters[k][d]
+161179.77 vs 123803.16 = 29836561.00 / 241.00   newClusters[k][d]
+105503.45 vs 101192.46 = 24387383.00 / 241.00   newClusters[k][d]
+209434.74 vs 204972.88 = 80554343.00 / 393.00   newClusters[k][d]
+189778.11 vs 196254.47 = 77128007.00 / 393.00   newClusters[k][d]
+185319.39 vs 205452.37 = 27941522.00 / 136.00   newClusters[k][d]
+76236.01 vs 88662.38 = 12058083.00 / 136.00   newClusters[k][d]
+plaintext i=2e= 2691793638.30-----------------------------------------------------
+102128.15 vs 99480.27 = 19697093.00 / 198.00   newClusters[k][d]
+195735.22 vs 201229.06 = 39843353.00 / 198.00   newClusters[k][d]
+123803.16 vs 106480.98 = 22786930.00 / 214.00   newClusters[k][d]
+101192.46 vs 99710.71 = 21338093.00 / 214.00   newClusters[k][d]
+204972.88 vs 203184.42 = 80664214.00 / 397.00   newClusters[k][d]
+196254.47 vs 198025.73 = 78616216.00 / 397.00   newClusters[k][d]
+205452.37 vs 202479.91 = 38673663.00 / 191.00   newClusters[k][d]
+88662.38 vs 98402.68 = 18794912.00 / 191.00   newClusters[k][d]
+plaintext i=3e= 449491872.19-----------------------------------------------------
+99480.27 vs 98656.43 = 19238003.00 / 195.00   newClusters[k][d]
+201229.06 vs 201309.65 = 39255382.00 / 195.00   newClusters[k][d]
+106480.98 vs 104102.26 = 21340964.00 / 205.00   newClusters[k][d]
+99710.71 vs 99563.87 = 20410593.00 / 205.00   newClusters[k][d]
+203184.42 vs 202762.68 = 80902309.00 / 399.00   newClusters[k][d]
+198025.73 vs 198148.05 = 79061073.00 / 399.00   newClusters[k][d]
+202479.91 vs 200699.62 = 40340624.00 / 201.00   newClusters[k][d]
+98402.68 vs 98833.46 = 19865526.00 / 201.00   newClusters[k][d]
+plaintext i=4e= 9912902.43-----------------------------------------------------
+98656.43 vs 98656.43 = 19238003.00 / 195.00   newClusters[k][d]
+201309.65 vs 201309.65 = 39255382.00 / 195.00   newClusters[k][d]
+104102.26 vs 104102.26 = 21340964.00 / 205.00   newClusters[k][d]
+99563.87 vs 99563.87 = 20410593.00 / 205.00   newClusters[k][d]
+202762.68 vs 202762.68 = 80902309.00 / 399.00   newClusters[k][d]
+198148.05 vs 198148.05 = 79061073.00 / 399.00   newClusters[k][d]
+200699.62 vs 200699.62 = 40340624.00 / 201.00   newClusters[k][d]
+98833.46 vs 98833.46 = 19865526.00 / 201.00   newClusters[k][d]
+plaintext i=5e= 0.00-----------------------------------------------------
+166400 vs 125736 = 52935240 / 421   newClusters[k][d]
+189525 vs 185875 = 78253428 / 421   newClusters[k][d]
+208882 vs 161179 = 32397133 / 201   newClusters[k][d]
+125923 vs 105503 = 21206194 / 201   newClusters[k][d]
+188248 vs 209434 = 55919075 / 267   newClusters[k][d]
+170449 vs 189778 = 50670755 / 267   newClusters[k][d]
+220278 vs 185319 = 20570452 / 111   newClusters[k][d]
+69033 vs 76236 = 8462197 / 111   newClusters[k][d]
+secure i=1e= 6455907732.00-----------------------------------------------------
+125736 vs 102128 = 23489474 / 230   newClusters[k][d]
+185875 vs 195735 = 45019101 / 230   newClusters[k][d]
+161179 vs 123803 = 29836561 / 241   newClusters[k][d]
+105503 vs 101192 = 24387383 / 241   newClusters[k][d]
+209434 vs 204972 = 80554343 / 393   newClusters[k][d]
+189778 vs 196254 = 77128007 / 393   newClusters[k][d]
+185319 vs 205452 = 27941522 / 136   newClusters[k][d]
+76236 vs 88662 = 12058083 / 136   newClusters[k][d]
+secure i=2e= 2691698546.00-----------------------------------------------------
+102128 vs 99480 = 19697093 / 198   newClusters[k][d]
+195735 vs 201229 = 39843353 / 198   newClusters[k][d]
+123803 vs 106480 = 22786930 / 214   newClusters[k][d]
+101192 vs 99710 = 21338093 / 214   newClusters[k][d]
+204972 vs 203184 = 80664214 / 397   newClusters[k][d]
+196254 vs 198025 = 78616216 / 397   newClusters[k][d]
+205452 vs 202479 = 38673663 / 191   newClusters[k][d]
+88662 vs 98402 = 18794912 / 191   newClusters[k][d]
+secure i=3e= 449518307.00-----------------------------------------------------
+99480 vs 98656 = 19238003 / 195   newClusters[k][d]
+201229 vs 201309 = 39255382 / 195   newClusters[k][d]
+106480 vs 104102 = 21340964 / 205   newClusters[k][d]
+99710 vs 99563 = 20410593 / 205   newClusters[k][d]
+203184 vs 202762 = 80902309 / 399   newClusters[k][d]
+198025 vs 198148 = 79061073 / 399   newClusters[k][d]
+202479 vs 200699 = 40340624 / 201   newClusters[k][d]
+98402 vs 98833 = 19865526 / 201   newClusters[k][d]
+secure i=4e= 9909243.00-----------------------------------------------------
+98656 vs 98656 = 19238003 / 195   newClusters[k][d]
+201309 vs 201309 = 39255382 / 195   newClusters[k][d]
+104102 vs 104102 = 21340964 / 205   newClusters[k][d]
+99563 vs 99563 = 20410593 / 205   newClusters[k][d]
+202762 vs 202762 = 80902309 / 399   newClusters[k][d]
+198148 vs 198148 = 79061073 / 399   newClusters[k][d]
+200699 vs 200699 = 40340624 / 201   newClusters[k][d]
+98833 vs 98833 = 19865526 / 201   newClusters[k][d]
+secure i=5e= 0.00-----------------------------------------------------
+myLableMap[1] = 1
+ myLableMap[2] = 2
+ myLableMap[3] = 3
+ myLableMap[4] = 4
+ 1.00	 computeAccuracy(points,  expectedCluster, expectedCluster)
+myLableMap[1] = 4
+ myLableMap[2] = 4
+ myLableMap[3] = 4
+ myLableMap[4] = 2
+ 0.95	 computeAccuracy(points,  myPlaintextClusters, expectedCluster)
+myLableMap[1] = 4
+ myLableMap[2] = 4
+ myLableMap[3] = 4
+ myLableMap[4] = 2
+ 0.95	 computeAccuracy(points, mySecureClusters, expectedCluster)
+myLableMap[1] = 1
+ myLableMap[2] = 2
+ myLableMap[3] = 3
+ myLableMap[4] = 4
+ 1.00	 computeAccuracy(points, mySecureClusters, myPlaintextClusters)
