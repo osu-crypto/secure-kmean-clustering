@@ -1,3 +1,14 @@
+Clone libOTe and Ivory-Runtime
+
+Compile both libraries.
+
+Cmake .
+
+make -j
+
+Execute the code: ./bin/frontend -r 0 & ./bin/frontend -r 1
+
+git clone --recursive <url>
 # install libraries for libOTe
 
 git submodule update --init --recursive
