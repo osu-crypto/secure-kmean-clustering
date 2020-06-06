@@ -6,7 +6,7 @@ Evaluating on a single server (`2 36-cores Intel Xeon CPU E5-2699 v3 @ 2.30GHz a
 ## Installations
 ### Clone project
 ```
-git clone --recursive git@github.com:osu-crypto/SpOT-PSI.git
+git clone --recursive git@github.com:osu-crypto/secure-kmean-clustering.git
 ```
 
 ### Required libraries
