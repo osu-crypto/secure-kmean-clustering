@@ -1,5 +1,5 @@
 # Practical Privacy-Preserving K-means Clustering
-This is the implementation of our [PETS 2020](https://petsymposium.org/cfp20.php)  paper: **Practical Privacy-Preserving K-means Clustering**[[ePrint](https://eprint.iacr.org/2019/1158]. 
+This is the implementation of our [PETS 2020](https://petsymposium.org/cfp20.php)  paper: **Practical Privacy-Preserving K-means Clustering**[[ePrint](https://eprint.iacr.org/2019/1158). 
 
 Evaluating on a single server (`2 36-cores Intel Xeon CPU E5-2699 v3 @ 2.30GHz and 256GB of RAM`) with a single thread per party,  our scheme requires  `18` minutes to cluster 100,000 data samples into 2 groups.
 
