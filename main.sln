@@ -1,12 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26430.13
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "frontend", "frontend\frontend.vcxproj", "{C81DC04B-A0F0-4B77-8DCE-C8190E629467}"
 	ProjectSection(ProjectDependencies) = postProject
 		{D159E2F9-226C-4B19-905E-CC1EA0EB013F} = {D159E2F9-226C-4B19-905E-CC1EA0EB013F}
-		{294C00B6-949E-4A45-AFA8-45D53590FC11} = {294C00B6-949E-4A45-AFA8-45D53590FC11}
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B9CAB0DB-C7A5-4180-A85A-F532BC550E59}"
@@ -22,13 +21,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libOTe", "libOTe\libOTe\lib
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cryptoTools", "libOTe\cryptoTools\cryptoTools\cryptoTools.vcxproj", "{B707F703-490A-447F-9737-C6A70B8D7A61}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tests", "Tests\Tests.vcxproj.vcxproj", "{294C00B6-949E-4A45-AFA8-45D53590FC11}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestsVS", "TestsVS\TestsVS.vcxproj", "{3EC91167-3C50-4271-988F-0F774FFA8ACC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ivory", "Ivory-Runtime\ivory\ivory.vcxproj", "{8C3AF3C3-2ABF-43A7-8B72-C674E64BD0D6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ivoryTests", "Ivory-Runtime\ivoryTests\ivoryTests.vcxproj", "{D3E2E0BC-D52A-494F-8C7A-C204C164EFD0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libCluster", "libCluster\libCluster.vcxproj.vcxproj", "{3009BA72-CE9A-404F-83F4-C72AD4DC0240}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,14 +63,6 @@ Global
 		{B707F703-490A-447F-9737-C6A70B8D7A61}.Release_DLLRT|x64.Build.0 = Release_DLLRT|x64
 		{B707F703-490A-447F-9737-C6A70B8D7A61}.Release|x64.ActiveCfg = Release|x64
 		{B707F703-490A-447F-9737-C6A70B8D7A61}.Release|x64.Build.0 = Release|x64
-		{294C00B6-949E-4A45-AFA8-45D53590FC11}.Debug_DLLRT|x64.ActiveCfg = Debug|x64
-		{294C00B6-949E-4A45-AFA8-45D53590FC11}.Debug_DLLRT|x64.Build.0 = Debug|x64
-		{294C00B6-949E-4A45-AFA8-45D53590FC11}.Debug|x64.ActiveCfg = Debug|x64
-		{294C00B6-949E-4A45-AFA8-45D53590FC11}.Debug|x64.Build.0 = Debug|x64
-		{294C00B6-949E-4A45-AFA8-45D53590FC11}.Release_DLLRT|x64.ActiveCfg = Release|x64
-		{294C00B6-949E-4A45-AFA8-45D53590FC11}.Release_DLLRT|x64.Build.0 = Release|x64
-		{294C00B6-949E-4A45-AFA8-45D53590FC11}.Release|x64.ActiveCfg = Release|x64
-		{294C00B6-949E-4A45-AFA8-45D53590FC11}.Release|x64.Build.0 = Release|x64
 		{3EC91167-3C50-4271-988F-0F774FFA8ACC}.Debug_DLLRT|x64.ActiveCfg = Debug|x64
 		{3EC91167-3C50-4271-988F-0F774FFA8ACC}.Debug_DLLRT|x64.Build.0 = Debug|x64
 		{3EC91167-3C50-4271-988F-0F774FFA8ACC}.Debug|x64.ActiveCfg = Debug|x64
@@ -96,6 +87,14 @@ Global
 		{D3E2E0BC-D52A-494F-8C7A-C204C164EFD0}.Release_DLLRT|x64.Build.0 = Release|x64
 		{D3E2E0BC-D52A-494F-8C7A-C204C164EFD0}.Release|x64.ActiveCfg = Release|x64
 		{D3E2E0BC-D52A-494F-8C7A-C204C164EFD0}.Release|x64.Build.0 = Release|x64
+		{3009BA72-CE9A-404F-83F4-C72AD4DC0240}.Debug_DLLRT|x64.ActiveCfg = Debug|x64
+		{3009BA72-CE9A-404F-83F4-C72AD4DC0240}.Debug_DLLRT|x64.Build.0 = Debug|x64
+		{3009BA72-CE9A-404F-83F4-C72AD4DC0240}.Debug|x64.ActiveCfg = Debug|x64
+		{3009BA72-CE9A-404F-83F4-C72AD4DC0240}.Debug|x64.Build.0 = Debug|x64
+		{3009BA72-CE9A-404F-83F4-C72AD4DC0240}.Release_DLLRT|x64.ActiveCfg = Release|x64
+		{3009BA72-CE9A-404F-83F4-C72AD4DC0240}.Release_DLLRT|x64.Build.0 = Release|x64
+		{3009BA72-CE9A-404F-83F4-C72AD4DC0240}.Release|x64.ActiveCfg = Release|x64
+		{3009BA72-CE9A-404F-83F4-C72AD4DC0240}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

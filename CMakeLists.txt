@@ -84,8 +84,8 @@ add_subdirectory(Ivory-Runtime/ivory)
 #############################################
 #               Build Tests                #
 #############################################
-include_directories(Tests)
-add_subdirectory(Tests)
+include_directories(libCluster)
+add_subdirectory(libCluster)
 
 #############################################
 #               Build ivoryTests                #

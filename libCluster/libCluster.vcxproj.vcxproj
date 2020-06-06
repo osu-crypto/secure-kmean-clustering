@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{294C00B6-949E-4A45-AFA8-45D53590FC11}</ProjectGuid>
+    <ProjectGuid>{3009BA72-CE9A-404F-83F4-C72AD4DC0240}</ProjectGuid>
     <RootNamespace>libOTe_Tests</RootNamespace>
-    <ProjectName>Tests</ProjectName>
+    <ProjectName>libCluster</ProjectName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
