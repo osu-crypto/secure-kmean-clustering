@@ -1,32 +1,49 @@
-Clone libOTe and Ivory-Runtime
+# Practical Privacy-Preserving K-means Clustering
+This is the implementation of our [PETS 2020](https://petsymposium.org/cfp20.php)  paper: **Practical Privacy-Preserving K-means Clustering**[[ePrint](https://eprint.iacr.org/2019/1158]. 
 
-Compile both libraries.
+Evaluating on a single server (`2 36-cores Intel Xeon CPU E5-2699 v3 @ 2.30GHz and 256GB of RAM`) with a single thread per party,  our scheme requires  `18` minutes to cluster 100,000 data samples into 2 groups.
 
-Cmake .
+## Installations
+### Clone project
+```
+git clone --recursive git@github.com:osu-crypto/SpOT-PSI.git
+```
 
-make -j
+### Required libraries
+ C++ compiler with C++14 support. There are several library dependencies including [`Boost`](https://sourceforge.net/projects/boost/), [`Miracl`](https://github.com/miracl/MIRACL), [`libOTe`](https://github.com/osu-crypto/libOTe), and [`Ivory-Runtime`](https://github.com/nitrieu/Ivory-Runtime/tree/e4bb8350e6ad6fdfa5a51994fff1db86d25527a0). For `libOTe`, it requires CPU supporting `PCLMUL`, `AES-NI`, and `SSE4.1`. Optional: `nasm` for improved SHA1 performance.   Our code has been tested on both Windows (Microsoft Visual Studio) and Linux. To install the required libraries: 
+  * For building boost, miracl and libOTe, please follow the more instructions at [`libOTe`](https://github.com/osu-crypto/libOTe). A quick try for linux: `cd libOTe/cryptoTools/thirdparty/linux/`, `bash all.get`, `cd` back to `libOTe`, `cmake .` and then `make -j`
+  * For Ivory-Runtime, `cd Ivory-Runtime/thirdparty/linux`, and `bash ./ntl.get`. Then, you can run `cmake -G"Unix Makefiles"` in Ivory-Runtime folder, and then `make -j`   
 
-Execute the code: ./bin/frontend -r 0 & ./bin/frontend -r 1
+NOTE: if you meet problem with NTL, try to do the following and read [`Building and using NTL with GMP`](https://www.shoup.net/ntl/doc/tour-gmp.html). If you see an error message `cmd.exe not found`, try to install https://www.nasm.us/
 
-git clone --recursive <url>
-# install libraries for libOTe
+### Building the Project
+After recursively cloning project from git `git clone --recursive `, 
+##### Windows:
+1. build cryptoTools,libOTe, Ivory-Runtime, libCluster, frontend projects in order.
+2. run frontend project
+ 
+##### Linux:
+1. make (requirements: `CMake`, `Make`, `g++` or similar)
+2. for test:
+	./bin/frontend.exe 
 
-git submodule update --init --recursive
 
-cd libOTe/cryptoTools/thirdparty/linux
+## Running the code
 
-bash all.get
+##### 1. Unit test:
+	./bin/frontend.exe -t
+	
+#### 2. Simulation: 
+Using two terminals,  Note that these parameters can be customized in the code (For now, the kmean parameters is hardcoding in the main.cpp file, we will add more flags soon)
 
+On the terminal 1, run:
 
-# build this project
-
-## copy libOTe config (don't use SimplestOT)
-`cp libOTe_config libOTe`
-
-cmake  -G "Unix Makefiles"
-
-make
-
-# execute
-
-./bin/frontend
+	./bin/frontend -r 0
+	
+On the terminal 2, run:
+	
+	./bin/frontend -r 1
+ 
+		
+## Help
+For any questions on building or running the library, please contact [`Ni Trieu`](http://people.oregonstate.edu/~trieun/) at trieun at oregonstate dot edu
