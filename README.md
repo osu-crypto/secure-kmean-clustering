@@ -34,7 +34,7 @@ After recursively cloning project from git `git clone --recursive `,
 	./bin/frontend.exe -t
 	
 #### 2. Simulation: 
-Using two terminals,  Note that these parameters can be customized in the code (For now, the kmean parameters is hardcoding in the main.cpp file, we will add more flags soon)
+Using two terminals, (For now, the kmean parameters are hardcoding in the main.cpp file, we will add more flags soon)
 
 On the terminal 1, run:
 
