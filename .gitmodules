@@ -4,6 +4,3 @@
 [submodule "libOTe"]
 	path = libOTe
 	url = git@github.com:osu-crypto/libOTe.git
-[submodule "Ivory-Runtime"]
-	path = Ivory-Runtime
-	url = git@github.com:nitrieu/Ivory-Runtime.git

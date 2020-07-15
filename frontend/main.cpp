@@ -2086,15 +2086,15 @@ void unitTest()
 	for (u64 d : { 2})
 	{
 		inDimension = d;
-		for (u64 n : {5000})//, 100000
+		for (u64 n : {1000})//, 100000
 		{
 			numberTestA = n / 2;
 			numberTestB = n / 2;
-			for (u64 K : { 15})
+			for (u64 K : { 4})
 			{
 				inNumCluster = K;
 				//for (u64 T : { 10,20})
-				for (u64 T : { 1})
+				for (u64 T : { 10})
 				{
 					numInteration = T;
 					generateDist_VecIdxMin();
@@ -2145,11 +2145,11 @@ int main(int argc, char** argv)
 		for (u64 d : { 2})
 		{
 			inDimension = d;
-			for (u64 n : {5000})//, 100000
+			for (u64 n : {1000})//, 100000
 			{
 				numberTestA = n / 2;
 				numberTestB = n / 2;
-				for (u64 K : { 8})
+				for (u64 K : { 2})
 				{
 					inNumCluster = K;
 					//for (u64 T : { 10,20})
@@ -2157,12 +2157,12 @@ int main(int argc, char** argv)
 					{
 						numInteration = T;
 						//	boost::this_thread::sleep(boost::posix_time::seconds(2));
-							//party0_Dist();
-						//party0_Min();
-						//party0_Min_BaseLine();
+						party0_Dist();
 						//party0_DistNorm(1);
 						//party0_DistNorm(0);
-						party0_UpdateCluster();
+						//party0_Min();
+						//party0_Min_BaseLine();
+						//party0_UpdateCluster();
 						//party0_Clustering();
 					}
 				}
@@ -2177,11 +2177,11 @@ int main(int argc, char** argv)
 		for (u64 d : { 2})
 		{
 			inDimension = d;
-			for (u64 n : {5000})//, 100000
+			for (u64 n : {1000})//, 100000
 			{
 				numberTestA = n / 2;
 				numberTestB = n / 2;
-				for (u64 K : { 8})
+				for (u64 K : { 2})
 				{
 					inNumCluster = K;
 					//for (u64 T : { 10,20})
@@ -2189,12 +2189,12 @@ int main(int argc, char** argv)
 					{
 						numInteration = T;
 						//boost::this_thread::sleep(boost::posix_time::seconds(2));
-						//party1_Dist();
-						//party1_Min();
-						//party1_Min_BaseLine();
+						party1_Dist();
 						//party1_DistNorm(1);
 						//party1_DistNorm(0);
-						party1_UpdateCluster();
+						//party1_Min();
+						//party1_Min_BaseLine();
+						//party1_UpdateCluster();
 						//party1_Clustering();
 
 
