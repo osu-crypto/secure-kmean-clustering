@@ -1339,7 +1339,6 @@ namespace osuCrypto
 
 	void DataShare::Print() {
 
-		std::cout << IoStream::lock;
 		std::cout << "===========Party " << mPartyIdx << " ==============\n";
 		std::cout << "d=" << mDimension << "\t mod=" << mMod << "\t mPoint[0][0]=" << mPoint[0][0] << "\n";
 		std::cout << "OT base 1: send[0][0]=" << mSendBaseMsg[0][0] << "\t send[0][1]=" << mSendBaseMsg[0][1] << "\n";
@@ -1361,6 +1360,7 @@ namespace osuCrypto
 		}
 
 #ifdef PRINTALL
+		std::cout << IoStream::lock;
 		std::cout << "-------------\nOT allkey base 1: send[0][0]=" << mSendAllOtKeys[0][0] << "\t send[0][1]=" << mSendAllOtKeys[0][1] << "\n";
 		std::cout << "OT allkey base 2: choice[0]=" << mChoiceAllBitSharePoints[0] << "\t recv[0]=" << mRecvAllOtKeys[0] << "\n";
 
@@ -1369,8 +1369,8 @@ namespace osuCrypto
 		std::cout << "-------------\nOT key base 1: send[0][0]=" << mSharePoint[0][0].sendOtKeys[0][0] << "\t send[0][1]=" << mSharePoint[0][0].sendOtKeys[0][1] << "\n";
 		std::cout << "OT key base 2: choice[0]=" << mSharePoint[0][0].mBitShare[0] << "\t recv[0]=" << mSharePoint[0][0].recvOtKeys[0] << "\n";
 
-#endif // PRINTALL
 		std::cout << IoStream::unlock;
+#endif // PRINTALL
 
 	}
 

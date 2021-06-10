@@ -53,7 +53,7 @@ endif()
 ## Miracl
 ###########################################################################
 
-set(Miracl_Dirs "${libOTe_Dirs}/cryptoTools/thirdparty/linux/miracl/")
+set(Miracl_Dirs "${libOTe_Dirs}/cryptoTools/thirdparty/miracl/")
 
 set(Miracl_Lib_Dirs "${Miracl_Dirs}/miracl/source/")
 find_library(MIRACL_LIB NAMES miracl  HINTS "${Miracl_Lib_Dirs}")
@@ -73,11 +73,11 @@ target_include_directories(ivory PUBLIC "${Miracl_Dirs}")
 ## Boost
 ###########################################################################
 
-set(BOOST_ROOT "${libOTe_Dirs}/cryptoTools/thirdparty/linux/boost/")
+set(BOOST_ROOT "${libOTe_Dirs}/cryptoTools/thirdparty/boost/")
 
 set(Boost_USE_STATIC_LIBS        ON) # only find static libs
 set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME     ON)
+set(Boost_USE_STATIC_RUNTIME     OFF)
 
 find_package(Boost COMPONENTS system thread)
 

@@ -730,7 +730,7 @@ namespace osuCrypto
 		}
 		else {
 			auto v = subGate(constB, aa, bb, gt);
-			return _mm_or_si128(ShGcRuntime::mPublicLabels[v / 3], (in[constA] & zeroAndAllOne[v > 0])) ^ (zeroAndAllOne[v == 1] & xorOffset);
+			return _mm_or_si128(ShGcRuntime::mPublicLabels[v / 3], (in[constA] & zeroAndAllOne[v > 0])) ^ (zeroAndAllOne[v == 1] & xorOffset).m128i();
 		}
 	}
 
@@ -808,11 +808,11 @@ namespace osuCrypto
 					else
 					{
 						// compute the hashs
-						hashs[0] = _mm_slli_epi64(a, 1) ^ tweaks[0];
-						hashs[1] = _mm_slli_epi64(b, 1) ^ tweaks[1];
+						hashs[0] = _mm_slli_epi64(a, 1) ^ tweaks[0].m128i();
+						hashs[1] = _mm_slli_epi64(b, 1) ^ tweaks[1].m128i();
 						mAesFixedKey.ecbEncTwoBlocks(hashs, temp);
-						hashs[0] = temp[0] ^ hashs[0];
-						hashs[1] = temp[1] ^ hashs[1];
+						hashs[0] = temp[0] ^ hashs[0].m128i();
+						hashs[1] = temp[1] ^ hashs[1].m128i();
 
 						// increment the tweaks
 						tweaks[0] = tweaks[0] + OneBlock;
@@ -969,15 +969,15 @@ namespace osuCrypto
 						cPermuteBit = ((aPermuteBit ^ aAlpha) && (bAlphaBPermute)) ^ cAlpha;
 
 						// compute the hashs of the wires as H(x) = AES_f( x * 2 ^ tweak) ^ (x * 2 ^ tweak)
-						hash[0] = _mm_slli_epi64(a, 1) ^ tweaks[0];
-						hash[1] = _mm_slli_epi64((a ^ mGlobalOffset), 1) ^ tweaks[0];
-						hash[2] = _mm_slli_epi64(b, 1) ^ tweaks[1];
-						hash[3] = _mm_slli_epi64((bNot), 1) ^ tweaks[1];
+						hash[0] = _mm_slli_epi64(a, 1) ^ tweaks[0].m128i();
+						hash[1] = _mm_slli_epi64((a ^ mGlobalOffset), 1) ^ tweaks[0].m128i();
+						hash[2] = _mm_slli_epi64(b, 1) ^ tweaks[1].m128i();
+						hash[3] = _mm_slli_epi64((bNot), 1) ^ tweaks[1].m128i();
 						mAesFixedKey.ecbEncFourBlocks(hash, temp);
-						hash[0] = hash[0] ^ temp[0]; // H( a0 )
-						hash[1] = hash[1] ^ temp[1]; // H( a1 )
-						hash[2] = hash[2] ^ temp[2]; // H( b0 )
-						hash[3] = hash[3] ^ temp[3]; // H( b1 )
+						hash[0] = hash[0] ^ temp[0].m128i(); // H( a0 )
+						hash[1] = hash[1] ^ temp[1].m128i(); // H( a1 )
+						hash[2] = hash[2] ^ temp[2].m128i(); // H( b0 )
+						hash[3] = hash[3] ^ temp[3].m128i(); // H( b1 )
 
 													 // increment the tweaks
 						tweaks[0] = tweaks[0] + OneBlock;

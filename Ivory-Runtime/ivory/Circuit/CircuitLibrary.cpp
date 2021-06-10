@@ -1,6 +1,6 @@
 #include "CircuitLibrary.h"
 #include "Gate.h"
-
+#include <string>
 namespace osuCrypto
 {
     CircuitLibrary::CircuitLibrary()
@@ -14,7 +14,7 @@ namespace osuCrypto
 
     BetaCircuit * osuCrypto::CircuitLibrary::int_int_add(u64 aSize, u64 bSize, u64 cSize)
     {
-        auto key = "add" + ToString(aSize) + "x" + ToString(bSize) + "x" + ToString(cSize);
+        auto key = "add" + std::to_string(aSize) + "x" + std::to_string(bSize) + "x" + std::to_string(cSize);
 
         auto iter = mCirMap.find(key);
 
@@ -48,7 +48,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::uint_uint_add(u64 aSize, u64 bSize, u64 cSize)
     {
-        auto key = "uintAdd" + ToString(aSize) + "x" + ToString(bSize) + "x" + ToString(cSize);
+        auto key = "uintAdd" + std::to_string(aSize) + "x" + std::to_string(bSize) + "x" + std::to_string(cSize);
 
         auto iter = mCirMap.find(key);
 
@@ -82,7 +82,7 @@ namespace osuCrypto
         i64 bVal,
         u64 cSize)
     {
-        auto key = "add" + ToString(aSize) + "xConst" + ToString(bSize) + "v" + ToString(bVal) + "x" + ToString(cSize);
+        auto key = "add" + std::to_string(aSize) + "xConst" + std::to_string(bSize) + "v" + std::to_string(bVal) + "x" + std::to_string(cSize);
 
         auto iter = mCirMap.find(key);
 
@@ -114,7 +114,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::int_int_subtract(u64 aSize, u64 bSize, u64 cSize)
     {
-        auto key = "subtract" + ToString(aSize) + "x" + ToString(bSize) + "x" + ToString(cSize);
+        auto key = "subtract" + std::to_string(aSize) + "x" + std::to_string(bSize) + "x" + std::to_string(cSize);
 
         auto iter = mCirMap.find(key);
 
@@ -145,7 +145,7 @@ namespace osuCrypto
     BetaCircuit * CircuitLibrary::uint_uint_subtract(u64 aSize, u64 bSize, u64 cSize)
     {
 
-        auto key = "uintSubtract" + ToString(aSize) + "x" + ToString(bSize) + "x" + ToString(cSize);
+        auto key = "uintSubtract" + std::to_string(aSize) + "x" + std::to_string(bSize) + "x" + std::to_string(cSize);
 
         auto iter = mCirMap.find(key);
 
@@ -175,7 +175,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::int_intConst_subtract(u64 aSize, u64 bSize, i64 bVal, u64 cSize)
     {
-        auto key = "subtract" + ToString(aSize) + "xConst" + ToString(bSize) + "v" + ToString(bVal) + "x" + ToString(cSize);
+        auto key = "subtract" + std::to_string(aSize) + "xConst" + std::to_string(bSize) + "v" + std::to_string(bVal) + "x" + std::to_string(cSize);
 
         auto iter = mCirMap.find(key);
 
@@ -207,7 +207,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::int_int_mult(u64 aSize, u64 bSize, u64 cSize)
     {
-        auto key = "mult" + ToString(aSize) + "x" + ToString(bSize) + "x" + ToString(cSize);
+        auto key = "mult" + std::to_string(aSize) + "x" + std::to_string(bSize) + "x" + std::to_string(cSize);
 
         auto iter = mCirMap.find(key);
 
@@ -236,7 +236,7 @@ namespace osuCrypto
     BetaCircuit * CircuitLibrary::int_int_div(u64 aSize, u64 bSize, u64 cSize)
     {
 
-        auto key = "div" + ToString(aSize) + "x" + ToString(bSize) + "x" + ToString(cSize);
+        auto key = "div" + std::to_string(aSize) + "x" + std::to_string(bSize) + "x" + std::to_string(cSize);
 
         auto iter = mCirMap.find(key);
 
@@ -265,7 +265,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::int_bitInvert(u64 aSize)
     {
-        auto key = "bitInvert" + ToString(aSize);
+        auto key = "bitInvert" + std::to_string(aSize);
 
         auto iter = mCirMap.find(key);
 
@@ -289,7 +289,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::int_int_bitwiseAnd(u64 aSize, u64 bSize, u64 cSize)
     {
-        auto key = "bitwiseAnd" + ToString(aSize) + "x" + ToString(bSize) + "x" + ToString(cSize);
+        auto key = "bitwiseAnd" + std::to_string(aSize) + "x" + std::to_string(bSize) + "x" + std::to_string(cSize);
 
         auto iter = mCirMap.find(key);
 
@@ -316,7 +316,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::int_int_bitwiseOr(u64 aSize, u64 bSize, u64 cSize)
     {
-        auto key = "bitwiseOr" + ToString(aSize) + "x" + ToString(bSize) + "x" + ToString(cSize);
+        auto key = "bitwiseOr" + std::to_string(aSize) + "x" + std::to_string(bSize) + "x" + std::to_string(cSize);
 
         auto iter = mCirMap.find(key);
 
@@ -343,7 +343,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::int_int_lt(u64 aSize, u64 bSize)
     {
-        auto key = "lessThan" + ToString(aSize) + "x" + ToString(bSize);
+        auto key = "lessThan" + std::to_string(aSize) + "x" + std::to_string(bSize);
 
         auto iter = mCirMap.find(key);
 
@@ -370,7 +370,7 @@ namespace osuCrypto
 
 	BetaCircuit* CircuitLibrary::int_int_equal(u64 aSize, u64 bSize)
 	{
-		auto key = "lessThan" + ToString(aSize) + "x" + ToString(bSize);
+		auto key = "lessThan" + std::to_string(aSize) + "x" + std::to_string(bSize);
 
 		auto iter = mCirMap.find(key);
 
@@ -396,7 +396,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::int_int_gteq(u64 aSize, u64 bSize)
     {
-        auto key = "greatThanEq" + ToString(aSize) + "x" + ToString(bSize);
+        auto key = "greatThanEq" + std::to_string(aSize) + "x" + std::to_string(bSize);
 
         auto iter = mCirMap.find(key);
 
@@ -422,7 +422,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::uint_uint_lt(u64 aSize, u64 bSize)
     {
-        auto key = "uintLessThan" + ToString(aSize) + "x" + ToString(bSize);
+        auto key = "uintLessThan" + std::to_string(aSize) + "x" + std::to_string(bSize);
         auto iter = mCirMap.find(key);
 
         if (iter == mCirMap.end())
@@ -447,7 +447,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::uint_uint_gteq(u64 aSize, u64 bSize)
     {
-        auto key = "uintGreatThanEq" + ToString(aSize) + "x" + ToString(bSize);
+        auto key = "uintGreatThanEq" + std::to_string(aSize) + "x" + std::to_string(bSize);
         auto iter = mCirMap.find(key);
 
         if (iter == mCirMap.end())
@@ -473,7 +473,7 @@ namespace osuCrypto
     BetaCircuit * CircuitLibrary::int_int_multiplex(u64 aSize)
     {
 
-        auto key = "multiplex" + ToString(aSize);
+        auto key = "multiplex" + std::to_string(aSize);
 
         auto iter = mCirMap.find(key);
 
@@ -503,7 +503,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::int_removeSign(u64 aSize)
     {
-        auto key = "removeSign" + ToString(aSize);
+        auto key = "removeSign" + std::to_string(aSize);
         auto iter = mCirMap.find(key);
         if (iter == mCirMap.end())
         {
@@ -527,7 +527,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::int_addSign(u64 aSize)
     {
-        auto key = "addSign" + ToString(aSize);
+        auto key = "addSign" + std::to_string(aSize);
         auto iter = mCirMap.find(key);
         if (iter == mCirMap.end())
         {
@@ -553,7 +553,7 @@ namespace osuCrypto
 
     BetaCircuit * CircuitLibrary::int_negate(u64 aSize)
     {
-        auto key = "negate" + ToString(aSize);
+        auto key = "negate" + std::to_string(aSize);
         auto iter = mCirMap.find(key);
         if (iter == mCirMap.end())
         {
@@ -1078,7 +1078,7 @@ namespace osuCrypto
 
             //std::cout << "iter[" << i << "]  geq  " << cd.mNonXorGateCount << "  (+" << (cd.mNonXorGateCount - prev) << ")  " << remTemp.mWires.size() << std::endl;
 
-            //cd.addPrint("rem[" + ToString(i) + "] = ");
+            //cd.addPrint("rem[" + std::to_string(i) + "] = ");
             //cd.addPrint(remainder);
             //cd.addPrint("\n");
             //cd.addPrint(remainder);
@@ -1101,9 +1101,9 @@ namespace osuCrypto
 
 
 
-            //cd.addPrint(" ( rem[" + ToString(i) + "] = ");
+            //cd.addPrint(" ( rem[" + std::to_string(i) + "] = ");
             //cd.addPrint(remainder);
-            //cd.addPrint(") - (sub[" + ToString(i) + "] = ");
+            //cd.addPrint(") - (sub[" + std::to_string(i) + "] = ");
             //cd.addPrint(sub);
 
 
